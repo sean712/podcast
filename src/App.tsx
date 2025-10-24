@@ -556,7 +556,7 @@ function App() {
                   <p className="text-gray-600 mb-3">
                     {selectedPodcast.publisher_name}
                   </p>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed break-words">
                     {selectedPodcast.podcast_description}
                   </p>
                 </div>
@@ -620,7 +620,7 @@ function App() {
                       {selectedEpisode.podcast.podcast_name}
                     </p>
                   )}
-                  <p className="text-gray-700 leading-relaxed line-clamp-3">
+                  <p className="text-gray-700 leading-relaxed line-clamp-3 break-words overflow-hidden">
                     {selectedEpisode.episode_description}
                   </p>
                 </div>
