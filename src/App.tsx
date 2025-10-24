@@ -18,6 +18,7 @@ import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type Transcr
 import { geocodeLocations, type GeocodedLocation } from './services/geocodingService';
 import { getCachedAnalysis, saveCachedAnalysis } from './services/episodeAnalysisCache';
 import { saveEpisode, unsaveEpisode, isEpisodeSaved } from './services/savedEpisodesService';
+import { stripHtml } from './utils/textUtils';
 import { useAuth } from './contexts/AuthContext';
 import type { Podcast, Episode } from './types/podcast';
 
@@ -557,7 +558,7 @@ function App() {
                     {selectedPodcast.publisher_name}
                   </p>
                   <p className="text-gray-700 leading-relaxed break-words">
-                    {selectedPodcast.podcast_description}
+                    {stripHtml(selectedPodcast.podcast_description)}
                   </p>
                 </div>
               </div>
@@ -621,7 +622,7 @@ function App() {
                     </p>
                   )}
                   <p className="text-gray-700 leading-relaxed line-clamp-3 break-words overflow-hidden">
-                    {selectedEpisode.episode_description}
+                    {stripHtml(selectedEpisode.episode_description)}
                   </p>
                 </div>
               </div>
