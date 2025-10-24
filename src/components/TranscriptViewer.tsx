@@ -18,6 +18,25 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
 
   const paragraphs = useMemo(() => {
     if (!transcript) return [];
+
+    // Check if transcript has timestamp format [HH:MM:SS.mmm --> HH:MM:SS.mmm]
+    const hasTimestamps = /\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]/.test(transcript);
+
+    if (hasTimestamps) {
+      // Split by timestamp pattern to create paragraphs
+      const segments = transcript.split(/(?=\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\])/);
+      return segments
+        .filter(s => s.trim())
+        .map(segment => {
+          // Remove timestamp and format speaker label
+          const withoutTimestamp = segment.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]\s*/, '');
+          const withFormattedSpeaker = withoutTimestamp.replace(/^\[SPEAKER_(\d+)\]\s*/, (match, num) => `Speaker ${num}: `);
+          return withFormattedSpeaker.trim();
+        })
+        .filter(p => p);
+    }
+
+    // Fallback to splitting by double newlines
     return transcript.split('\n\n').filter(p => p.trim());
   }, [transcript]);
 
@@ -154,11 +173,23 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
                   />
                 ))
               ) : (
-                paragraphs.map((p, i) => (
-                  <p key={i} className="mb-4 text-gray-700 leading-relaxed">
-                    {p}
-                  </p>
-                ))
+                paragraphs.map((p, i) => {
+                  const speakerMatch = p.match(/^(Speaker \d+):\s*/);
+                  if (speakerMatch) {
+                    const speaker = speakerMatch[1];
+                    const text = p.substring(speakerMatch[0].length);
+                    return (
+                      <p key={i} className="mb-4 text-gray-700 leading-relaxed">
+                        <span className="font-semibold text-emerald-600">{speaker}:</span> {text}
+                      </p>
+                    );
+                  }
+                  return (
+                    <p key={i} className="mb-4 text-gray-700 leading-relaxed">
+                      {p}
+                    </p>
+                  );
+                })
               )}
             </div>
             {showCreateNoteButton && (
