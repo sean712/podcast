@@ -267,7 +267,7 @@ function App() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Radio className="w-8 h-8 text-emerald-500" />
-                    <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Augmented Pods</span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">PodMapper</span>
                   </div>
                   <button
                     onClick={() => setShowAuthModal(true)}
@@ -406,7 +406,7 @@ function App() {
                     Ready to Explore Your Favorite Podcasts?
                   </h2>
                   <p className="text-xl text-slate-300 mb-8">
-                    Join thousands of podcast fans getting more from every episode with Augmented Pods.
+                    Join thousands of podcast fans getting more from every episode with PodMapper.
                   </p>
                   <button
                     onClick={() => setShowAuthModal(true)}
@@ -423,10 +423,10 @@ function App() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Radio className="w-6 h-6 text-emerald-500" />
-                    <span className="font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Augmented Pods</span>
+                    <span className="font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">PodMapper</span>
                   </div>
                   <p className="text-sm text-slate-400">
-                    © 2025 Augmented Pods. All rights reserved.
+                    © 2025 PodMapper. All rights reserved.
                   </p>
                 </div>
               </div>
@@ -457,7 +457,7 @@ function App() {
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <Radio className="w-8 h-8 text-emerald-500" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Augmented Pods</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">PodMapper</h1>
               </button>
             </div>
             <div className="flex items-center gap-3">
