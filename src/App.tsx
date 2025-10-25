@@ -13,6 +13,7 @@ import AuthModal from './components/AuthModal';
 import SavedPodcastsList from './components/SavedPodcastsList';
 import SavedEpisodesList from './components/SavedEpisodesList';
 import EpisodeNotes from './components/EpisodeNotes';
+import FeaturedPodcasts from './components/FeaturedPodcasts';
 import { searchPodcasts, getPodcastEpisodes, getEpisode, PodscanApiError } from './services/podscanApi';
 import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from './services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from './services/geocodingService';
@@ -58,6 +59,21 @@ function App() {
         setError('An error occurred while searching. Please try again.');
       }
       setPodcasts([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectPodcastById = async (podcastId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await searchPodcasts(podcastId, { perPage: 1 });
+      if (response.podcasts && response.podcasts.length > 0) {
+        await handleSelectPodcast(response.podcasts[0]);
+      }
+    } catch (err) {
+      console.error('Error fetching podcast:', err);
     } finally {
       setIsLoading(false);
     }
@@ -537,9 +553,7 @@ function App() {
             )}
 
             {!isLoading && !error && podcasts.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                Search for a podcast to get started
-              </div>
+              <FeaturedPodcasts onSelectPodcast={handleSelectPodcastById} />
             )}
           </div>
         )}

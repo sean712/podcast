@@ -1,4 +1,4 @@
-import type { PodcastSearchResponse, EpisodesResponse, SingleEpisodeResponse } from '../types/podcast';
+import type { PodcastSearchResponse, EpisodesResponse, SingleEpisodeResponse, ChartResponse } from '../types/podcast';
 
 const API_BASE_URL = import.meta.env.VITE_PODSCAN_API_URL || 'https://podscan.fm/api/v1';
 const API_KEY = import.meta.env.VITE_PODSCAN_API_KEY;
@@ -106,6 +106,15 @@ export async function getEpisode(
 
   const { data } = await fetchWithAuth(`${API_BASE_URL}/episodes/${episodeId}?${params}`);
   return data as SingleEpisodeResponse;
+}
+
+export async function getCharts(
+  platform: 'apple' | 'spotify',
+  countryCode: string,
+  category: string
+): Promise<ChartResponse> {
+  const { data } = await fetchWithAuth(`${API_BASE_URL}/charts/${platform}/${countryCode}/${category}`);
+  return data as ChartResponse;
 }
 
 export { PodscanApiError };

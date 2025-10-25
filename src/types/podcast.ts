@@ -60,3 +60,24 @@ export interface EpisodesResponse {
 export interface SingleEpisodeResponse {
   episode: Episode;
 }
+
+export interface ChartShow {
+  rank: number;
+  name: string;
+  publisher: string;
+  movement: string;
+  podcast_id: string;
+}
+
+export interface ChartResponse {
+  country: {
+    code: string;
+    name: string;
+  };
+  platform: string;
+  category: string;
+  data: {
+    shows: ChartShow[];
+  };
+  updated_at: string;
+}
