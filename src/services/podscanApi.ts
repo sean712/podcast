@@ -35,8 +35,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+
+    let errorMessage = errorData.error || `API request failed with status ${response.status}`;
+    if (response.status === 429) {
+      errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+    }
+
     throw new PodscanApiError(
-      errorData.error || `API request failed with status ${response.status}`,
+      errorMessage,
       response.status,
       rateLimitRemainingNum
     );

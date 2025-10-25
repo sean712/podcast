@@ -57,21 +57,18 @@ export default function FeaturedPodcasts({ onSelectPodcast }: FeaturedPodcastsPr
       setError(null);
 
       try {
-        const promises = CATEGORIES.map(async (category) => {
+        const showsMap: Record<string, ChartShow[]> = {};
+
+        for (const category of CATEGORIES) {
           try {
             const response = await getCharts('apple', 'us', category.id);
-            return { categoryId: category.id, shows: response.data.shows.slice(0, 5) };
+            showsMap[category.id] = response.data.shows.slice(0, 5);
+            await new Promise(resolve => setTimeout(resolve, 300));
           } catch (err) {
             console.error(`Failed to fetch ${category.name} charts:`, err);
-            return { categoryId: category.id, shows: [] };
+            showsMap[category.id] = [];
           }
-        });
-
-        const results = await Promise.all(promises);
-        const showsMap: Record<string, ChartShow[]> = {};
-        results.forEach(({ categoryId, shows }) => {
-          showsMap[categoryId] = shows;
-        });
+        }
 
         setCategoryShows(showsMap);
       } catch (err) {
