@@ -453,7 +453,7 @@ function App() {
                 </button>
               )}
               <button
-                onClick={() => setView('saved')}
+                onClick={() => setView('search')}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <Radio className="w-8 h-8 text-emerald-500" />
