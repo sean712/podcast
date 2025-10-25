@@ -452,19 +452,22 @@ function App() {
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
               )}
-              <Radio className="w-8 h-8 text-emerald-500" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Augmented Pods</h1>
+              <button
+                onClick={() => setView('saved')}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <Radio className="w-8 h-8 text-emerald-500" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Augmented Pods</h1>
+              </button>
             </div>
             <div className="flex items-center gap-3">
-              {view === 'saved' && (
-                <button
-                  onClick={() => setView('search')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
-                >
-                  <SearchIcon className="w-4 h-4" />
-                  Search Podcasts
-                </button>
-              )}
+              <button
+                onClick={() => setView('search')}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
+              >
+                <SearchIcon className="w-4 h-4" />
+                Search Podcasts
+              </button>
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
