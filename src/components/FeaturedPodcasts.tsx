@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Loader2, TrendingUp, Newspaper, History, Trophy, Tv, ChevronRight } from 'lucide-react';
-import { getCharts } from '../services/podscanApi';
-import type { ChartShow, Podcast } from '../types/podcast';
+import { TrendingUp, Newspaper, History, Trophy, Tv, ChevronRight } from 'lucide-react';
+import type { ChartShow } from '../types/podcast';
 
 interface Category {
   id: string;
@@ -9,36 +7,65 @@ interface Category {
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   gradient: string;
+  shows: ChartShow[];
 }
 
-const CATEGORIES: Category[] = [
+const FEATURED_CATEGORIES: Category[] = [
   {
     id: 'news',
     name: 'News',
     icon: Newspaper,
     color: 'text-blue-600',
-    gradient: 'from-blue-500 to-blue-600'
+    gradient: 'from-blue-500 to-blue-600',
+    shows: [
+      { rank: 1, name: 'The Daily', publisher: 'The New York Times', movement: 'up', podcast_id: '1200361736' },
+      { rank: 2, name: 'Up First', publisher: 'NPR', movement: 'same', podcast_id: '1222114325' },
+      { rank: 3, name: 'Post Reports', publisher: 'The Washington Post', movement: 'up', podcast_id: '1444873564' },
+      { rank: 4, name: 'The Journal', publisher: 'The Wall Street Journal', movement: 'down', podcast_id: '1469394914' },
+      { rank: 5, name: 'Start Here', publisher: 'ABC News', movement: 'same', podcast_id: '1297181557' },
+    ]
   },
   {
     id: 'history',
     name: 'History',
     icon: History,
     color: 'text-amber-600',
-    gradient: 'from-amber-500 to-amber-600'
+    gradient: 'from-amber-500 to-amber-600',
+    shows: [
+      { rank: 1, name: 'Hardcore History', publisher: 'Dan Carlin', movement: 'up', podcast_id: '173001861' },
+      { rank: 2, name: 'Stuff You Missed in History Class', publisher: 'iHeartPodcasts', movement: 'same', podcast_id: '283605519' },
+      { rank: 3, name: 'Ridiculous History', publisher: 'iHeartPodcasts', movement: 'up', podcast_id: '1299826850' },
+      { rank: 4, name: 'The Rest Is History', publisher: 'Goalhanger Podcasts', movement: 'down', podcast_id: '1537788786' },
+      { rank: 5, name: 'History Daily', publisher: 'Airwave Media', movement: 'same', podcast_id: '1574003453' },
+    ]
   },
   {
     id: 'sports',
     name: 'Sports',
     icon: Trophy,
     color: 'text-green-600',
-    gradient: 'from-green-500 to-green-600'
+    gradient: 'from-green-500 to-green-600',
+    shows: [
+      { rank: 1, name: 'Pardon My Take', publisher: 'Barstool Sports', movement: 'up', podcast_id: '1089022756' },
+      { rank: 2, name: 'The Bill Simmons Podcast', publisher: 'The Ringer', movement: 'same', podcast_id: '1043699613' },
+      { rank: 3, name: 'The Pat McAfee Show', publisher: 'Pat McAfee', movement: 'up', podcast_id: '1119031736' },
+      { rank: 4, name: 'Fantasy Footballers', publisher: 'Fantasy Footballers', movement: 'down', podcast_id: '1015863878' },
+      { rank: 5, name: 'New Heights', publisher: 'Wave Sports + Entertainment', movement: 'same', podcast_id: '1650066842' },
+    ]
   },
   {
-    id: 'tv-film',
+    id: 'entertainment',
     name: 'Entertainment',
     icon: Tv,
-    color: 'text-purple-600',
-    gradient: 'from-purple-500 to-purple-600'
+    color: 'text-rose-600',
+    gradient: 'from-rose-500 to-rose-600',
+    shows: [
+      { rank: 1, name: 'SmartLess', publisher: 'Jason Bateman, Sean Hayes, Will Arnett', movement: 'up', podcast_id: '1521578868' },
+      { rank: 2, name: 'Conan O\'Brien Needs A Friend', publisher: 'Team Coco & Earwolf', movement: 'same', podcast_id: '1438054347' },
+      { rank: 3, name: 'WTF with Marc Maron', publisher: 'Marc Maron', movement: 'up', podcast_id: '329875043' },
+      { rank: 4, name: 'Office Ladies', publisher: 'Earwolf & Jenna Fischer and Angela Kinsey', movement: 'down', podcast_id: '1480311435' },
+      { rank: 5, name: 'Armchair Expert', publisher: 'Armchair Umbrella', movement: 'same', podcast_id: '1345682353' },
+    ]
   },
 ];
 
@@ -47,57 +74,6 @@ interface FeaturedPodcastsProps {
 }
 
 export default function FeaturedPodcasts({ onSelectPodcast }: FeaturedPodcastsProps) {
-  const [categoryShows, setCategoryShows] = useState<Record<string, ChartShow[]>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchCharts = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const showsMap: Record<string, ChartShow[]> = {};
-
-        for (const category of CATEGORIES) {
-          try {
-            const response = await getCharts('apple', 'us', category.id);
-            showsMap[category.id] = response.data.shows.slice(0, 5);
-            await new Promise(resolve => setTimeout(resolve, 300));
-          } catch (err) {
-            console.error(`Failed to fetch ${category.name} charts:`, err);
-            showsMap[category.id] = [];
-          }
-        }
-
-        setCategoryShows(showsMap);
-      } catch (err) {
-        setError('Failed to load featured podcasts');
-        console.error('Error fetching charts:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCharts();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return null;
-  }
-
-  const hasAnyShows = Object.values(categoryShows).some(shows => shows.length > 0);
-  if (!hasAnyShows) {
-    return null;
-  }
 
   return (
     <div className="space-y-8">
@@ -115,10 +91,7 @@ export default function FeaturedPodcasts({ onSelectPodcast }: FeaturedPodcastsPr
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {CATEGORIES.map((category) => {
-          const shows = categoryShows[category.id] || [];
-          if (shows.length === 0) return null;
-
+        {FEATURED_CATEGORIES.map((category) => {
           const Icon = category.icon;
 
           return (
@@ -136,7 +109,7 @@ export default function FeaturedPodcasts({ onSelectPodcast }: FeaturedPodcastsPr
               </div>
 
               <div className="divide-y divide-gray-100">
-                {shows.map((show, index) => (
+                {category.shows.map((show, index) => (
                   <button
                     key={show.podcast_id}
                     onClick={() => onSelectPodcast(show.podcast_id)}
