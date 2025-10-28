@@ -34,6 +34,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const rateLimitRemainingNum = rateLimitRemaining ? parseInt(rateLimitRemaining, 10) : undefined;
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After');
+      const retryMessage = retryAfter
+        ? `Rate limit exceeded. Please try again in ${retryAfter} seconds.`
+        : 'Rate limit exceeded. Please wait a few minutes before trying again.';
+      throw new PodscanApiError(retryMessage, response.status, rateLimitRemainingNum);
+    }
+
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
     throw new PodscanApiError(
       errorData.error || `API request failed with status ${response.status}`,
