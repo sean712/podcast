@@ -139,8 +139,7 @@ function App() {
     setIsEpisodeBookmarked(false);
     try {
       const response = await getEpisode(episode.episode_id, {
-        showFullPodcast: true,
-        transcriptFormatter: 'paragraph'
+        showFullPodcast: true
       });
       setSelectedEpisode(response.episode);
 
