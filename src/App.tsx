@@ -63,48 +63,6 @@ function App() {
     }
   };
 
-  const handleSelectPodcastById = async (podcastId: string) => {
-    setIsLoading(true);
-    setError(null);
-    setView('episodes');
-
-    try {
-      const episodesResponse = await getPodcastEpisodes(podcastId, {
-        perPage: 50,
-        showOnlyFullyProcessed: true
-      });
-
-      setEpisodes(episodesResponse.episodes || []);
-
-      if (episodesResponse.episodes && episodesResponse.episodes.length > 0 && episodesResponse.episodes[0].podcast) {
-        const podcastInfo = episodesResponse.episodes[0].podcast;
-        const podcast: Podcast = {
-          podcast_id: podcastInfo.podcast_id,
-          podcast_guid: '',
-          podcast_name: podcastInfo.podcast_name,
-          podcast_url: '',
-          podcast_description: '',
-          podcast_image_url: episodesResponse.episodes[0].episode_image_url,
-          podcast_categories: [],
-          publisher_name: '',
-          reach: {
-            audience_size: 0
-          }
-        };
-        setSelectedPodcast(podcast);
-      }
-    } catch (err) {
-      if (err instanceof PodscanApiError) {
-        setError(err.message);
-      } else {
-        setError('Failed to load podcast episodes. Please try again.');
-      }
-      console.error('Error fetching podcast:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSelectPodcast = async (podcast: Podcast) => {
     setSelectedPodcast(podcast);
     setView('episodes');
@@ -139,7 +97,8 @@ function App() {
     setIsEpisodeBookmarked(false);
     try {
       const response = await getEpisode(episode.episode_id, {
-        showFullPodcast: true
+        showFullPodcast: true,
+        transcriptFormatter: 'paragraph'
       });
       setSelectedEpisode(response.episode);
 
@@ -494,7 +453,7 @@ function App() {
                 </button>
               )}
               <button
-                onClick={() => setView('search')}
+                onClick={() => setView('saved')}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <Radio className="w-8 h-8 text-emerald-500" />
@@ -577,6 +536,11 @@ function App() {
               </div>
             )}
 
+            {!isLoading && !error && podcasts.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                Search for a podcast to get started
+              </div>
+            )}
           </div>
         )}
 
