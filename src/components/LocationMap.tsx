@@ -30,10 +30,11 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
         maxZoom: 19,
-        keepBuffer: 4,
+        minZoom: 2,
+        keepBuffer: 6,
         updateWhenIdle: false,
-        updateWhenZooming: true,
-        updateInterval: 100
+        updateWhenZooming: false,
+        updateInterval: 200
       }).addTo(mapInstanceRef.current);
     }
 
@@ -74,7 +75,14 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     });
 
     if (locations.length > 0) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+      // Constrain initial zoom to prevent over-zooming on single locations
+      // Use maxZoom: 6 for a cleaner, less aggressive initial view
+      map.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 6,
+        animate: true,
+        duration: 1.0
+      });
     }
 
     return () => {
@@ -163,39 +171,18 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                     if (mapInstanceRef.current) {
                       const L = (window as any).L;
                       const map = mapInstanceRef.current;
-                      const currentCenter = map.getCenter();
                       const currentZoom = map.getZoom();
-                      const targetZoom = 12;
-                      const intermediateZoom = Math.max(5, currentZoom - 2);
 
-                      const distance = map.distance(
-                        [currentCenter.lat, currentCenter.lng],
-                        [location.lat, location.lon]
-                      );
+                      // Keep zoom level modest - only zoom to level 8 instead of 12
+                      // This prevents excessive zooming that causes tile rendering issues
+                      const targetZoom = Math.min(8, Math.max(currentZoom, 6));
 
-                      const distanceThreshold = 500000;
-
-                      if (distance > distanceThreshold) {
-                        map.flyTo([currentCenter.lat, currentCenter.lng], intermediateZoom, {
-                          duration: 1.5,
-                          easeLinearity: 0.1,
-                          noMoveStart: false
-                        });
-
-                        setTimeout(() => {
-                          map.flyTo([location.lat, location.lon], targetZoom, {
-                            duration: 2.5,
-                            easeLinearity: 0.1,
-                            noMoveStart: false
-                          });
-                        }, 1500);
-                      } else {
-                        map.flyTo([location.lat, location.lon], targetZoom, {
-                          duration: 2.5,
-                          easeLinearity: 0.1,
-                          noMoveStart: false
-                        });
-                      }
+                      // Simple, smooth pan with minimal zoom change
+                      map.flyTo([location.lat, location.lon], targetZoom, {
+                        duration: 1.2,
+                        easeLinearity: 0.25,
+                        animate: true
+                      });
                     }
                   }}
                   className={`w-full text-left p-4 rounded-xl transition-all duration-300 group/location ${
