@@ -95,6 +95,11 @@ export async function createPodcast(podcast: {
 }): Promise<PodcastSpace> {
   console.log('Creating podcast with data:', podcast);
 
+  const { data: { session } } = await supabase.auth.getSession();
+  console.log('Current session:', session ? 'Authenticated' : 'NOT AUTHENTICATED');
+  console.log('User ID:', session?.user?.id);
+  console.log('User email:', session?.user?.email);
+
   const { data, error } = await supabase
     .from('podcasts')
     .insert([podcast])
