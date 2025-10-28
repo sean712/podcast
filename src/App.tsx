@@ -24,7 +24,7 @@ import { useAuth } from './contexts/AuthContext';
 import type { Podcast, Episode } from './types/podcast';
 
 type View = 'saved' | 'search' | 'episodes' | 'transcript';
-type EpisodeTab = 'overview' | 'insights' | 'map' | 'transcript' | 'notes';
+type EpisodeTab = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -843,6 +843,17 @@ function App() {
                       <StickyNote className="w-4 h-4" />
                       Notes
                     </button>
+                    <button
+                      onClick={() => setActiveEpisodeTab('chat')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'chat'
+                          ? 'border-green-500 text-green-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      AI Chat
+                    </button>
                   </>
                 )}
               </nav>
@@ -930,17 +941,36 @@ function App() {
                     />
                   </div>
                 )}
+
+                {/* Chat Tab */}
+                {activeEpisodeTab === 'chat' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <MessageCircle className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-base">AI Assistant</h3>
+                            <p className="text-xs text-green-100">Ask me anything about this episode</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-[600px]">
+                        <ChatWidget
+                          transcript={selectedEpisode.episode_transcript}
+                          episodeTitle={selectedEpisode.episode_title}
+                          onSendMessage={handleChatMessage}
+                          embedded={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-
-        {view === 'transcript' && selectedEpisode && selectedEpisode.episode_transcript && (
-          <ChatWidget
-            transcript={selectedEpisode.episode_transcript}
-            episodeTitle={selectedEpisode.episode_title}
-            onSendMessage={handleChatMessage}
-          />
         )}
       </main>
     </div>
