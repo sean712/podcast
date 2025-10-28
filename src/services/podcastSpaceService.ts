@@ -93,6 +93,8 @@ export async function createPodcast(podcast: {
   image_url?: string;
   publisher_name?: string;
 }): Promise<PodcastSpace> {
+  console.log('Creating podcast with data:', podcast);
+
   const { data, error } = await supabase
     .from('podcasts')
     .insert([podcast])
@@ -101,8 +103,16 @@ export async function createPodcast(podcast: {
 
   if (error) {
     console.error('Error creating podcast:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     throw error;
   }
+
+  console.log('Podcast created successfully:', data);
 
   const { error: settingsError } = await supabase
     .from('podcast_settings')
