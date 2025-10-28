@@ -97,7 +97,8 @@ function App() {
     setIsEpisodeBookmarked(false);
     try {
       const response = await getEpisode(episode.episode_id, {
-        showFullPodcast: true
+        showFullPodcast: true,
+        wordLevelTimestamps: true
       });
       setSelectedEpisode(response.episode);
 
