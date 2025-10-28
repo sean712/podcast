@@ -13,7 +13,6 @@ import AuthModal from './components/AuthModal';
 import SavedPodcastsList from './components/SavedPodcastsList';
 import SavedEpisodesList from './components/SavedEpisodesList';
 import EpisodeNotes from './components/EpisodeNotes';
-import FeaturedPodcasts from './components/FeaturedPodcasts';
 import { searchPodcasts, getPodcastEpisodes, getEpisode, PodscanApiError } from './services/podscanApi';
 import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from './services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from './services/geocodingService';
@@ -579,9 +578,6 @@ function App() {
               </div>
             )}
 
-            {!isLoading && !error && podcasts.length === 0 && (
-              <FeaturedPodcasts onSelectPodcast={handleSelectPodcastById} />
-            )}
           </div>
         )}
 
