@@ -123,7 +123,8 @@ export default function AdminPanel() {
       await loadPodcasts();
     } catch (err) {
       console.error('Error syncing episodes:', err);
-      setError(`Failed to sync episodes for "${podcast.name}"`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to sync episodes for "${podcast.name}": ${errorMessage}`);
     } finally {
       setSyncingPodcast(null);
     }

@@ -53,7 +53,6 @@ export async function saveCachedAnalysis(
 
   if (error) {
     if (error.code === '23505') {
-      console.log('Analysis already cached for this episode');
       return;
     }
     console.error('Error saving cached analysis:', error);
