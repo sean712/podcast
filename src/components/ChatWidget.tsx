@@ -11,9 +11,10 @@ interface ChatWidgetProps {
   episodeTitle: string;
   onSendMessage: (message: string) => Promise<string>;
   embedded?: boolean;
+  initialInput?: string;
 }
 
-export default function ChatWidget({ transcript, episodeTitle, onSendMessage, embedded = false }: ChatWidgetProps) {
+export default function ChatWidget({ transcript, episodeTitle, onSendMessage, embedded = false, initialInput }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -34,6 +35,16 @@ export default function ChatWidget({ transcript, episodeTitle, onSendMessage, em
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Set initial input when provided
+  useEffect(() => {
+    if (initialInput) {
+      setInputValue(initialInput);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  }, [initialInput]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;

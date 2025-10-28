@@ -1,13 +1,14 @@
 import { useState, useMemo, useRef } from 'react';
-import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2 } from 'lucide-react';
+import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2, MessageCircle } from 'lucide-react';
 
 interface TranscriptViewerProps {
   transcript: string;
   episodeTitle: string;
   onTextSelected?: (text: string) => void;
+  onAskAI?: (text: string) => void;
 }
 
-export default function TranscriptViewer({ transcript, episodeTitle, onTextSelected }: TranscriptViewerProps) {
+export default function TranscriptViewer({ transcript, episodeTitle, onTextSelected, onAskAI }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -91,6 +92,14 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   const handleCreateNote = () => {
     if (onTextSelected && selectedText) {
       onTextSelected(selectedText);
+    }
+    setShowCreateNoteButton(false);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const handleAskAI = () => {
+    if (onAskAI && selectedText) {
+      onAskAI(selectedText);
     }
     setShowCreateNoteButton(false);
     window.getSelection()?.removeAllRanges();
@@ -274,19 +283,32 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
                 )}
               </div>
 
-              {/* Floating Add Note Button */}
+              {/* Floating Action Buttons */}
               {showCreateNoteButton && (
-                <button
-                  onClick={handleCreateNote}
-                  className="absolute z-50 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-2xl shadow-blue-500/40 transition-all text-sm font-medium whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
+                <div
+                  className="absolute z-50 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
                   style={{
                     top: `${buttonPosition.top}px`,
                     left: `${buttonPosition.left}px`,
                   }}
                 >
-                  <StickyNote className="w-4 h-4" />
-                  Add to Notes
-                </button>
+                  <button
+                    onClick={handleCreateNote}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-2xl shadow-yellow-500/40 transition-all text-sm font-medium whitespace-nowrap"
+                  >
+                    <StickyNote className="w-4 h-4" />
+                    Add to Notes
+                  </button>
+                  {onAskAI && (
+                    <button
+                      onClick={handleAskAI}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 shadow-2xl shadow-green-500/40 transition-all text-sm font-medium whitespace-nowrap"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Ask AI
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </>

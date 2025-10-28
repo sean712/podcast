@@ -244,6 +244,19 @@ function App() {
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
+    // Switch to notes tab so user can see and save the note
+    setActiveEpisodeTab('notes');
+  };
+
+  const handleAskAI = (text: string) => {
+    // Switch to chat tab and populate the input with the quoted text
+    setActiveEpisodeTab('chat');
+    // Set the highlighted text with quotes for the AI chat
+    setHighlightedTextForNote(`"${text}"`);
+    // Clear it after a brief moment so it doesn't persist
+    setTimeout(() => {
+      setHighlightedTextForNote(undefined);
+    }, 100);
   };
 
   const handleHighlightUsed = () => {
@@ -925,6 +938,7 @@ function App() {
                       transcript={selectedEpisode.episode_transcript || ''}
                       episodeTitle={selectedEpisode.episode_title}
                       onTextSelected={handleTextSelected}
+                      onAskAI={handleAskAI}
                     />
                   </div>
                 )}
@@ -963,6 +977,7 @@ function App() {
                           episodeTitle={selectedEpisode.episode_title}
                           onSendMessage={handleChatMessage}
                           embedded={true}
+                          initialInput={activeEpisodeTab === 'chat' ? highlightedTextForNote : undefined}
                         />
                       </div>
                     </div>
