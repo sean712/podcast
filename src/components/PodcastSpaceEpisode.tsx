@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyPersonnel from './KeyPersonnel';
@@ -109,90 +109,179 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
   };
 
   const primaryColor = settings?.primary_color || '#10b981';
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
+            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors group"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Episodes
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium">Back to Episodes</span>
           </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
-          <div className="flex gap-6">
+      <main className="pt-20">
+        {/* Cinematic Hero Section */}
+        <div className="relative overflow-hidden">
+          {/* Background Image with Gradient Overlay */}
+          <div className="absolute inset-0 z-0">
             {episode.image_url && (
-              <img
-                src={episode.image_url}
-                alt={episode.title}
-                className="w-24 h-24 rounded-lg object-cover"
-              />
+              <>
+                <div
+                  className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 transform scale-110"
+                  style={{ backgroundImage: `url(${episode.image_url})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-slate-900/80 to-slate-950" />
+              </>
             )}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{episode.title}</h2>
-              <p className="text-gray-600 mb-3">{podcast.name}</p>
-              {episode.description && (
-                <p className="text-gray-700 leading-relaxed line-clamp-3">
-                  {stripHtml(episode.description)}
-                </p>
+          </div>
+
+          {/* Hero Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+              {/* Episode Artwork */}
+              {episode.image_url && (
+                <div className="flex-shrink-0 group">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl blur-2xl transform group-hover:scale-110 transition-transform duration-500" />
+                    <img
+                      src={episode.image_url}
+                      alt={episode.title}
+                      className="relative w-72 h-72 rounded-2xl object-cover shadow-2xl shadow-black/50 ring-1 ring-white/10 transform group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {/* Play Button Overlay */}
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+                    >
+                      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
+                        {isPlaying ? (
+                          <Pause className="w-10 h-10 text-slate-900" />
+                        ) : (
+                          <Play className="w-10 h-10 text-slate-900 ml-1" />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                </div>
               )}
+
+              {/* Episode Info */}
+              <div className="flex-1 min-w-0">
+                {/* Metadata Pills */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300">
+                    <Calendar className="w-4 h-4" />
+                    {episode.publish_date ? new Date(episode.publish_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
+                  </span>
+                  {episode.duration && (
+                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300">
+                      <Clock className="w-4 h-4" />
+                      {Math.floor(episode.duration / 60)} min
+                    </span>
+                  )}
+                  <button className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300 hover:bg-slate-700/50 hover:border-slate-600/50 transition-all">
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </button>
+                </div>
+
+                {/* Episode Title */}
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight tracking-tight">
+                  {episode.title}
+                </h1>
+
+                {/* Podcast Name */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-semibold text-white">{podcast.name}</p>
+                    <p className="text-sm text-slate-400">Podcast</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {episode.description && (
+                  <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 max-w-3xl">
+                    <p className="text-lg text-slate-200 leading-relaxed">
+                      {stripHtml(episode.description)}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {isLoadingAnalysis ? (
-          <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center gap-3 mb-6">
-            <Loader2 className="w-8 h-8 animate-spin" style={{ color: primaryColor }} />
-            <p className="text-gray-600">Analyzing transcript with AI...</p>
-          </div>
-        ) : (
-          <>
-            {analysisError && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-red-800">{analysisError}</p>
-              </div>
-            )}
-            {analysis && (
-              <>
-                <EpisodeSummary summary={analysis.summary} />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <KeyPersonnel personnel={analysis.keyPersonnel} />
-                  <Timeline events={analysis.timeline} />
+        {/* Main Content Area */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+
+          {/* AI Analysis Section */}
+          {isLoadingAnalysis ? (
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-12">
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="relative">
+                  <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
+                  <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
                 </div>
-              </>
-            )}
-          </>
-        )}
+                <p className="text-slate-300 text-lg font-medium">AI is analyzing this episode...</p>
+                <p className="text-slate-500 text-sm">Extracting insights, locations, and key moments</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {analysisError && (
+                <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 flex items-start gap-3 backdrop-blur-sm">
+                  <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
+                    <p className="text-red-200">{analysisError}</p>
+                  </div>
+                </div>
+              )}
+              {analysis && (
+                <div className="space-y-8">
+                  <EpisodeSummary summary={analysis.summary} />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <KeyPersonnel personnel={analysis.keyPersonnel} />
+                    <Timeline events={analysis.timeline} />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
-        <LocationMap
-          locations={locations}
-          isLoading={isLoadingLocations}
-          error={locationError}
-        />
+          <LocationMap
+            locations={locations}
+            isLoading={isLoadingLocations}
+            error={locationError}
+          />
 
-        {episode.transcript && (
-          <>
-            <TranscriptViewer
-              transcript={episode.transcript}
-              episodeTitle={episode.title}
-              onTextSelected={handleTextSelected}
-            />
-            <EpisodeNotes
-              episodeId={episode.episode_id}
-              episodeTitle={episode.title}
-              podcastName={podcast.name}
-              highlightedText={highlightedTextForNote}
-              onHighlightUsed={handleHighlightUsed}
-            />
-          </>
-        )}
+          {episode.transcript && (
+            <>
+              <TranscriptViewer
+                transcript={episode.transcript}
+                episodeTitle={episode.title}
+                onTextSelected={handleTextSelected}
+              />
+              <EpisodeNotes
+                episodeId={episode.episode_id}
+                episodeTitle={episode.title}
+                podcastName={podcast.name}
+                highlightedText={highlightedTextForNote}
+                onHighlightUsed={handleHighlightUsed}
+              />
+            </>
+          )}
+        </div>
       </main>
 
       {episode.transcript && (

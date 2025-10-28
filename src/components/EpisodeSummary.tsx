@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface EpisodeSummaryProps {
   summary: string;
@@ -8,14 +8,33 @@ export default function EpisodeSummary({ summary }: EpisodeSummaryProps) {
   if (!summary) return null;
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-xl shadow-sm border border-emerald-200 p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-emerald-100 rounded-lg">
-          <FileText className="w-5 h-5 text-emerald-600" />
+    <div className="relative group">
+      {/* Animated gradient background */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500 animate-pulse" />
+
+      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl blur-md opacity-50" />
+            <div className="relative p-3 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-1">Episode Summary</h3>
+            <p className="text-sm text-slate-400">AI-powered insights</p>
+          </div>
         </div>
-        <h3 className="text-lg font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">TL;DR Summary</h3>
+
+        {/* Summary text with magazine-style typography */}
+        <div className="relative">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full" />
+          <p className="text-lg text-slate-200 leading-relaxed pl-4 font-light">
+            {summary}
+          </p>
+        </div>
       </div>
-      <p className="text-slate-700 leading-relaxed text-base">{summary}</p>
     </div>
   );
 }

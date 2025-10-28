@@ -51,20 +51,22 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       const marker = L.marker([location.lat, location.lon], {
         icon: L.divIcon({
           className: 'custom-marker',
-          html: `<div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full border-2 border-white shadow-lg text-white font-semibold text-xs">${index + 1}</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
+          html: `<div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full border-3 border-white shadow-2xl text-white font-bold text-sm animate-bounce" style="animation-duration: 2s;">${index + 1}</div>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
         }),
       }).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
 
       marker.bindPopup(`
-        <div class="p-2">
-          <div class="font-semibold text-gray-900">${location.name}</div>
-          ${location.context ? `<div class="text-sm text-gray-600 mt-1">${location.context}</div>` : ''}
+        <div class="p-3 bg-slate-900 rounded-lg border border-slate-700">
+          <div class="font-bold text-white mb-1">${location.name}</div>
+          ${location.context ? `<div class="text-sm text-slate-300 mt-1">${location.context}</div>` : ''}
         </div>
-      `);
+      `, {
+        className: 'custom-popup'
+      });
 
       marker.on('click', () => {
         setSelectedLocation(location);
@@ -85,10 +87,14 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-sm border border-slate-200 p-8">
-        <div className="flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-          <p className="text-gray-600">Extracting locations from transcript...</p>
+      <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-12">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="relative">
+            <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
+            <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
+          </div>
+          <p className="text-slate-300 text-lg font-medium">Discovering locations...</p>
+          <p className="text-slate-500 text-sm">Mapping places mentioned in the episode</p>
         </div>
       </div>
     );
@@ -96,11 +102,11 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 flex items-start gap-3 backdrop-blur-sm">
+        <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-red-800 font-medium">Failed to load locations</p>
-          <p className="text-red-700 text-sm">{error}</p>
+          <p className="text-red-300 font-semibold mb-1">Failed to load locations</p>
+          <p className="text-red-200 text-sm">{error}</p>
         </div>
       </div>
     );
@@ -108,97 +114,120 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   if (locations.length === 0) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <p className="text-gray-600">No locations found in this transcript</p>
+      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
+        <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <MapPin className="w-8 h-8 text-slate-400" />
+        </div>
+        <p className="text-slate-300 font-medium">No locations mentioned</p>
+        <p className="text-slate-500 text-sm mt-1">This episode doesn't reference specific places</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="border-b border-slate-200 p-4 bg-gradient-to-r from-slate-50 to-white">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <div className="p-2 bg-emerald-100 rounded-lg">
-            <MapPin className="w-5 h-5 text-emerald-600" />
+    <div className="relative group">
+      {/* Animated gradient background */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+
+      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="border-b border-slate-700/50 p-6 bg-slate-900/50">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-md opacity-50" />
+              <div className="relative p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-1">Interactive Map</h3>
+              <p className="text-sm text-slate-400">{locations.length} locations discovered</p>
+            </div>
           </div>
-          <span className="bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
-            Locations Mentioned ({locations.length})
-          </span>
-        </h3>
-      </div>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-        <div className="lg:col-span-2 h-[500px]" ref={mapContainerRef}></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+          {/* Map Container - Full Width on Large Screens */}
+          <div className="lg:col-span-2 h-[500px] relative" ref={mapContainerRef}>
+            {/* Map loads here */}
+          </div>
 
-        <div className="border-t lg:border-t-0 lg:border-l border-gray-200 p-4 overflow-y-auto max-h-[500px]">
-          <div className="space-y-2">
-            {locations.map((location, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setSelectedLocation(location);
-                  if (mapInstanceRef.current) {
-                    const L = (window as any).L;
-                    const map = mapInstanceRef.current;
-                    const currentCenter = map.getCenter();
-                    const currentZoom = map.getZoom();
-                    const targetZoom = 12;
-                    const intermediateZoom = Math.max(5, currentZoom - 2);
+          {/* Location List Sidebar */}
+          <div className="border-t lg:border-t-0 lg:border-l border-slate-700/50 bg-slate-900/50 p-4 overflow-y-auto max-h-[500px]">
+            <div className="space-y-2">
+              {locations.map((location, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSelectedLocation(location);
+                    if (mapInstanceRef.current) {
+                      const L = (window as any).L;
+                      const map = mapInstanceRef.current;
+                      const currentCenter = map.getCenter();
+                      const currentZoom = map.getZoom();
+                      const targetZoom = 12;
+                      const intermediateZoom = Math.max(5, currentZoom - 2);
 
-                    const distance = map.distance(
-                      [currentCenter.lat, currentCenter.lng],
-                      [location.lat, location.lon]
-                    );
+                      const distance = map.distance(
+                        [currentCenter.lat, currentCenter.lng],
+                        [location.lat, location.lon]
+                      );
 
-                    const distanceThreshold = 500000;
+                      const distanceThreshold = 500000;
 
-                    if (distance > distanceThreshold) {
-                      map.flyTo([currentCenter.lat, currentCenter.lng], intermediateZoom, {
-                        duration: 1.5,
-                        easeLinearity: 0.1,
-                        noMoveStart: false
-                      });
+                      if (distance > distanceThreshold) {
+                        map.flyTo([currentCenter.lat, currentCenter.lng], intermediateZoom, {
+                          duration: 1.5,
+                          easeLinearity: 0.1,
+                          noMoveStart: false
+                        });
 
-                      setTimeout(() => {
+                        setTimeout(() => {
+                          map.flyTo([location.lat, location.lon], targetZoom, {
+                            duration: 2.5,
+                            easeLinearity: 0.1,
+                            noMoveStart: false
+                          });
+                        }, 1500);
+                      } else {
                         map.flyTo([location.lat, location.lon], targetZoom, {
                           duration: 2.5,
                           easeLinearity: 0.1,
                           noMoveStart: false
                         });
-                      }, 1500);
-                    } else {
-                      map.flyTo([location.lat, location.lon], targetZoom, {
-                        duration: 2.5,
-                        easeLinearity: 0.1,
-                        noMoveStart: false
-                      });
+                      }
                     }
-                  }
-                }}
-                className={`w-full text-left p-3 rounded-lg transition-all ${
-                  selectedLocation === location
-                    ? 'bg-emerald-50 border-2 border-emerald-400 shadow-sm'
-                    : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100 hover:border-slate-200'
-                }`}
-              >
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-full flex items-center justify-center text-xs font-semibold shadow">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm">
-                      {location.name}
-                    </div>
-                    {location.context && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {location.context}
+                  }}
+                  className={`w-full text-left p-4 rounded-xl transition-all duration-300 group/location ${
+                    selectedLocation === location
+                      ? 'bg-orange-500/20 border-2 border-orange-500/50 shadow-lg shadow-orange-500/10'
+                      : 'bg-slate-800/50 border-2 border-transparent hover:bg-slate-700/50 hover:border-slate-600/50'
+                  }`}
+                >
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0">
+                      <div className={`w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg ${
+                        selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
+                      } transition-transform duration-300`}>
+                        {index + 1}
                       </div>
-                    )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-semibold text-sm mb-1 ${
+                        selectedLocation === location ? 'text-orange-300' : 'text-white'
+                      }`}>
+                        {location.name}
+                      </div>
+                      {location.context && (
+                        <div className="text-xs text-slate-400 line-clamp-2">
+                          {location.context}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Copy, Search, X, Check, ChevronDown, ChevronUp, StickyNote } from 'lucide-react';
+import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2 } from 'lucide-react';
 
 interface TranscriptViewerProps {
   transcript: string;
@@ -11,6 +11,8 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [selectedText, setSelectedText] = useState('');
   const [showCreateNoteButton, setShowCreateNoteButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
@@ -19,16 +21,13 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   const paragraphs = useMemo(() => {
     if (!transcript) return [];
 
-    // Check if transcript has timestamp format [HH:MM:SS.mmm --> HH:MM:SS.mmm]
     const hasTimestamps = /\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]/.test(transcript);
 
     if (hasTimestamps) {
-      // Split by timestamp pattern to create paragraphs
       const segments = transcript.split(/(?=\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\])/);
       return segments
         .filter(s => s.trim())
         .map(segment => {
-          // Remove timestamp and format speaker label
           const withoutTimestamp = segment.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]\s*/, '');
           const withFormattedSpeaker = withoutTimestamp.replace(/^\[SPEAKER_(\d+)\]\s*/, (match, num) => `Speaker ${num}: `);
           return withFormattedSpeaker.trim();
@@ -36,7 +35,6 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
         .filter(p => p);
     }
 
-    // Fallback to splitting by double newlines
     return transcript.split('\n\n').filter(p => p.trim());
   }, [transcript]);
 
@@ -46,7 +44,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
     const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     return paragraphs.map(p => ({
       text: p,
-      highlighted: p.replace(regex, '<mark class="bg-yellow-200">$1</mark>')
+      highlighted: p.replace(regex, '<mark class="bg-yellow-400/30 text-yellow-200 px-1 rounded">$1</mark>')
     }));
   }, [paragraphs, searchQuery]);
 
@@ -98,116 +96,202 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
     window.getSelection()?.removeAllRanges();
   };
 
+  const fontSizeClasses = {
+    small: 'text-sm',
+    medium: 'text-base',
+    large: 'text-lg'
+  };
+
   if (!transcript) {
     return (
-      <div className="bg-white rounded-xl p-8 text-center text-gray-500">
-        No transcript available for this episode
+      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
+        <BookOpen className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+        <p className="text-slate-300 font-medium">No transcript available</p>
+        <p className="text-slate-500 text-sm mt-1">This episode doesn't have a transcript yet</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-sm border border-slate-200">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors rounded-t-xl"
-      >
-        <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Transcript</h2>
-        {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-gray-500" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500" />
-        )}
-      </button>
+    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 p-4' : ''}`}>
+      {/* Animated gradient background */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
 
-      {isExpanded && (
-        <>
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors font-medium"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="text-green-600">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
+      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full p-6 flex items-center justify-between hover:bg-slate-700/20 transition-colors border-b border-slate-700/50 bg-slate-900/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl blur-md opacity-50" />
+              <div className="relative p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div className="text-left">
+              <h3 className="text-2xl font-bold text-white mb-1">Full Transcript</h3>
+              <p className="text-sm text-slate-400">Interactive reading experience</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronUp className="w-6 h-6 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-6 h-6 text-slate-400" />
+            )}
+          </div>
+        </button>
+
+        {isExpanded && (
+          <>
+            {/* Toolbar */}
+            <div className="border-b border-slate-700/50 p-4 bg-slate-900/50">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search transcript..."
+                    className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-sm text-white placeholder-slate-500"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Font Size Controls */}
+                <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-600/50 rounded-lg p-1">
+                  <button
+                    onClick={() => setFontSize('small')}
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                      fontSize === 'small'
+                        ? 'bg-blue-500 text-white'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Type className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => setFontSize('medium')}
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                      fontSize === 'medium'
+                        ? 'bg-blue-500 text-white'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Type className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setFontSize('large')}
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                      fontSize === 'large'
+                        ? 'bg-blue-500 text-white'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Type className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Fullscreen Toggle */}
+                <button
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="p-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
+                  title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
+
+                {/* Copy Button */}
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all text-sm font-medium"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-400" />
+                      <span className="text-green-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="w-4 h-4" />
+                      <span className="hidden sm:inline">Copy All</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search in transcript..."
-                className="w-full pl-10 pr-10 py-2 rounded-lg border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:outline-none text-sm"
-              />
-              {searchQuery && (
+            {/* Transcript Content */}
+            <div
+              ref={containerRef}
+              className={`p-8 overflow-y-auto bg-slate-900/30 ${
+                isFullscreen ? 'max-h-[calc(100vh-200px)]' : 'max-h-[600px]'
+              } relative`}
+              style={{ scrollBehavior: 'smooth' }}
+            >
+              <div
+                className={`max-w-4xl mx-auto ${fontSizeClasses[fontSize]}`}
+                onMouseUp={handleTextSelection}
+              >
+                {searchQuery.trim() ? (
+                  highlightedParagraphs.map((p, i) => (
+                    <p
+                      key={i}
+                      className="mb-6 text-slate-200 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
+                    />
+                  ))
+                ) : (
+                  paragraphs.map((p, i) => {
+                    const speakerMatch = p.match(/^(Speaker \d+):\s*/);
+                    if (speakerMatch) {
+                      const speaker = speakerMatch[1];
+                      const text = p.substring(speakerMatch[0].length);
+                      return (
+                        <p key={i} className="mb-6 text-slate-200 leading-relaxed">
+                          <span className="font-bold text-blue-400">{speaker}:</span>{' '}
+                          {text}
+                        </p>
+                      );
+                    }
+                    return (
+                      <p key={i} className="mb-6 text-slate-200 leading-relaxed">
+                        {p}
+                      </p>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Floating Add Note Button */}
+              {showCreateNoteButton && (
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={handleCreateNote}
+                  className="absolute z-50 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-2xl shadow-blue-500/40 transition-all text-sm font-medium whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
+                  style={{
+                    top: `${buttonPosition.top}px`,
+                    left: `${buttonPosition.left}px`,
+                  }}
                 >
-                  <X className="w-4 h-4" />
+                  <StickyNote className="w-4 h-4" />
+                  Add to Notes
                 </button>
               )}
             </div>
-          </div>
-
-          <div ref={containerRef} className="p-6 max-h-[600px] overflow-y-auto border-t border-slate-200 relative bg-white/50">
-            <div className="prose prose-sm max-w-none" onMouseUp={handleTextSelection}>
-              {searchQuery.trim() ? (
-                highlightedParagraphs.map((p, i) => (
-                  <p
-                    key={i}
-                    className="mb-4 text-gray-700 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
-                  />
-                ))
-              ) : (
-                paragraphs.map((p, i) => {
-                  const speakerMatch = p.match(/^(Speaker \d+):\s*/);
-                  if (speakerMatch) {
-                    const speaker = speakerMatch[1];
-                    const text = p.substring(speakerMatch[0].length);
-                    return (
-                      <p key={i} className="mb-4 text-gray-700 leading-relaxed">
-                        <span className="font-semibold text-emerald-600">{speaker}:</span> {text}
-                      </p>
-                    );
-                  }
-                  return (
-                    <p key={i} className="mb-4 text-gray-700 leading-relaxed">
-                      {p}
-                    </p>
-                  );
-                })
-              )}
-            </div>
-            {showCreateNoteButton && (
-              <button
-                onClick={handleCreateNote}
-                className="absolute z-50 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/30 transition-all text-sm font-medium whitespace-nowrap"
-                style={{
-                  top: `${buttonPosition.top}px`,
-                  left: `${buttonPosition.left}px`,
-                }}
-              >
-                <StickyNote className="w-4 h-4" />
-                Add to Notes
-              </button>
-            )}
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
