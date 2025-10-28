@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen, Sparkles, Zap, Users, Clock, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen, Sparkles, Zap, Users, Clock, BarChart3, FileText, Users as UsersIcon, Map, StickyNote } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import PodcastCard from './components/PodcastCard';
 import EpisodeList from './components/EpisodeList';
@@ -24,6 +24,7 @@ import { useAuth } from './contexts/AuthContext';
 import type { Podcast, Episode } from './types/podcast';
 
 type View = 'saved' | 'search' | 'episodes' | 'transcript';
+type EpisodeTab = 'overview' | 'insights' | 'map' | 'transcript' | 'notes';
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -46,6 +47,7 @@ function App() {
   const [isEpisodeBookmarked, setIsEpisodeBookmarked] = useState(false);
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
+  const [activeEpisodeTab, setActiveEpisodeTab] = useState<EpisodeTab>('overview');
 
   const handleSearch = async (query: string) => {
     setIsLoading(true);
@@ -727,8 +729,8 @@ function App() {
         )}
 
         {view === 'transcript' && selectedEpisode && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="space-y-0">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
               <div className="flex gap-6">
                 {selectedEpisode.episode_image_url && (
                   <img
@@ -770,7 +772,7 @@ function App() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 mb-6">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-red-800 font-medium">Error</p>
@@ -779,57 +781,156 @@ function App() {
               </div>
             )}
 
+            {/* Tabbed Navigation */}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              <nav className="flex gap-2 overflow-x-auto scrollbar-hide px-4">
+                <button
+                  onClick={() => setActiveEpisodeTab('overview')}
+                  className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeEpisodeTab === 'overview'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveEpisodeTab('insights')}
+                  className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeEpisodeTab === 'insights'
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <UsersIcon className="w-4 h-4" />
+                  People & Timeline
+                </button>
+                {locations.length > 0 && (
+                  <button
+                    onClick={() => setActiveEpisodeTab('map')}
+                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                      activeEpisodeTab === 'map'
+                        ? 'border-orange-500 text-orange-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Map className="w-4 h-4" />
+                    Locations ({locations.length})
+                  </button>
+                )}
+                {selectedEpisode.episode_transcript && (
+                  <>
+                    <button
+                      onClick={() => setActiveEpisodeTab('transcript')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'transcript'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Transcript
+                    </button>
+                    <button
+                      onClick={() => setActiveEpisodeTab('notes')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'notes'
+                          ? 'border-yellow-500 text-yellow-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <StickyNote className="w-4 h-4" />
+                      Notes
+                    </button>
+                  </>
+                )}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
             {isLoading ? (
-              <div className="bg-white rounded-xl p-12 flex justify-center">
+              <div className="bg-white rounded-xl p-12 flex justify-center mt-6">
                 <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
               </div>
             ) : (
-              <>
-                {isLoadingAnalysis ? (
-                  <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                    <p className="text-gray-600">Analyzing transcript with AI...</p>
-                  </div>
-                ) : (
-                  <>
-                    {analysisError && (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-red-800 font-medium">Analysis Error</p>
-                          <p className="text-red-700 text-sm">{analysisError}</p>
-                        </div>
+              <div className="mt-6">
+                {/* Overview Tab */}
+                {activeEpisodeTab === 'overview' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {isLoadingAnalysis ? (
+                      <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                        <p className="text-gray-600">Analyzing transcript with AI...</p>
                       </div>
-                    )}
-                    {analysis && (
+                    ) : (
                       <>
-                        <EpisodeSummary summary={analysis.summary} />
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <KeyPersonnel personnel={analysis.keyPersonnel} />
-                          <Timeline events={analysis.timeline} />
-                        </div>
+                        {analysisError && (
+                          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-red-800 font-medium">Analysis Error</p>
+                              <p className="text-red-700 text-sm">{analysisError}</p>
+                            </div>
+                          </div>
+                        )}
+                        {analysis && <EpisodeSummary summary={analysis.summary} />}
                       </>
                     )}
-                  </>
+                  </div>
                 )}
-                <LocationMap
-                  locations={locations}
-                  isLoading={isLoadingLocations}
-                  error={locationError}
-                />
-                <TranscriptViewer
-                  transcript={selectedEpisode.episode_transcript || ''}
-                  episodeTitle={selectedEpisode.episode_title}
-                  onTextSelected={handleTextSelected}
-                />
-                <EpisodeNotes
-                  episodeId={selectedEpisode.episode_id}
-                  episodeTitle={selectedEpisode.episode_title}
-                  podcastName={selectedEpisode.podcast?.podcast_name || 'Unknown Podcast'}
-                  highlightedText={highlightedTextForNote}
-                  onHighlightUsed={handleHighlightUsed}
-                />
-              </>
+
+                {/* Insights Tab */}
+                {activeEpisodeTab === 'insights' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {analysis ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <KeyPersonnel personnel={analysis.keyPersonnel} />
+                        <Timeline events={analysis.timeline} />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-12 text-center">
+                        <p className="text-gray-600">No insights available yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Map Tab */}
+                {activeEpisodeTab === 'map' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <LocationMap
+                      locations={locations}
+                      isLoading={isLoadingLocations}
+                      error={locationError}
+                    />
+                  </div>
+                )}
+
+                {/* Transcript Tab */}
+                {activeEpisodeTab === 'transcript' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <TranscriptViewer
+                      transcript={selectedEpisode.episode_transcript || ''}
+                      episodeTitle={selectedEpisode.episode_title}
+                      onTextSelected={handleTextSelected}
+                    />
+                  </div>
+                )}
+
+                {/* Notes Tab */}
+                {activeEpisodeTab === 'notes' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <EpisodeNotes
+                      episodeId={selectedEpisode.episode_id}
+                      episodeTitle={selectedEpisode.episode_title}
+                      podcastName={selectedEpisode.podcast?.podcast_name || 'Unknown Podcast'}
+                      highlightedText={highlightedTextForNote}
+                      onHighlightUsed={handleHighlightUsed}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
