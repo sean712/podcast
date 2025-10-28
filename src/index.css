@@ -9,3 +9,45 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+@layer utilities {
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+  }
+
+  .scrollbar-thumb-emerald-500\/30::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.3);
+  }
+
+  .scrollbar-thumb-purple-500\/30::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+  }
+
+  .scrollbar-track-slate-800\/30::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.3);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

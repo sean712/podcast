@@ -28,12 +28,12 @@ export default function Timeline({ events }: TimelineProps) {
           </div>
         </div>
 
-        {/* Timeline */}
-        <div className="relative">
+        {/* Timeline - Scrollable Container */}
+        <div className="relative max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-emerald-500/30 scrollbar-track-slate-800/30">
           {/* Vertical line with gradient */}
           <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-teal-500 to-emerald-500"></div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             {events.map((event, index) => (
               <div key={index} className="relative pl-16 group/item">
                 {/* Timeline dot */}
@@ -41,23 +41,23 @@ export default function Timeline({ events }: TimelineProps) {
                   {index + 1}
                 </div>
 
-                {/* Event card */}
-                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-5 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 group-hover/item:translate-x-1">
+                {/* Event card - More compact */}
+                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 group-hover/item:translate-x-1">
                   {/* Date badge */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-3">
+                  <div className="inline-flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-2">
                     <Calendar className="w-3 h-3 text-emerald-400" />
-                    <span className="text-sm font-semibold text-emerald-400">
+                    <span className="text-xs font-semibold text-emerald-400">
                       {event.date}
                     </span>
                   </div>
 
                   {/* Event title */}
-                  <h4 className="font-bold text-white text-lg mb-2">
+                  <h4 className="font-bold text-white text-base mb-1">
                     {event.event}
                   </h4>
 
                   {/* Significance */}
-                  <p className="text-sm text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-300 leading-relaxed">
                     {event.significance}
                   </p>
                 </div>
