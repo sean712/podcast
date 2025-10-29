@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, MessageCircle } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyPersonnel from './KeyPersonnel';
@@ -21,7 +21,7 @@ interface PodcastSpaceEpisodeProps {
   onBack: () => void;
 }
 
-type TabType = 'overview' | 'insights' | 'map' | 'transcript' | 'notes';
+type TabType = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack }: PodcastSpaceEpisodeProps) {
   const { user } = useAuth();
@@ -105,6 +105,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
+    // Switch to notes tab so user can see and save the note
+    setActiveTab('notes');
+  };
+
+  const handleAskAI = (text: string) => {
+    // Switch to chat tab and populate the input with the quoted text
+    setActiveTab('chat');
+    // The chat will need access to this text - we'll pass it via a new state
+    setHighlightedTextForNote(`"${text}"`);
+    // Clear it after a brief moment so it doesn't persist
+    setTimeout(() => {
+      setHighlightedTextForNote(undefined);
+    }, 100);
   };
 
   const handleHighlightUsed = () => {
@@ -287,6 +300,17 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                     <StickyNote className="w-4 h-4" />
                     Notes
                   </button>
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                      activeTab === 'chat'
+                        ? 'border-green-500 text-green-400'
+                        : 'border-transparent text-slate-400 hover:text-slate-300'
+                    }`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    AI Chat
+                  </button>
                 </>
               )}
             </nav>
@@ -362,6 +386,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                 transcript={episode.transcript}
                 episodeTitle={episode.title}
                 onTextSelected={handleTextSelected}
+                onAskAI={handleAskAI}
               />
             </div>
           )}
@@ -378,16 +403,36 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
               />
             </div>
           )}
+
+          {/* Chat Tab */}
+          {activeTab === 'chat' && episode.transcript && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-slate-800/50 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base">AI Assistant</h3>
+                      <p className="text-xs text-green-100">Ask me anything about this episode</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-[600px]">
+                  <ChatWidget
+                    transcript={episode.transcript}
+                    episodeTitle={episode.title}
+                    onSendMessage={handleChatMessage}
+                    embedded={true}
+                    initialInput={activeTab === 'chat' ? highlightedTextForNote : undefined}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
-
-      {episode.transcript && (
-        <ChatWidget
-          transcript={episode.transcript}
-          episodeTitle={episode.title}
-          onSendMessage={handleChatMessage}
-        />
-      )}
     </div>
   );
 }
