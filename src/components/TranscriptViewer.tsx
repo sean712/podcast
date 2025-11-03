@@ -128,191 +128,177 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
 
       <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full p-6 flex items-center justify-between hover:bg-slate-700/20 transition-colors border-b border-slate-700/50 bg-slate-900/50"
-        >
+        <div className="p-4 flex items-center justify-between border-b border-slate-700/50 bg-slate-900/50">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl blur-md opacity-50" />
-              <div className="relative p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl">
-                <BookOpen className="w-6 h-6 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg blur-md opacity-50" />
+              <div className="relative p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                <BookOpen className="w-5 h-5 text-white" />
               </div>
             </div>
             <div className="text-left">
-              <h3 className="text-2xl font-bold text-white mb-1">Full Transcript</h3>
-              <p className="text-sm text-slate-400">Interactive reading experience</p>
+              <h3 className="text-xl font-bold text-white">Full Transcript</h3>
+              <p className="text-xs text-slate-400">Select text to add notes or ask AI</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isExpanded ? (
-              <ChevronUp className="w-6 h-6 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-6 h-6 text-slate-400" />
-            )}
-          </div>
-        </button>
+        </div>
 
-        {isExpanded && (
-          <>
-            {/* Toolbar */}
-            <div className="border-b border-slate-700/50 p-4 bg-slate-900/50">
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Search */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search transcript..."
-                    className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-sm text-white placeholder-slate-500"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Font Size Controls */}
-                <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-600/50 rounded-lg p-1">
-                  <button
-                    onClick={() => setFontSize('small')}
-                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
-                      fontSize === 'small'
-                        ? 'bg-blue-500 text-white'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Type className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => setFontSize('medium')}
-                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
-                      fontSize === 'medium'
-                        ? 'bg-blue-500 text-white'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Type className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setFontSize('large')}
-                    className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
-                      fontSize === 'large'
-                        ? 'bg-blue-500 text-white'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Type className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Fullscreen Toggle */}
+        {/* Toolbar */}
+        <div className="border-b border-slate-700/50 p-3 bg-slate-900/50">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search transcript..."
+                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-sm text-white placeholder-slate-500"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="p-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
-                  title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
                 >
-                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  <X className="w-4 h-4" />
                 </button>
-
-                {/* Copy Button */}
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all text-sm font-medium"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4 text-green-400" />
-                      <span className="text-green-400">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <BookOpen className="w-4 h-4" />
-                      <span className="hidden sm:inline">Copy All</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Transcript Content */}
-            <div
-              ref={containerRef}
-              className={`p-8 overflow-y-auto bg-slate-900/30 ${
-                isFullscreen ? 'max-h-[calc(100vh-200px)]' : 'max-h-[600px]'
-              } relative`}
-              style={{ scrollBehavior: 'smooth' }}
-            >
-              <div
-                className={`max-w-4xl mx-auto ${fontSizeClasses[fontSize]}`}
-                onMouseUp={handleTextSelection}
-              >
-                {searchQuery.trim() ? (
-                  highlightedParagraphs.map((p, i) => (
-                    <p
-                      key={i}
-                      className="mb-6 text-slate-200 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
-                    />
-                  ))
-                ) : (
-                  paragraphs.map((p, i) => {
-                    const speakerMatch = p.match(/^(Speaker \d+):\s*/);
-                    if (speakerMatch) {
-                      const speaker = speakerMatch[1];
-                      const text = p.substring(speakerMatch[0].length);
-                      return (
-                        <p key={i} className="mb-6 text-slate-200 leading-relaxed">
-                          <span className="font-bold text-blue-400">{speaker}:</span>{' '}
-                          {text}
-                        </p>
-                      );
-                    }
-                    return (
-                      <p key={i} className="mb-6 text-slate-200 leading-relaxed">
-                        {p}
-                      </p>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Floating Action Buttons */}
-              {showCreateNoteButton && (
-                <div
-                  className="absolute z-50 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
-                  style={{
-                    top: `${buttonPosition.top}px`,
-                    left: `${buttonPosition.left}px`,
-                  }}
-                >
-                  <button
-                    onClick={handleCreateNote}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-2xl shadow-yellow-500/40 transition-all text-sm font-medium whitespace-nowrap"
-                  >
-                    <StickyNote className="w-4 h-4" />
-                    Add to Notes
-                  </button>
-                  {onAskAI && (
-                    <button
-                      onClick={handleAskAI}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 shadow-2xl shadow-green-500/40 transition-all text-sm font-medium whitespace-nowrap"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      Ask AI
-                    </button>
-                  )}
-                </div>
               )}
             </div>
-          </>
-        )}
+
+            {/* Font Size Controls */}
+            <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-600/50 rounded-lg p-1">
+              <button
+                onClick={() => setFontSize('small')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                  fontSize === 'small'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Type className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => setFontSize('medium')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                  fontSize === 'medium'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Type className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setFontSize('large')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                  fontSize === 'large'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Type className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
+              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+
+            {/* Copy Button */}
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all text-sm font-medium"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-green-400" />
+                  <span className="text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-4 h-4" />
+                  <span className="hidden sm:inline">Copy All</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Transcript Content */}
+        <div
+          ref={containerRef}
+          className={`p-8 overflow-y-auto bg-slate-900/30 ${
+            isFullscreen ? 'max-h-[calc(100vh-200px)]' : 'max-h-[600px]'
+          } relative`}
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          <div
+            className={`max-w-4xl mx-auto ${fontSizeClasses[fontSize]}`}
+            onMouseUp={handleTextSelection}
+          >
+            {searchQuery.trim() ? (
+              highlightedParagraphs.map((p, i) => (
+                <p
+                  key={i}
+                  className="mb-6 text-slate-200 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
+                />
+              ))
+            ) : (
+              paragraphs.map((p, i) => {
+                const speakerMatch = p.match(/^(Speaker \d+):\s*/);
+                if (speakerMatch) {
+                  const speaker = speakerMatch[1];
+                  const text = p.substring(speakerMatch[0].length);
+                  return (
+                    <p key={i} className="mb-6 text-slate-200 leading-relaxed">
+                      <span className="font-bold text-blue-400">{speaker}:</span>{' '}
+                      {text}
+                    </p>
+                  );
+                }
+                return (
+                  <p key={i} className="mb-6 text-slate-200 leading-relaxed">
+                    {p}
+                  </p>
+                );
+              })
+            )}
+          </div>
+
+          {/* Floating Action Buttons */}
+          {showCreateNoteButton && (
+            <div
+              className="absolute z-50 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
+              style={{
+                top: `${buttonPosition.top}px`,
+                left: `${buttonPosition.left}px`,
+              }}
+            >
+              <button
+                onClick={handleCreateNote}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-2xl shadow-yellow-500/40 transition-all text-sm font-medium whitespace-nowrap"
+              >
+                <StickyNote className="w-4 h-4" />
+                Add to Notes
+              </button>
+              {onAskAI && (
+                <button
+                  onClick={handleAskAI}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 shadow-2xl shadow-green-500/40 transition-all text-sm font-medium whitespace-nowrap"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Ask AI
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

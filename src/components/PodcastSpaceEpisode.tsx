@@ -129,116 +129,48 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-medium">Back to Episodes</span>
-          </button>
-        </div>
-      </header>
+      {/* Fixed Header with Episode Info */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors group flex-shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-medium">Back</span>
+            </button>
 
-      <main className="pt-20">
-        {/* Cinematic Hero Section */}
-        <div className="relative overflow-hidden">
-          {/* Background Image with Gradient Overlay */}
-          <div className="absolute inset-0 z-0">
-            {episode.image_url && (
-              <>
-                <div
-                  className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-30 transform scale-110"
-                  style={{ backgroundImage: `url(${episode.image_url})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-slate-900/80 to-slate-950" />
-              </>
-            )}
-          </div>
-
-          {/* Hero Content */}
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {/* Episode Artwork */}
+            <div className="flex items-center gap-4 flex-1 min-w-0">
               {episode.image_url && (
-                <div className="flex-shrink-0 group">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl blur-2xl transform group-hover:scale-110 transition-transform duration-500" />
-                    <img
-                      src={episode.image_url}
-                      alt={episode.title}
-                      className="relative w-72 h-72 rounded-2xl object-cover shadow-2xl shadow-black/50 ring-1 ring-white/10 transform group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {/* Play Button Overlay */}
-                    <button
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-                    >
-                      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
-                        {isPlaying ? (
-                          <Pause className="w-10 h-10 text-slate-900" />
-                        ) : (
-                          <Play className="w-10 h-10 text-slate-900 ml-1" />
-                        )}
-                      </div>
-                    </button>
-                  </div>
-                </div>
+                <img
+                  src={episode.image_url}
+                  alt={episode.title}
+                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                />
               )}
-
-              {/* Episode Info */}
-              <div className="flex-1 min-w-0">
-                {/* Metadata Pills */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300">
-                    <Calendar className="w-4 h-4" />
-                    {episode.publish_date ? new Date(episode.publish_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
-                  </span>
-                  {episode.duration && (
-                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300">
-                      <Clock className="w-4 h-4" />
-                      {Math.floor(episode.duration / 60)} min
-                    </span>
-                  )}
-                  <button className="inline-flex items-center gap-2 px-3 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-sm text-slate-300 hover:bg-slate-700/50 hover:border-slate-600/50 transition-all">
-                    <Share2 className="w-4 h-4" />
-                    Share
-                  </button>
-                </div>
-
-                {/* Episode Title */}
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight tracking-tight">
-                  {episode.title}
-                </h1>
-
-                {/* Podcast Name */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-semibold text-white">{podcast.name}</p>
-                    <p className="text-sm text-slate-400">Podcast</p>
-                  </div>
-                </div>
-
-                {/* Description */}
-                {episode.description && (
-                  <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 max-w-3xl">
-                    <p className="text-lg text-slate-200 leading-relaxed">
-                      {stripHtml(episode.description)}
-                    </p>
-                  </div>
-                )}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold text-white truncate">{episode.title}</h1>
+                <p className="text-sm text-slate-400 truncate">{podcast.name}</p>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {episode.duration && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/50 border border-slate-700/50 rounded-full text-xs text-slate-300">
+                  <Clock className="w-3.5 h-3.5" />
+                  {Math.floor(episode.duration / 60)}m
+                </span>
+              )}
             </div>
           </div>
         </div>
+      </header>
+
+      <main className="pt-[73px]">
 
         {/* Tabbed Navigation */}
-        <div className="border-b border-slate-800/50 bg-slate-900/50 backdrop-blur-xl sticky top-20 z-40">
+        <div className="border-b border-slate-800/50 bg-slate-900/50 backdrop-blur-xl sticky top-[73px] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-2 overflow-x-auto scrollbar-hide">
               <button
