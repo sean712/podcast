@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Calendar, Bookmark } from 'lucide-react';
 import type { Episode } from '../types/podcast';
-import { saveEpisode, unsaveEpisode, isEpisodeSaved } from '../services/savedEpisodesService';
+import { saveEpisode, unsaveEpisode, getBatchSavedStatus } from '../services/savedEpisodesService';
 import { useAuth } from '../contexts/AuthContext';
 
 interface EpisodeListProps {
@@ -30,16 +30,14 @@ function formatDate(dateString: string): string {
   });
 }
 
-function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episode; onEpisodeClick: (episode: Episode) => void; onSaveChange?: () => void }) {
+function EpisodeItem({ episode, isSaved, onEpisodeClick, onSaveChange }: { episode: Episode; isSaved: boolean; onEpisodeClick: (episode: Episode) => void; onSaveChange?: () => void }) {
   const { user } = useAuth();
-  const [isSaved, setIsSaved] = useState(false);
+  const [localIsSaved, setLocalIsSaved] = useState(isSaved);
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      isEpisodeSaved(episode.episode_id).then(setIsSaved);
-    }
-  }, [user, episode.episode_id]);
+    setLocalIsSaved(isSaved);
+  }, [isSaved]);
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,12 +45,12 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
 
     setIsTogglingBookmark(true);
     try {
-      if (isSaved) {
+      if (localIsSaved) {
         await unsaveEpisode(episode.episode_id);
-        setIsSaved(false);
+        setLocalIsSaved(false);
       } else {
         await saveEpisode(episode);
-        setIsSaved(true);
+        setLocalIsSaved(true);
       }
       onSaveChange?.();
     } catch (error) {
@@ -88,11 +86,11 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
                 onClick={handleBookmarkClick}
                 disabled={isTogglingBookmark}
                 className="relative z-10 p-2 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-                aria-label={isSaved ? 'Unsave episode' : 'Save episode'}
+                aria-label={localIsSaved ? 'Unsave episode' : 'Save episode'}
               >
                 <Bookmark
                   className={`w-4 h-4 ${
-                    isSaved ? 'fill-emerald-500 text-emerald-500' : 'text-gray-400'
+                    localIsSaved ? 'fill-emerald-500 text-emerald-500' : 'text-gray-400'
                   }`}
                 />
               </button>
@@ -122,6 +120,30 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
 }
 
 export default function EpisodeList({ episodes, onEpisodeClick, isLoading, onSaveChange }: EpisodeListProps) {
+  const { user } = useAuth();
+  const [savedEpisodeIds, setSavedEpisodeIds] = useState<Set<string>>(new Set());
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+
+  useEffect(() => {
+    if (user && episodes.length > 0) {
+      setIsLoadingSaved(true);
+      const episodeIds = episodes.map(ep => ep.episode_id);
+      getBatchSavedStatus(episodeIds)
+        .then(setSavedEpisodeIds)
+        .finally(() => setIsLoadingSaved(false));
+    } else {
+      setSavedEpisodeIds(new Set());
+    }
+  }, [user, episodes]);
+
+  const handleSaveChange = () => {
+    if (user && episodes.length > 0) {
+      const episodeIds = episodes.map(ep => ep.episode_id);
+      getBatchSavedStatus(episodeIds).then(setSavedEpisodeIds);
+    }
+    onSaveChange?.();
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -149,8 +171,9 @@ export default function EpisodeList({ episodes, onEpisodeClick, isLoading, onSav
         <EpisodeItem
           key={episode.episode_id}
           episode={episode}
+          isSaved={savedEpisodeIds.has(episode.episode_id)}
           onEpisodeClick={onEpisodeClick}
-          onSaveChange={onSaveChange}
+          onSaveChange={handleSaveChange}
         />
       ))}
     </div>

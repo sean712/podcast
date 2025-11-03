@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getPodcastBySlug, getPodcastSettings } from './services/podcastSpaceService';
+import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug } from './services/podcastSpaceService';
 import { useAuth } from './contexts/AuthContext';
 import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
@@ -15,6 +15,7 @@ export default function AppRouter() {
   const [settings, setSettings] = useState<PodcastSettings | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<StoredEpisode | null>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(true);
+  const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -64,8 +65,21 @@ export default function AppRouter() {
     }
   };
 
-  const handleEpisodeClick = (episode: StoredEpisode) => {
-    setSelectedEpisode(episode);
+  const handleEpisodeClick = async (episode: StoredEpisode) => {
+    if (!podcast) return;
+
+    setIsLoadingEpisode(true);
+    try {
+      const fullEpisode = await getEpisodeBySlug(podcast.id, episode.slug);
+      if (fullEpisode) {
+        setSelectedEpisode(fullEpisode);
+      }
+    } catch (err) {
+      console.error('Error loading full episode:', err);
+      setSelectedEpisode(episode);
+    } finally {
+      setIsLoadingEpisode(false);
+    }
   };
 
   const handleBackToHome = () => {
@@ -119,6 +133,14 @@ export default function AppRouter() {
   }
 
   if (routeType === 'podcast-space' && podcast) {
+    if (isLoadingEpisode) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      );
+    }
+
     if (selectedEpisode) {
       return (
         <PodcastSpaceEpisode
