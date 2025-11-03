@@ -122,29 +122,23 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   }
 
   return (
-    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 p-4' : ''}`}>
-      {/* Animated gradient background */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
-
-      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+    <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 p-4' : ''}`}>
+      <div className="relative bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between border-b border-slate-700/50 bg-slate-900/50">
+        <div className="p-4 flex items-center justify-between border-b border-slate-700 bg-slate-800">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg blur-md opacity-50" />
-              <div className="relative p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <BookOpen className="w-5 h-5 text-blue-400" />
             </div>
             <div className="text-left">
-              <h3 className="text-xl font-bold text-white">Full Transcript</h3>
+              <h3 className="text-lg font-semibold text-white">Full Transcript</h3>
               <p className="text-xs text-slate-400">Select text to add notes or ask AI</p>
             </div>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="border-b border-slate-700/50 p-3 bg-slate-900/50">
+        <div className="border-b border-slate-700 p-3 bg-slate-800/50">
           <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
@@ -154,7 +148,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search transcript..."
-                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-sm text-white placeholder-slate-500"
+                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-900 border border-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm text-white placeholder-slate-500"
               />
               {searchQuery && (
                 <button
@@ -167,33 +161,33 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
             </div>
 
             {/* Font Size Controls */}
-            <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-600/50 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1">
               <button
                 onClick={() => setFontSize('small')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'small'
                     ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Type className="w-3 h-3" />
               </button>
               <button
                 onClick={() => setFontSize('medium')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'medium'
                     ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Type className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setFontSize('large')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'large'
                     ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Type className="w-5 h-5" />
@@ -203,7 +197,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
             {/* Fullscreen Toggle */}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
+              className="p-2 bg-slate-900 border border-slate-600 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
               title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -212,7 +206,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
             {/* Copy Button */}
             <button
               onClick={handleCopy}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
             >
               {copied ? (
                 <>
@@ -232,7 +226,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
         {/* Transcript Content */}
         <div
           ref={containerRef}
-          className={`p-8 overflow-y-auto bg-slate-900/30 ${
+          className={`p-8 overflow-y-auto bg-slate-900/50 ${
             isFullscreen ? 'max-h-[calc(100vh-200px)]' : 'max-h-[600px]'
           } relative`}
           style={{ scrollBehavior: 'smooth' }}
@@ -282,7 +276,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
             >
               <button
                 onClick={handleCreateNote}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-2xl shadow-yellow-500/40 transition-all text-sm font-medium whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-lg transition-colors text-sm font-medium whitespace-nowrap"
               >
                 <StickyNote className="w-4 h-4" />
                 Add to Notes
@@ -290,7 +284,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
               {onAskAI && (
                 <button
                   onClick={handleAskAI}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 shadow-2xl shadow-green-500/40 transition-all text-sm font-medium whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 shadow-lg transition-colors text-sm font-medium whitespace-nowrap"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Ask AI

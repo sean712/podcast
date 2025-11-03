@@ -170,15 +170,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
       <main className="pt-[73px]">
 
         {/* Tabbed Navigation */}
-        <div className="border-b border-slate-800/50 bg-slate-900/50 backdrop-blur-xl sticky top-[73px] z-40">
+        <div className="border-b border-slate-700 bg-slate-900 sticky top-[73px] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'overview'
-                    ? 'border-cyan-500 text-cyan-400'
-                    : 'border-transparent text-slate-400 hover:text-slate-300'
+                    ? 'border-blue-500 text-white bg-slate-800/50'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -186,10 +186,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
               </button>
               <button
                 onClick={() => setActiveTab('insights')}
-                className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'insights'
-                    ? 'border-purple-500 text-purple-400'
-                    : 'border-transparent text-slate-400 hover:text-slate-300'
+                    ? 'border-blue-500 text-white bg-slate-800/50'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                 }`}
               >
                 <UsersIcon className="w-4 h-4" />
@@ -198,10 +198,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
               {locations.length > 0 && (
                 <button
                   onClick={() => setActiveTab('map')}
-                  className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'map'
-                      ? 'border-orange-500 text-orange-400'
-                      : 'border-transparent text-slate-400 hover:text-slate-300'
+                      ? 'border-blue-500 text-white bg-slate-800/50'
+                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                   }`}
                 >
                   <Map className="w-4 h-4" />
@@ -212,10 +212,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                 <>
                   <button
                     onClick={() => setActiveTab('transcript')}
-                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                       activeTab === 'transcript'
-                        ? 'border-blue-500 text-blue-400'
-                        : 'border-transparent text-slate-400 hover:text-slate-300'
+                        ? 'border-blue-500 text-white bg-slate-800/50'
+                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                     }`}
                   >
                     <BookOpen className="w-4 h-4" />
@@ -223,10 +223,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                   </button>
                   <button
                     onClick={() => setActiveTab('notes')}
-                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                       activeTab === 'notes'
-                        ? 'border-yellow-500 text-yellow-400'
-                        : 'border-transparent text-slate-400 hover:text-slate-300'
+                        ? 'border-blue-500 text-white bg-slate-800/50'
+                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                     }`}
                   >
                     <StickyNote className="w-4 h-4" />
@@ -234,10 +234,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                   </button>
                   <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                       activeTab === 'chat'
-                        ? 'border-green-500 text-green-400'
-                        : 'border-transparent text-slate-400 hover:text-slate-300'
+                        ? 'border-blue-500 text-white bg-slate-800/50'
+                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                     }`}
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -339,15 +339,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
           {/* Chat Tab */}
           {activeTab === 'chat' && episode.transcript && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-slate-800/50 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden">
-                <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4">
+              <div className="bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden">
+                <div className="bg-slate-800 border-b border-slate-700 text-white p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5" />
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-base">AI Assistant</h3>
-                      <p className="text-xs text-green-100">Ask me anything about this episode</p>
+                      <h3 className="font-semibold text-base">AI Assistant</h3>
+                      <p className="text-xs text-slate-400">Ask me anything about this episode</p>
                     </div>
                   </div>
                 </div>
