@@ -12,14 +12,6 @@ class PodscanApiError extends Error {
   }
 }
 
-async function getAuthToken(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    throw new PodscanApiError('Authentication required. Please sign in.');
-  }
-  return session.access_token;
-}
-
 export async function searchPodcasts(
   query: string,
   options: {
@@ -29,8 +21,6 @@ export async function searchPodcasts(
   } = {}
 ): Promise<PodcastSearchResponse> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('podscan-proxy', {
       body: {
         action: 'search',
@@ -38,9 +28,6 @@ export async function searchPodcasts(
         perPage: options.perPage || 20,
         orderBy: options.orderBy || 'best_match',
         orderDir: options.orderDir || 'desc',
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -67,8 +54,6 @@ export async function getPodcastEpisodes(
   } = {}
 ): Promise<EpisodesResponse> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('podscan-proxy', {
       body: {
         action: 'getEpisodes',
@@ -77,9 +62,6 @@ export async function getPodcastEpisodes(
         orderBy: options.orderBy || 'posted_at',
         orderDir: options.orderDir || 'desc',
         showOnlyFullyProcessed: options.showOnlyFullyProcessed ?? false,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -105,8 +87,6 @@ export async function getEpisode(
   } = {}
 ): Promise<SingleEpisodeResponse> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('podscan-proxy', {
       body: {
         action: 'getEpisode',
@@ -114,9 +94,6 @@ export async function getEpisode(
         showFullPodcast: options.showFullPodcast ?? false,
         wordLevelTimestamps: options.wordLevelTimestamps ?? false,
         transcriptFormatter: options.transcriptFormatter,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 

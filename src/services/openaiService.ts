@@ -31,27 +31,14 @@ class OpenAIServiceError extends Error {
   }
 }
 
-async function getAuthToken(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    throw new OpenAIServiceError('Authentication required. Please sign in.');
-  }
-  return session.access_token;
-}
-
 export async function extractLocationsFromTranscript(
   transcript: string
 ): Promise<ExtractedLocation[]> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('analyze-episode', {
       body: {
         action: 'extractLocations',
         transcript,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -73,16 +60,11 @@ export async function analyzeTranscript(
   episodeId?: string
 ): Promise<TranscriptAnalysis> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('analyze-episode', {
       body: {
         action: 'analyze',
         transcript,
         episodeId,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -111,8 +93,6 @@ export async function chatWithTranscript(
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
 ): Promise<string> {
   try {
-    const token = await getAuthToken();
-
     const { data, error } = await supabase.functions.invoke('analyze-episode', {
       body: {
         action: 'chat',
@@ -120,9 +100,6 @@ export async function chatWithTranscript(
         episodeTitle,
         userQuestion,
         conversationHistory,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
       },
     });
 

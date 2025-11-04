@@ -16,15 +16,6 @@ interface AnalyzeRequest {
   conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
-interface CachedAnalysis {
-  id: string;
-  episode_id: string;
-  summary: string;
-  key_personnel: any[];
-  timeline_events: any[];
-  locations: any[];
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -40,24 +31,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     const requestData: AnalyzeRequest = await req.json();
     const { action, episodeId, transcript, episodeTitle, userQuestion, conversationHistory } = requestData;
