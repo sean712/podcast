@@ -16,6 +16,30 @@ interface AnalyzeRequest {
   conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
+async function getConfig(key: string): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data, error } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Error fetching config for ${key}:`, error);
+      return null;
+    }
+
+    return data?.value || null;
+  } catch (error) {
+    console.error(`Failed to get config ${key}:`, error);
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -24,10 +48,10 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const openaiApiKey = await getConfig("OPENAI_API_KEY");
 
     if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY not configured");
+      throw new Error("OPENAI_API_KEY not configured in app_config table");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -68,16 +92,7 @@ Deno.serve(async (req: Request) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:
-
-1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways
-2. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript with their role and relevance. Be thorough and comprehensive - include every person who plays a significant role in the discussion. Format: [{"name": "...", "role": "...", "relevance": "..."}]
-3. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. Be comprehensive and include all significant dates and events discussed. Format: [{"date": "...", "event": "...", "significance": "..."}]. Use relative dates if specific dates aren't mentioned (e.g., "2020", "Last year", "Beginning of career")
-4. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. Be thorough and include every location reference. Format: [{"name": "...", "context": "..."}]
-
-Be comprehensive and thorough in your extraction. Include as many relevant items as you can find in each category.
-
-Return ONLY valid JSON, no additional text.`,
+              content: `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n2. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript with their role and relevance. Be thorough and comprehensive - include every person who plays a significant role in the discussion. Format: [{"name": "...", "role": "...", "relevance": "..."}]\n3. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. Be comprehensive and include all significant dates and events discussed. Format: [{"date": "...", "event": "...", "significance": "..."}]. Use relative dates if specific dates aren't mentioned (e.g., "2020", "Last year", "Beginning of career")\n4. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. Be thorough and include every location reference. Format: [{"name": "...", "context": "..."}]\n\nBe comprehensive and thorough in your extraction. Include as many relevant items as you can find in each category.\n\nReturn ONLY valid JSON, no additional text.`,
             },
             {
               role: "user",
@@ -184,20 +199,7 @@ Return ONLY valid JSON, no additional text.`,
       const messages = [
         {
           role: "system" as const,
-          content: `You are a helpful assistant that answers questions about a podcast episode titled "${episodeTitle}".
-
-You have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.
-
-When answering:
-- Be conversational and helpful
-- Quote relevant parts of the transcript when appropriate
-- If the answer isn't in the transcript, say so honestly
-- Provide context and explain connections between topics
-- Keep responses concise but informative
-
-Here is the full transcript:
-
-${transcript}`,
+          content: `You are a helpful assistant that answers questions about a podcast episode titled "${episodeTitle}".\n\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\n\nWhen answering:\n- Be conversational and helpful\n- Quote relevant parts of the transcript when appropriate\n- If the answer isn't in the transcript, say so honestly\n- Provide context and explain connections between topics\n- Keep responses concise but informative\n\nHere is the full transcript:\n\n${transcript}`,
         },
         ...(conversationHistory || []),
         {

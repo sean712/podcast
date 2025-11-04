@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,17 +21,41 @@ interface PodscanRequest {
   transcriptFormatter?: string;
 }
 
+async function getConfig(key: string): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data, error } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Error fetching config for ${key}:`, error);
+      return null;
+    }
+
+    return data?.value || null;
+  } catch (error) {
+    console.error(`Failed to get config ${key}:`, error);
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    const podscanApiKey = Deno.env.get("PODSCAN_API_KEY");
-    const podscanApiUrl = Deno.env.get("PODSCAN_API_URL") || "https://podscan.fm/api/v1";
+    const podscanApiKey = await getConfig("PODSCAN_API_KEY");
+    const podscanApiUrl = await getConfig("PODSCAN_API_URL") || "https://podscan.fm/api/v1";
 
     if (!podscanApiKey) {
-      throw new Error("PODSCAN_API_KEY not configured");
+      throw new Error("PODSCAN_API_KEY not configured in app_config table");
     }
 
     const requestData: PodscanRequest = await req.json();
