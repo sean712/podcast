@@ -1,7 +1,5 @@
+import { supabase } from '../lib/supabase';
 import type { PodcastSearchResponse, EpisodesResponse, SingleEpisodeResponse } from '../types/podcast';
-
-const API_BASE_URL = import.meta.env.VITE_PODSCAN_API_URL || 'https://podscan.fm/api/v1';
-const API_KEY = import.meta.env.VITE_PODSCAN_API_KEY;
 
 class PodscanApiError extends Error {
   constructor(
@@ -14,46 +12,12 @@ class PodscanApiError extends Error {
   }
 }
 
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  if (!API_KEY || API_KEY === 'your_podscan_api_key_here') {
-    throw new PodscanApiError('Podscan API key is not configured. Please set VITE_PODSCAN_API_KEY in your .env file.');
+async function getAuthToken(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new PodscanApiError('Authentication required. Please sign in.');
   }
-
-  const headers = {
-    'Authorization': `Bearer ${API_KEY}`,
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
-  const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
-  const rateLimitRemainingNum = rateLimitRemaining ? parseInt(rateLimitRemaining, 10) : undefined;
-
-  if (!response.ok) {
-    if (response.status === 429) {
-      const retryAfter = response.headers.get('Retry-After');
-      const retryMessage = retryAfter
-        ? `Rate limit exceeded. Please try again in ${retryAfter} seconds.`
-        : 'Rate limit exceeded. Please wait a few minutes before trying again.';
-      throw new PodscanApiError(retryMessage, response.status, rateLimitRemainingNum);
-    }
-
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new PodscanApiError(
-      errorData.error || `API request failed with status ${response.status}`,
-      response.status,
-      rateLimitRemainingNum
-    );
-  }
-
-  return {
-    data: await response.json(),
-    rateLimitRemaining: rateLimitRemainingNum,
-  };
+  return session.access_token;
 }
 
 export async function searchPodcasts(
@@ -64,15 +28,33 @@ export async function searchPodcasts(
     orderDir?: 'asc' | 'desc';
   } = {}
 ): Promise<PodcastSearchResponse> {
-  const params = new URLSearchParams({
-    query,
-    per_page: (options.perPage || 20).toString(),
-    order_by: options.orderBy || 'best_match',
-    order_dir: options.orderDir || 'desc',
-  });
+  try {
+    const token = await getAuthToken();
 
-  const { data } = await fetchWithAuth(`${API_BASE_URL}/podcasts/search?${params}`);
-  return data as PodcastSearchResponse;
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'search',
+        query,
+        perPage: options.perPage || 20,
+        orderBy: options.orderBy || 'best_match',
+        orderDir: options.orderDir || 'desc',
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to search podcasts');
+    }
+
+    return data as PodcastSearchResponse;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to search podcasts');
+  }
 }
 
 export async function getPodcastEpisodes(
@@ -84,15 +66,34 @@ export async function getPodcastEpisodes(
     showOnlyFullyProcessed?: boolean;
   } = {}
 ): Promise<EpisodesResponse> {
-  const params = new URLSearchParams({
-    per_page: (options.perPage || 50).toString(),
-    order_by: options.orderBy || 'posted_at',
-    order_dir: options.orderDir || 'desc',
-    show_only_fully_processed: (options.showOnlyFullyProcessed ?? false).toString(),
-  });
+  try {
+    const token = await getAuthToken();
 
-  const { data } = await fetchWithAuth(`${API_BASE_URL}/podcasts/${podcastId}/episodes?${params}`);
-  return data as EpisodesResponse;
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'getEpisodes',
+        podcastId,
+        perPage: options.perPage || 50,
+        orderBy: options.orderBy || 'posted_at',
+        orderDir: options.orderDir || 'desc',
+        showOnlyFullyProcessed: options.showOnlyFullyProcessed ?? false,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to get podcast episodes');
+    }
+
+    return data as EpisodesResponse;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to get podcast episodes');
+  }
 }
 
 export async function getEpisode(
@@ -103,17 +104,33 @@ export async function getEpisode(
     transcriptFormatter?: 'paragraph';
   } = {}
 ): Promise<SingleEpisodeResponse> {
-  const params = new URLSearchParams({
-    show_full_podcast: (options.showFullPodcast ?? false).toString(),
-    word_level_timestamps: (options.wordLevelTimestamps ?? false).toString(),
-  });
+  try {
+    const token = await getAuthToken();
 
-  if (options.transcriptFormatter) {
-    params.set('transcript_formatter', options.transcriptFormatter);
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'getEpisode',
+        episodeId,
+        showFullPodcast: options.showFullPodcast ?? false,
+        wordLevelTimestamps: options.wordLevelTimestamps ?? false,
+        transcriptFormatter: options.transcriptFormatter,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to get episode');
+    }
+
+    return data as SingleEpisodeResponse;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to get episode');
   }
-
-  const { data } = await fetchWithAuth(`${API_BASE_URL}/episodes/${episodeId}?${params}`);
-  return data as SingleEpisodeResponse;
 }
 
 export { PodscanApiError };
