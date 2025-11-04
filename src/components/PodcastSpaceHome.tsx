@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Radio } from 'lucide-react';
+import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
 import { getPodcastEpisodesFromDB } from '../services/podcastSpaceService';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
 
@@ -84,8 +84,17 @@ export default function PodcastSpaceHome({ podcast, settings, onEpisodeClick }: 
         )}
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin" style={{ color: primaryColor }} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl overflow-hidden border border-gray-200 animate-pulse">
+                <div className="aspect-video bg-gray-200"></div>
+                <div className="p-4">
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : episodes.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
@@ -93,41 +102,53 @@ export default function PodcastSpaceHome({ podcast, settings, onEpisodeClick }: 
             <p>No episodes available yet. Check back soon!</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {episodes.map((episode) => (
               <button
                 key={episode.id}
                 onClick={() => onEpisodeClick(episode)}
-                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all text-left"
+                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all text-left group"
               >
-                <div className="flex gap-4">
-                  {episode.image_url && (
+                <div className="aspect-video relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                  {episode.image_url ? (
                     <img
                       src={episode.image_url}
                       alt={episode.title}
-                      className="w-24 h-24 rounded-lg object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {episode.title}
-                    </h3>
-                    {episode.description && (
-                      <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                        {episode.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      {episode.published_at && (
-                        <span>{new Date(episode.published_at).toLocaleDateString()}</span>
-                      )}
-                      {episode.duration > 0 && (
-                        <span>{Math.floor(episode.duration / 60)} min</span>
-                      )}
-                      {episode.word_count > 0 && (
-                        <span>{episode.word_count.toLocaleString()} words</span>
-                      )}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Radio className="w-16 h-16 text-gray-300" />
                     </div>
+                  )}
+                  {episode.word_count > 0 && (
+                    <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded-full text-xs font-medium text-white">
+                      Transcript Available
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {episode.title}
+                  </h3>
+                  {episode.description && (
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                      {episode.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    {episode.published_at && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{new Date(episode.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+                    )}
+                    {episode.duration > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{Math.floor(episode.duration / 60)} min</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
