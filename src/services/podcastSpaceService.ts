@@ -7,6 +7,7 @@ export async function getPodcastBySlug(slug: string): Promise<PodcastSpace | nul
     .select('*')
     .eq('slug', slug)
     .eq('status', 'active')
+    .eq('is_paused', false)
     .maybeSingle();
 
   if (error) {
@@ -145,6 +146,42 @@ export async function updatePodcastStatus(
 
   if (error) {
     console.error('Error updating podcast status:', error);
+    throw error;
+  }
+}
+
+export async function deletePodcast(podcastId: string): Promise<void> {
+  const { error } = await supabase
+    .from('podcasts')
+    .delete()
+    .eq('id', podcastId);
+
+  if (error) {
+    console.error('Error deleting podcast:', error);
+    throw error;
+  }
+}
+
+export async function togglePodcastPause(podcastId: string, isPaused: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('podcasts')
+    .update({ is_paused: isPaused, updated_at: new Date().toISOString() })
+    .eq('id', podcastId);
+
+  if (error) {
+    console.error('Error toggling podcast pause:', error);
+    throw error;
+  }
+}
+
+export async function updatePodcastSlug(podcastId: string, newSlug: string): Promise<void> {
+  const { error } = await supabase
+    .from('podcasts')
+    .update({ slug: newSlug, updated_at: new Date().toISOString() })
+    .eq('id', podcastId);
+
+  if (error) {
+    console.error('Error updating podcast slug:', error);
     throw error;
   }
 }

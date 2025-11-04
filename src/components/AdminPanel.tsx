@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap } from 'lucide-react';
-import { getAllActivePodcasts, createPodcast, updatePodcastStatus } from '../services/podcastSpaceService';
+import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check } from 'lucide-react';
+import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug } from '../services/podcastSpaceService';
 import { syncPodcastEpisodes } from '../services/episodeSyncService';
 import { searchPodcasts } from '../services/podscanApi';
 import { supabase } from '../lib/supabase';
@@ -21,6 +21,9 @@ export default function AdminPanel() {
   const [success, setSuccess] = useState<string | null>(null);
   const [syncingPodcast, setSyncingPodcast] = useState<string | null>(null);
   const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [newSlug, setNewSlug] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadPodcasts();
@@ -150,6 +153,70 @@ export default function AdminPanel() {
     } finally {
       setIsSyncingAll(false);
     }
+  };
+
+  const handleDeletePodcast = async (podcast: PodcastSpace) => {
+    if (confirmDelete !== podcast.id) {
+      setConfirmDelete(podcast.id);
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await deletePodcast(podcast.id);
+      setSuccess(`Podcast "${podcast.name}" deleted successfully`);
+      setConfirmDelete(null);
+      await loadPodcasts();
+    } catch (err) {
+      console.error('Error deleting podcast:', err);
+      setError(`Failed to delete podcast: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleTogglePause = async (podcast: PodcastSpace) => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await togglePodcastPause(podcast.id, !podcast.is_paused);
+      setSuccess(`Podcast "${podcast.name}" ${podcast.is_paused ? 'unpaused' : 'paused'} successfully`);
+      await loadPodcasts();
+    } catch (err) {
+      console.error('Error toggling pause:', err);
+      setError(`Failed to ${podcast.is_paused ? 'unpause' : 'pause'} podcast`);
+    }
+  };
+
+  const handleStartEditSlug = (podcast: PodcastSpace) => {
+    setEditingSlug(podcast.id);
+    setNewSlug(podcast.slug);
+  };
+
+  const handleSaveSlug = async (podcast: PodcastSpace) => {
+    if (!newSlug || newSlug === podcast.slug) {
+      setEditingSlug(null);
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await updatePodcastSlug(podcast.id, newSlug);
+      setSuccess(`Slug updated to "${newSlug}" for "${podcast.name}"`);
+      setEditingSlug(null);
+      await loadPodcasts();
+    } catch (err) {
+      console.error('Error updating slug:', err);
+      setError(`Failed to update slug: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleCancelEditSlug = () => {
+    setEditingSlug(null);
+    setNewSlug('');
   };
 
   if (isLoading) {
@@ -314,7 +381,11 @@ export default function AdminPanel() {
               {podcasts.map((podcast) => (
                 <div
                   key={podcast.id}
-                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300"
+                  className={`flex items-center justify-between p-4 bg-white border rounded-lg transition-all ${
+                    podcast.is_paused
+                      ? 'border-amber-300 bg-amber-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     {podcast.image_url && (
@@ -325,27 +396,96 @@ export default function AdminPanel() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">{podcast.name}</h4>
-                      <p className="text-sm text-gray-600">
-                        /{podcast.slug}
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 truncate">{podcast.name}</h4>
+                        {podcast.is_paused && (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded">
+                            Paused
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {editingSlug === podcast.id ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm text-gray-600">/</span>
+                            <input
+                              type="text"
+                              value={newSlug}
+                              onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                              className="px-2 py-0.5 text-sm border border-emerald-500 rounded focus:ring-1 focus:ring-emerald-500"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleSaveSlug(podcast)}
+                              className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={handleCancelEditSlug}
+                              className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <p className="text-sm text-gray-600">/{podcast.slug}</p>
+                            <button
+                              onClick={() => handleStartEditSlug(podcast)}
+                              className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                              title="Edit slug"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
                         {podcast.last_synced_at && (
-                          <span className="ml-2 text-xs text-gray-500">
+                          <span className="text-xs text-gray-500">
                             Last synced: {new Date(podcast.last_synced_at).toLocaleDateString()}
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleSyncEpisodes(podcast)}
-                    disabled={syncingPodcast === podcast.id}
-                    className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCw
-                      className={`w-4 h-4 ${syncingPodcast === podcast.id ? 'animate-spin' : ''}`}
-                    />
-                    {syncingPodcast === podcast.id ? 'Syncing...' : 'Sync'}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleSyncEpisodes(podcast)}
+                      disabled={syncingPodcast === podcast.id}
+                      className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Sync episodes"
+                    >
+                      <RefreshCw
+                        className={`w-4 h-4 ${syncingPodcast === podcast.id ? 'animate-spin' : ''}`}
+                      />
+                    </button>
+                    <button
+                      onClick={() => handleTogglePause(podcast)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        podcast.is_paused
+                          ? 'text-emerald-600 hover:bg-emerald-50'
+                          : 'text-amber-600 hover:bg-amber-50'
+                      }`}
+                      title={podcast.is_paused ? 'Unpause podcast' : 'Pause podcast'}
+                    >
+                      {podcast.is_paused ? (
+                        <Play className="w-4 h-4" />
+                      ) : (
+                        <Pause className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeletePodcast(podcast)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        confirmDelete === podcast.id
+                          ? 'bg-red-100 text-red-700'
+                          : 'text-red-600 hover:bg-red-50'
+                      }`}
+                      title={confirmDelete === podcast.id ? 'Click again to confirm' : 'Delete podcast'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
