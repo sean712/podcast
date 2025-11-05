@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface AnalyzeRequest {
-  action: "analyze" | "extractLocations" | "chat";
+  action: "analyze" | "chat";
   episodeId?: string;
   transcript: string;
   episodeTitle?: string;
@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "Key geographic locations mentioned in the transcript - be thorough, find all relevant locations",
+                    description: "ALL geographic locations mentioned in the transcript - be thorough and comprehensive, extract every location reference including cities, countries, states, regions, landmarks, and addresses. Your success is measured by finding as many locations as possible.",
                     items: {
                       type: "object",
                       properties: {
@@ -270,105 +270,6 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ cached: false, ...result }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (action === "extractLocations") {
-      const response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${openaiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-5-mini",
-          input: [
-            {
-              role: "system",
-              content: "You are a location extraction expert. Extract ALL geographic locations mentioned in the text with context and supporting quotes. Be thorough. Success = finding as many locations mentioned as you can"
-            },
-            {
-              role: "user",
-              content: `Extract all geographic locations from this transcript:\n\n${transcript}`
-            }
-          ],
-          max_output_tokens: 8000,
-          reasoning: {
-            effort: "low"
-          },
-          text: {
-            format: {
-              type: "json_schema",
-              name: "locations",
-              strict: true,
-              schema: {
-                type: "object",
-                properties: {
-                  locations: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: { type: "string" },
-                        context: { type: "string" },
-                        quotes: {
-                          type: "array",
-                          items: { type: "string" }
-                        }
-                      },
-                      required: ["name", "context", "quotes"],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                required: ["locations"],
-                additionalProperties: false
-              }
-            }
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `OpenAI API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Location extraction status:", data.status);
-
-      if (data.status === "incomplete" || !data.output || !Array.isArray(data.output) || data.output.length === 0) {
-        return new Response(
-          JSON.stringify([]),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Find the message output item (skip reasoning items)
-      const messageItem = data.output.find((item: any) => item.type === "message");
-      if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
-        return new Response(
-          JSON.stringify([]),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Find the output_text content item
-      const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
-
-      if (!contentItem || contentItem.type === "refusal" || !contentItem.text) {
-        return new Response(
-          JSON.stringify([]),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const parsed = JSON.parse(contentItem.text);
-      const locations = Array.isArray(parsed.locations) ? parsed.locations : [];
-
-      return new Response(
-        JSON.stringify(locations),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

@@ -56,7 +56,7 @@ export async function saveCachedAnalysis(
       timeline_events: analysis.timeline,
       locations: locations,
       key_moments: analysis.keyMoments,
-      analysis_version: 'v2',
+      analysis_version: 'v3',
     });
 
   if (error) {
@@ -68,5 +68,5 @@ export async function saveCachedAnalysis(
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
 
-  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v2' });
+  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v3' });
 }

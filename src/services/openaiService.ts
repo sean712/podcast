@@ -43,30 +43,6 @@ class OpenAIServiceError extends Error {
   }
 }
 
-export async function extractLocationsFromTranscript(
-  transcript: string
-): Promise<ExtractedLocation[]> {
-  try {
-    const { data, error } = await supabase.functions.invoke('analyze-episode', {
-      body: {
-        action: 'extractLocations',
-        transcript,
-      },
-    });
-
-    if (error) {
-      throw new OpenAIServiceError(error.message || 'Failed to extract locations from transcript');
-    }
-
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    if (error instanceof OpenAIServiceError) {
-      throw error;
-    }
-    throw new OpenAIServiceError('Failed to extract locations from transcript');
-  }
-}
-
 export async function analyzeTranscript(
   transcript: string,
   episodeId?: string

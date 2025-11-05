@@ -77,7 +77,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       let geocoded: GeocodedLocation[] = [];
       if (transcriptAnalysis.locations.length > 0) {
-        geocoded = await geocodeLocations(transcriptAnalysis.locations.slice(0, 10));
+        geocoded = await geocodeLocations(transcriptAnalysis.locations.slice(0, 25));
         setLocations(geocoded);
       }
       setIsLoadingLocations(false);
