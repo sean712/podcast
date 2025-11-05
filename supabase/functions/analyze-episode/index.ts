@@ -82,10 +82,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "analyze") {
-      const systemPrompt = `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n\n2. "keyMoments": Array of 5-8 key moments that are important, interesting, or surprising from the episode. Format: [{"title": "Brief catchy title", "description": "2-3 sentence description", "quote": "direct quote from transcript if available", "timestamp": "approximate time or context"}]\n\n3. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript. For each person include:\n   - name: person's name\n   - role: their role/title\n   - relevance: detailed explanation (2-3 sentences) about their involvement and significance\n   - quotes: array of 1-2 relevant direct quotes from the transcript about or by this person\n   Format: [{"name": "...", "role": "...", "relevance": "...", "quotes": ["...", "..."]}]\n\n4. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. For each event include:\n   - date: the date (specific or relative like "2020", "Last year")\n   - event: brief title of the event\n   - significance: why it matters (1-2 sentences)\n   - details: more comprehensive details about what happened (2-3 sentences)\n   - quotes: array of 1-2 relevant direct quotes from the transcript about this event\n   Format: [{"date": "...", "event": "...", "significance": "...", "details": "...", "quotes": ["...", "..."]}]\n\n5. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. For each location include:\n   - name: location name\n   - context: detailed context (2-3 sentences) about what happened at this location according to the transcript, including specific events, people involved, and outcomes\n   - quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n   Format: [{"name": "...", "context": "...", "quotes": ["...", "..."]}]\n\nBe comprehensive and thorough. Include direct quotes from the transcript wherever possible to support the information. Make sure quotes are actual verbatim text from the transcript.\n\nReturn ONLY valid JSON, no additional text.`;
-
-      const input = `${systemPrompt}\n\nAnalyze this podcast transcript:\n\n${transcript}`;
-
       const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
@@ -94,8 +90,104 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           model: "gpt-5-mini",
-          input: input,
+          input: [
+            {
+              role: "system",
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes."
+            },
+            {
+              role: "user",
+              content: `Analyze this podcast transcript:\n\n${transcript}`
+            }
+          ],
           max_output_tokens: 6000,
+          text: {
+            format: {
+              type: "json_schema",
+              name: "podcast_analysis",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  summary: {
+                    type: "string",
+                    description: "A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways"
+                  },
+                  keyMoments: {
+                    type: "array",
+                    description: "5-8 key moments that are important, interesting, or surprising",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        quote: { type: "string" },
+                        timestamp: { type: "string" }
+                      },
+                      required: ["title", "description", "quote", "timestamp"],
+                      additionalProperties: false
+                    }
+                  },
+                  keyPersonnel: {
+                    type: "array",
+                    description: "All key people mentioned in the transcript",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        role: { type: "string" },
+                        relevance: { type: "string" },
+                        quotes: {
+                          type: "array",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["name", "role", "relevance", "quotes"],
+                      additionalProperties: false
+                    }
+                  },
+                  timeline: {
+                    type: "array",
+                    description: "All chronological events mentioned in the transcript",
+                    items: {
+                      type: "object",
+                      properties: {
+                        date: { type: "string" },
+                        event: { type: "string" },
+                        significance: { type: "string" },
+                        details: { type: "string" },
+                        quotes: {
+                          type: "array",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["date", "event", "significance", "details", "quotes"],
+                      additionalProperties: false
+                    }
+                  },
+                  locations: {
+                    type: "array",
+                    description: "All geographic locations mentioned in the transcript",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        context: { type: "string" },
+                        quotes: {
+                          type: "array",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["name", "context", "quotes"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations"],
+                additionalProperties: false
+              }
+            }
+          }
         }),
       });
 
@@ -105,73 +197,52 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("Raw API response structure:", JSON.stringify({
-        hasOutput: !!data.output,
-        outputType: typeof data.output,
-        isOutputArray: Array.isArray(data.output),
-        outputLength: Array.isArray(data.output) ? data.output.length : 0,
-        firstOutputItem: Array.isArray(data.output) && data.output[0] ? {
-          type: data.output[0].type,
-          hasContent: !!data.output[0].content,
-          contentType: typeof data.output[0].content,
-        } : null,
-        keys: Object.keys(data),
-      }, null, 2));
+      console.log("API Response status:", data.status);
 
-      let content = "";
-
-      if (data.output && Array.isArray(data.output)) {
-        for (const outputItem of data.output) {
-          console.log("Processing output item:", { type: outputItem.type, hasContent: !!outputItem.content });
-          if (outputItem.type === "message" && outputItem.content && Array.isArray(outputItem.content)) {
-            for (const contentItem of outputItem.content) {
-              console.log("Processing content item:", { type: contentItem.type, hasText: !!contentItem.text });
-              if (contentItem.type === "output_text" && contentItem.text) {
-                content += contentItem.text;
-              }
-            }
-          }
-        }
-      }
-
-      console.log("Extracted content length:", content.length);
-      console.log("Extracted content preview:", content.substring(0, 500));
-
-      if (!content) {
-        console.error("No content extracted from response");
+      if (data.status === "incomplete") {
+        console.error("Incomplete response:", data.incomplete_details);
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error("No JSON object found in content");
+      if (!data.output || !Array.isArray(data.output) || data.output.length === 0) {
+        console.error("No output in response");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      let analysis;
-      try {
-        analysis = JSON.parse(jsonMatch[0]);
-      } catch (parseError) {
-        console.error("JSON parse error:", parseError);
-        console.error("Attempted to parse:", jsonMatch[0].substring(0, 1000));
+      const outputItem = data.output[0];
+      if (!outputItem.content || !Array.isArray(outputItem.content) || outputItem.content.length === 0) {
+        console.error("No content in output");
         return new Response(
-          JSON.stringify({
-            error: "Failed to parse AI response",
-            summary: "",
-            keyPersonnel: [],
-            timeline: [],
-            locations: [],
-            keyMoments: []
-          }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const contentItem = outputItem.content[0];
+
+      if (contentItem.type === "refusal") {
+        console.error("Model refused:", contentItem.refusal);
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (contentItem.type !== "output_text" || !contentItem.text) {
+        console.error("No text in content item");
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const analysis = JSON.parse(contentItem.text);
       const result = {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
@@ -187,10 +258,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "extractLocations") {
-      const systemPrompt = `You are a location extraction expert. Extract ALL geographic locations (cities, countries, landmarks, regions, states, neighborhoods, etc.) mentioned throughout the ENTIRE text. For each location include:\n- name: location name\n- context: detailed context (2-3 sentences) about what happened at this location according to the transcript\n- quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n\nBe comprehensive and thorough. Return ONLY a JSON array. Example format: [{"name": "Paris", "context": "The conference took place here where major announcements were made about the future of AI", "quotes": ["We gathered in Paris for the biggest tech conference of the year", "Paris was buzzing with excitement"]}, {"name": "New York", "context": "...", "quotes": ["..."]}]`;
-
-      const input = `${systemPrompt}\n\nExtract all geographic locations from this transcript:\n\n${transcript}`;
-
       const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
@@ -199,8 +266,47 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           model: "gpt-5-mini",
-          input: input,
+          input: [
+            {
+              role: "system",
+              content: "You are a location extraction expert. Extract ALL geographic locations mentioned in the text with context and supporting quotes."
+            },
+            {
+              role: "user",
+              content: `Extract all geographic locations from this transcript:\n\n${transcript}`
+            }
+          ],
           max_output_tokens: 3000,
+          text: {
+            format: {
+              type: "json_schema",
+              name: "locations",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  locations: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        context: { type: "string" },
+                        quotes: {
+                          type: "array",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["name", "context", "quotes"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["locations"],
+                additionalProperties: false
+              }
+            }
+          }
         }),
       });
 
@@ -210,54 +316,37 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("Location extraction raw response:", JSON.stringify(data, null, 2));
+      console.log("Location extraction status:", data.status);
 
-      let content = "";
-
-      if (data.output && Array.isArray(data.output)) {
-        for (const outputItem of data.output) {
-          if (outputItem.type === "message" && outputItem.content && Array.isArray(outputItem.content)) {
-            for (const contentItem of outputItem.content) {
-              if (contentItem.type === "output_text" && contentItem.text) {
-                content += contentItem.text;
-              }
-            }
-          }
-        }
-      }
-
-      console.log("Extracted location content:", content.substring(0, 500));
-
-      if (!content) {
-        console.error("No content extracted for locations");
+      if (data.status === "incomplete" || !data.output || !Array.isArray(data.output) || data.output.length === 0) {
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        console.error("No JSON array found in location content");
+      const outputItem = data.output[0];
+      if (!outputItem.content || !Array.isArray(outputItem.content) || outputItem.content.length === 0) {
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      let locations;
-      try {
-        locations = JSON.parse(jsonMatch[0]);
-      } catch (parseError) {
-        console.error("Location JSON parse error:", parseError);
-        console.error("Attempted to parse:", jsonMatch[0].substring(0, 1000));
+      const contentItem = outputItem.content[0];
+
+      if (contentItem.type === "refusal" || contentItem.type !== "output_text" || !contentItem.text) {
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      const parsed = JSON.parse(contentItem.text);
+      const locations = Array.isArray(parsed.locations) ? parsed.locations : [];
+
       return new Response(
-        JSON.stringify(Array.isArray(locations) ? locations : []),
+        JSON.stringify(locations),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
