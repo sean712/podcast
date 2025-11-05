@@ -219,16 +219,26 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const outputItem = data.output[0];
-      if (!outputItem.content || !Array.isArray(outputItem.content) || outputItem.content.length === 0) {
-        console.error("No content in output");
+      // Find the message output item (skip reasoning items)
+      const messageItem = data.output.find((item: any) => item.type === "message");
+      if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
+        console.error("No message content in output");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const contentItem = outputItem.content[0];
+      // Find the output_text content item
+      const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
+
+      if (!contentItem) {
+        console.error("No output_text in message content");
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       if (contentItem.type === "refusal") {
         console.error("Model refused:", contentItem.refusal);
@@ -238,7 +248,7 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      if (contentItem.type !== "output_text" || !contentItem.text) {
+      if (!contentItem.text) {
         console.error("No text in content item");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
@@ -335,17 +345,19 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const outputItem = data.output[0];
-      if (!outputItem.content || !Array.isArray(outputItem.content) || outputItem.content.length === 0) {
+      // Find the message output item (skip reasoning items)
+      const messageItem = data.output.find((item: any) => item.type === "message");
+      if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const contentItem = outputItem.content[0];
+      // Find the output_text content item
+      const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
 
-      if (contentItem.type === "refusal" || contentItem.type !== "output_text" || !contentItem.text) {
+      if (!contentItem || contentItem.type === "refusal" || !contentItem.text) {
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
