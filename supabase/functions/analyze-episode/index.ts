@@ -198,6 +198,7 @@ Deno.serve(async (req: Request) => {
 
       const data = await response.json();
       console.log("API Response status:", data.status);
+      console.log("API Response full structure:", JSON.stringify(data, null, 2));
 
       if (data.status === "incomplete") {
         console.error("Incomplete response:", data.incomplete_details);
@@ -242,7 +243,9 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      console.log("Content item text:", contentItem.text);
       const analysis = JSON.parse(contentItem.text);
+      console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
       const result = {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
@@ -250,6 +253,7 @@ Deno.serve(async (req: Request) => {
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
       };
+      console.log("Final result:", JSON.stringify(result, null, 2));
 
       return new Response(
         JSON.stringify({ cached: false, ...result }),
