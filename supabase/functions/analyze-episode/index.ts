@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-5",
+          model: "o1-mini",
           input: input,
           max_output_tokens: 6000,
         }),
@@ -184,7 +184,7 @@ Deno.serve(async (req: Request) => {
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-5",
+          model: "o1-mini",
           input: input,
           max_output_tokens: 3000,
         }),
