@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Save, StickyNote, Download, Upload, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, StickyNote, Download, Upload, AlertCircle, Share2, Check } from 'lucide-react';
 import { getNotesByEpisode, createNote, updateNote, deleteNote, exportNotesAsJSON, exportNotesAsText, importNotes, clearAllNotes, type LocalNote } from '../services/localStorageNotesService';
 
 interface EpisodeNotesProps {
@@ -33,6 +33,7 @@ export default function EpisodeNotes({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null);
 
   const getNoteColor = (index: number) => noteColors[index % noteColors.length];
 
@@ -187,6 +188,39 @@ export default function EpisodeNotes({
       console.error('Failed to clear notes:', error);
       alert('Failed to clear notes.');
     }
+  };
+
+  const handleShareNote = async (note: LocalNote) => {
+    const shareText = formatNoteForSharing(note);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          text: shareText,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        setCopiedNoteId(note.id);
+        setTimeout(() => setCopiedNoteId(null), 2000);
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Failed to share note:', error);
+        alert('Failed to share note.');
+      }
+    }
+  };
+
+  const formatNoteForSharing = (note: LocalNote): string => {
+    let text = `📝 ${note.podcastName} - ${note.episodeTitle}\n\n`;
+
+    if (note.highlightedText) {
+      text += `"${note.highlightedText}"\n\n`;
+    }
+
+    text += `💭 ${note.noteText}`;
+
+    return text;
   };
 
   return (
@@ -375,6 +409,18 @@ export default function EpisodeNotes({
                       })}
                       </span>
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => handleShareNote(note)}
+                          className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+                          aria-label="Share note"
+                          title="Share or copy to clipboard"
+                        >
+                          {copiedNoteId === note.id ? (
+                            <Check className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <Share2 className="w-4 h-4" />
+                          )}
+                        </button>
                         <button
                           onClick={() => startEditing(note)}
                           className="p-1.5 text-slate-400 hover:text-yellow-400 hover:bg-yellow-500/10 rounded transition-colors"
