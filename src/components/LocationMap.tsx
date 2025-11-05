@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, Loader2, AlertCircle, Quote } from 'lucide-react';
+import { MapPin, Loader2, AlertCircle, Quote, Maximize2, Minimize2 } from 'lucide-react';
 import type { GeocodedLocation } from '../services/geocodingService';
 
 interface LocationMapProps {
@@ -12,6 +12,33 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!isFullscreen) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || locations.length === 0) return;
@@ -133,24 +160,37 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }
 
   return (
-    <div className="relative group">
+    <div className="relative group" ref={containerRef}>
       {/* Animated gradient background */}
       <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
 
       <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="border-b border-slate-700/50 p-6 bg-slate-900/50">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-md opacity-50" />
-              <div className="relative p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                <MapPin className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-md opacity-50" />
+                <div className="relative p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-1">Interactive Map</h3>
+                <p className="text-sm text-slate-400">{locations.length} locations discovered</p>
               </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-1">Interactive Map</h3>
-              <p className="text-sm text-slate-400">{locations.length} locations discovered</p>
-            </div>
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-colors group/btn"
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-5 h-5 text-slate-300 group-hover/btn:text-white" />
+              ) : (
+                <Maximize2 className="w-5 h-5 text-slate-300 group-hover/btn:text-white" />
+              )}
+            </button>
           </div>
         </div>
 

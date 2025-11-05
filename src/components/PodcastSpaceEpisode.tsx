@@ -305,8 +305,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
                       <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
                     </div>
-                    <p className="text-slate-300 text-lg font-medium">AI is analyzing this episode...</p>
-                    <p className="text-slate-500 text-sm">Extracting insights, locations, and key moments</p>
+                    <p className="text-slate-300 text-lg font-medium">Analysing episode transcript</p>
+                    <p className="text-slate-500 text-sm">Please wait a moment</p>
                   </div>
                 </div>
               ) : (
@@ -376,6 +376,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               <TranscriptViewer
                 transcript={episode.transcript}
                 episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
                 onTextSelected={handleTextSelected}
                 onAskAI={handleAskAI}
               />

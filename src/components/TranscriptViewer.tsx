@@ -1,14 +1,18 @@
 import { useState, useMemo, useRef } from 'react';
-import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2, MessageCircle } from 'lucide-react';
+import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2, MessageCircle, Save } from 'lucide-react';
+import { createNote } from '../services/localStorageNotesService';
 
 interface TranscriptViewerProps {
   transcript: string;
   episodeTitle: string;
+  episodeId: string;
+  podcastName: string;
   onTextSelected?: (text: string) => void;
   onAskAI?: (text: string) => void;
+  onNoteCreated?: () => void;
 }
 
-export default function TranscriptViewer({ transcript, episodeTitle, onTextSelected, onAskAI }: TranscriptViewerProps) {
+export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onAskAI, onNoteCreated }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -17,6 +21,8 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   const [selectedText, setSelectedText] = useState('');
   const [showCreateNoteButton, setShowCreateNoteButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const paragraphs = useMemo(() => {
@@ -90,10 +96,36 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
   };
 
   const handleCreateNote = () => {
-    if (onTextSelected && selectedText) {
-      onTextSelected(selectedText);
-    }
+    setShowNoteModal(true);
     setShowCreateNoteButton(false);
+  };
+
+  const handleSaveNote = () => {
+    if (!noteText.trim()) return;
+
+    try {
+      createNote(
+        episodeId,
+        episodeTitle,
+        podcastName,
+        noteText,
+        selectedText
+      );
+      setNoteText('');
+      setShowNoteModal(false);
+      window.getSelection()?.removeAllRanges();
+      if (onNoteCreated) {
+        onNoteCreated();
+      }
+    } catch (error) {
+      console.error('Failed to create note:', error);
+      alert('Failed to create note. Your browser storage may be full.');
+    }
+  };
+
+  const handleCancelNote = () => {
+    setNoteText('');
+    setShowNoteModal(false);
     window.getSelection()?.removeAllRanges();
   };
 
@@ -294,6 +326,59 @@ export default function TranscriptViewer({ transcript, episodeTitle, onTextSelec
           )}
         </div>
       </div>
+
+      {/* Note Creation Modal */}
+      {showNoteModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleCancelNote}
+        >
+          <div
+            className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl max-w-2xl w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-500/10 rounded-lg">
+                <StickyNote className="w-5 h-5 text-yellow-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Create Note</h3>
+            </div>
+
+            {selectedText && (
+              <div className="mb-4 p-4 bg-amber-500/10 border-l-4 border-amber-400 rounded-lg">
+                <p className="text-sm text-amber-300 mb-2 font-semibold">Highlighted text:</p>
+                <p className="text-sm text-slate-200 italic">"{selectedText}"</p>
+              </div>
+            )}
+
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Write your note here..."
+              className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-600 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 focus:outline-none text-sm text-white placeholder-slate-500 resize-none mb-4"
+              rows={6}
+              autoFocus
+            />
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleCancelNote}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveNote}
+                disabled={!noteText.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-500/30 font-bold"
+              >
+                <Save className="w-4 h-4" />
+                Save Note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

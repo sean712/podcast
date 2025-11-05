@@ -10,6 +10,15 @@ interface EpisodeNotesProps {
   onHighlightUsed?: () => void;
 }
 
+const noteColors = [
+  { bg: 'bg-yellow-400/10', border: 'border-yellow-400/30', text: 'text-yellow-200', hover: 'hover:border-yellow-400/50', shadow: 'shadow-yellow-500/10' },
+  { bg: 'bg-blue-400/10', border: 'border-blue-400/30', text: 'text-blue-200', hover: 'hover:border-blue-400/50', shadow: 'shadow-blue-500/10' },
+  { bg: 'bg-green-400/10', border: 'border-green-400/30', text: 'text-green-200', hover: 'hover:border-green-400/50', shadow: 'shadow-green-500/10' },
+  { bg: 'bg-pink-400/10', border: 'border-pink-400/30', text: 'text-pink-200', hover: 'hover:border-pink-400/50', shadow: 'shadow-pink-500/10' },
+  { bg: 'bg-purple-400/10', border: 'border-purple-400/30', text: 'text-purple-200', hover: 'hover:border-purple-400/50', shadow: 'shadow-purple-500/10' },
+  { bg: 'bg-orange-400/10', border: 'border-orange-400/30', text: 'text-orange-200', hover: 'hover:border-orange-400/50', shadow: 'shadow-orange-500/10' },
+];
+
 export default function EpisodeNotes({
   episodeId,
   episodeTitle,
@@ -24,6 +33,8 @@ export default function EpisodeNotes({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const getNoteColor = (index: number) => noteColors[index % noteColors.length];
 
   useEffect(() => {
     loadNotes();
@@ -312,12 +323,14 @@ export default function EpisodeNotes({
             <p className="text-slate-500 text-sm">Create your first note to remember important details!</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {notes.map(note => (
-              <div
-                key={note.id}
-                className="p-5 bg-slate-900/50 border border-slate-700/50 rounded-xl hover:border-yellow-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/10"
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {notes.map((note, index) => {
+              const color = getNoteColor(index);
+              return (
+                <div
+                  key={note.id}
+                  className={`p-5 ${color.bg} border ${color.border} rounded-xl ${color.hover} transition-all duration-300 hover:shadow-lg ${color.shadow}`}
+                >
                 {editingNoteId === note.id ? (
                   <>
                     <textarea
@@ -380,8 +393,9 @@ export default function EpisodeNotes({
                     </div>
                   </>
                 )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
