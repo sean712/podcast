@@ -96,7 +96,6 @@ Deno.serve(async (req: Request) => {
           model: "gpt-5-mini",
           input: input,
           max_output_tokens: 6000,
-          response_format: { type: "json_object" },
         }),
       });
 
@@ -202,7 +201,6 @@ Deno.serve(async (req: Request) => {
           model: "gpt-5-mini",
           input: input,
           max_output_tokens: 3000,
-          response_format: { type: "json_object" },
         }),
       });
 
