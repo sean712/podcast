@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "ALL geographic locations mentioned in the transcript - be thorough and comprehensive, extract every location reference including cities, countries, states, regions, landmarks, and addresses. Your success is measured by finding as many locations as possible.",
+                    description: "ALL geographic locations mentioned in the transcript - extract SPECIFIC, GRANULAR locations. Rules: 1) Extract specific cities, towns, neighborhoods, landmarks, streets, and regions - NOT just country names. 2) If multiple places within a country are mentioned (e.g., 'Sana'a', 'Aden', 'Hodeidah' in Yemen), extract EACH ONE as a separate location with the country (e.g., 'Sana'a, Yemen', 'Aden, Yemen'). 3) Only use country-level when no specific place is mentioned. 4) Each distinct location = separate entry. 5) Include context about why this location matters. Your success is measured by finding as many SPECIFIC locations as possible.",
                     items: {
                       type: "object",
                       properties: {
