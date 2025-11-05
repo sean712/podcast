@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
               content: `Analyze this podcast transcript:\n\n${transcript}`
             }
           ],
-          max_output_tokens: 6000,
+          max_output_tokens: 4000,
           text: {
             format: {
               type: "json_schema",
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
                   },
                   keyMoments: {
                     type: "array",
-                    description: "5-8 key moments that are important, interesting, or surprising",
+                    description: "3-5 key moments that are important, interesting, or surprising",
                     items: {
                       type: "object",
                       properties: {
@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
                   },
                   keyPersonnel: {
                     type: "array",
-                    description: "All key people mentioned in the transcript",
+                    description: "Key people mentioned in the transcript (limit to top 5-10)",
                     items: {
                       type: "object",
                       properties: {
@@ -148,7 +148,7 @@ Deno.serve(async (req: Request) => {
                   },
                   timeline: {
                     type: "array",
-                    description: "All chronological events mentioned in the transcript",
+                    description: "Key chronological events mentioned in the transcript (limit to top 5-10)",
                     items: {
                       type: "object",
                       properties: {
@@ -167,7 +167,7 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "All geographic locations mentioned in the transcript",
+                    description: "Key geographic locations mentioned in the transcript (limit to top 5-10)",
                     items: {
                       type: "object",
                       properties: {
