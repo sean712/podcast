@@ -23,7 +23,7 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type TabType = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
+type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'transcript' | 'notes' | 'chat';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
@@ -220,29 +220,38 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 Overview
               </button>
               <button
-                onClick={() => setActiveTab('insights')}
+                onClick={() => setActiveTab('people')}
                 className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === 'insights'
+                  activeTab === 'people'
                     ? 'border-blue-500 text-white bg-slate-800/50'
                     : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                 }`}
               >
                 <UsersIcon className="w-4 h-4" />
-                People & Timeline
+                Key People
               </button>
-              {locations.length > 0 && (
-                <button
-                  onClick={() => setActiveTab('map')}
-                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'map'
-                      ? 'border-blue-500 text-white bg-slate-800/50'
-                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-                  }`}
-                >
-                  <Map className="w-4 h-4" />
-                  Locations ({locations.length})
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('timeline')}
+                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                  activeTab === 'timeline'
+                    ? 'border-blue-500 text-white bg-slate-800/50'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                }`}
+              >
+                <Clock className="w-4 h-4" />
+                Timeline
+              </button>
+              <button
+                onClick={() => setActiveTab('map')}
+                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                  activeTab === 'map'
+                    ? 'border-blue-500 text-white bg-slate-800/50'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                }`}
+              >
+                <Map className="w-4 h-4" />
+                Locations {locations.length > 0 && `(${locations.length})`}
+              </button>
               {episode.transcript && (
                 <>
                   <button
@@ -324,17 +333,27 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           )}
 
-          {/* Insights Tab - People & Timeline side by side */}
-          {activeTab === 'insights' && (
+          {/* People Tab */}
+          {activeTab === 'people' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <KeyPersonnel personnel={analysis.keyPersonnel} />
-                  <Timeline events={analysis.timeline} />
-                </div>
+                <KeyPersonnel personnel={analysis.keyPersonnel} />
               ) : (
                 <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                  <p className="text-slate-300">No insights available yet</p>
+                  <p className="text-slate-300">No personnel data available yet</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Timeline Tab */}
+          {activeTab === 'timeline' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {analysis ? (
+                <Timeline events={analysis.timeline} />
+              ) : (
+                <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
+                  <p className="text-slate-300">No timeline data available yet</p>
                 </div>
               )}
             </div>

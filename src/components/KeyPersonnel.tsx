@@ -1,4 +1,5 @@
-import { Users, User, Quote } from 'lucide-react';
+import { useState } from 'react';
+import { Users, User, Quote, ChevronDown, ChevronUp } from 'lucide-react';
 import type { KeyPerson } from '../services/openaiService';
 
 interface KeyPersonnelProps {
@@ -6,52 +7,76 @@ interface KeyPersonnelProps {
 }
 
 export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
+  const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
+
   if (personnel.length === 0) return null;
 
+  const togglePerson = (index: number) => {
+    setExpandedPerson(expandedPerson === index ? null : index);
+  };
+
   return (
-    <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-500/10 rounded-lg">
           <Users className="w-5 h-5 text-blue-400" />
         </div>
         <div>
-          <h3 className="text-xl font-semibold text-white">Key Personnel</h3>
+          <h3 className="text-2xl font-bold text-white">Key People</h3>
           <p className="text-sm text-slate-400">{personnel.length} people mentioned</p>
         </div>
       </div>
 
-      {/* Personnel Cards - Scrollable */}
-      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+      {/* Personnel Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {personnel.map((person, index) => (
           <div
             key={index}
-            className="bg-slate-900/50 border border-slate-700 rounded-lg p-4 hover:border-slate-600 hover:bg-slate-900/70 transition-colors"
+            className="bg-slate-800/30 border border-slate-700 rounded-xl p-5 hover:border-slate-600 hover:bg-slate-800/50 transition-all"
           >
-            <div className="flex gap-3">
-              {/* Avatar */}
+            {/* Avatar and Name */}
+            <div className="flex items-start gap-3 mb-3">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-400" />
+                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-blue-400" />
                 </div>
               </div>
-
-              {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 mb-1">
-                  <h4 className="font-semibold text-white text-base">{person.name}</h4>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-xs font-medium text-slate-400">{person.role}</span>
-                </div>
-                <p className="text-sm text-slate-300 leading-relaxed mb-3">
-                  {person.relevance}
-                </p>
+                <h4 className="font-semibold text-white text-base mb-1 line-clamp-2">{person.name}</h4>
+                <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md inline-block">
+                  {person.role}
+                </span>
+              </div>
+            </div>
 
-                {person.quotes && person.quotes.length > 0 && (
-                  <div className="space-y-2 mt-3">
+            {/* Relevance */}
+            <p className="text-sm text-slate-300 leading-relaxed mb-3">
+              {person.relevance}
+            </p>
+
+            {/* Quotes Section - Collapsible */}
+            {person.quotes && person.quotes.length > 0 && (
+              <div className="border-t border-slate-700/50 pt-3">
+                <button
+                  onClick={() => togglePerson(index)}
+                  className="flex items-center justify-between w-full text-left group"
+                >
+                  <span className="text-xs font-medium text-slate-400 group-hover:text-slate-300 flex items-center gap-1.5">
+                    <Quote className="w-3.5 h-3.5" />
+                    {person.quotes.length} {person.quotes.length === 1 ? 'quote' : 'quotes'}
+                  </span>
+                  {expandedPerson === index ? (
+                    <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-slate-300" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-300" />
+                  )}
+                </button>
+
+                {expandedPerson === index && (
+                  <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className="relative pl-4 border-l-2 border-blue-500/30 bg-slate-800/50 rounded-r-lg p-2">
-                        <Quote className="w-3 h-3 text-blue-400/50 absolute top-2 left-1" />
+                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-500/30 bg-slate-900/50 rounded-r-lg p-2">
                         <p className="text-xs text-slate-400 italic leading-relaxed">
                           "{quote}"
                         </p>
@@ -60,7 +85,7 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
