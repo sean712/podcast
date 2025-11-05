@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Loader2, AlertCircle, Quote } from 'lucide-react';
 import type { GeocodedLocation } from '../services/geocodingService';
 
 interface LocationMapProps {
@@ -206,8 +206,20 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                         {location.name}
                       </div>
                       {location.context && (
-                        <div className="text-xs text-slate-400 line-clamp-2">
+                        <div className="text-xs text-slate-400 mb-2">
                           {location.context}
+                        </div>
+                      )}
+                      {location.quotes && location.quotes.length > 0 && (
+                        <div className="space-y-1 mt-2">
+                          {location.quotes.slice(0, 1).map((quote, qIndex) => (
+                            <div key={qIndex} className="relative pl-3 border-l-2 border-orange-500/30 bg-slate-900/50 rounded-r p-1.5">
+                              <Quote className="w-2.5 h-2.5 text-orange-400/50 absolute top-1.5 left-0.5" />
+                              <p className="text-xs text-slate-500 italic leading-tight line-clamp-2">
+                                "{quote}"
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>

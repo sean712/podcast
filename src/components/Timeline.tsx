@@ -1,4 +1,4 @@
-import { Clock, Calendar } from 'lucide-react';
+import { Clock, Calendar, Quote } from 'lucide-react';
 import type { TimelineEvent } from '../services/openaiService';
 
 interface TimelineProps {
@@ -50,9 +50,30 @@ export default function Timeline({ events }: TimelineProps) {
                 </h4>
 
                 {/* Significance */}
-                <p className="text-sm text-slate-300 leading-relaxed">
+                <p className="text-sm text-slate-300 leading-relaxed mb-2">
                   {event.significance}
                 </p>
+
+                {/* Details */}
+                {event.details && (
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3 mt-2">
+                    {event.details}
+                  </p>
+                )}
+
+                {/* Quotes */}
+                {event.quotes && event.quotes.length > 0 && (
+                  <div className="space-y-2 mt-3">
+                    {event.quotes.map((quote, qIndex) => (
+                      <div key={qIndex} className="relative pl-4 border-l-2 border-blue-500/30 bg-slate-800/50 rounded-r-lg p-2">
+                        <Quote className="w-3 h-3 text-blue-400/50 absolute top-2 left-1" />
+                        <p className="text-xs text-slate-400 italic leading-relaxed">
+                          "{quote}"
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

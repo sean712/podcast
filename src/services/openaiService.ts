@@ -3,18 +3,29 @@ import { supabase } from '../lib/supabase';
 export interface ExtractedLocation {
   name: string;
   context?: string;
+  quotes?: string[];
 }
 
 export interface KeyPerson {
   name: string;
   role: string;
   relevance: string;
+  quotes?: string[];
 }
 
 export interface TimelineEvent {
   date: string;
   event: string;
   significance: string;
+  details?: string;
+  quotes?: string[];
+}
+
+export interface KeyMoment {
+  title: string;
+  description: string;
+  quote?: string;
+  timestamp?: string;
 }
 
 export interface TranscriptAnalysis {
@@ -22,6 +33,7 @@ export interface TranscriptAnalysis {
   keyPersonnel: KeyPerson[];
   timeline: TimelineEvent[];
   locations: ExtractedLocation[];
+  keyMoments: KeyMoment[];
 }
 
 class OpenAIServiceError extends Error {
@@ -77,6 +89,7 @@ export async function analyzeTranscript(
       keyPersonnel: Array.isArray(data?.keyPersonnel) ? data.keyPersonnel : [],
       timeline: Array.isArray(data?.timeline) ? data.timeline : [],
       locations: Array.isArray(data?.locations) ? data.locations : [],
+      keyMoments: Array.isArray(data?.keyMoments) ? data.keyMoments : [],
     };
   } catch (error) {
     if (error instanceof OpenAIServiceError) {

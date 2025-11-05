@@ -1,4 +1,4 @@
-import { Users, User } from 'lucide-react';
+import { Users, User, Quote } from 'lucide-react';
 import type { KeyPerson } from '../services/openaiService';
 
 interface KeyPersonnelProps {
@@ -43,9 +43,22 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                   <span className="text-slate-600">•</span>
                   <span className="text-xs font-medium text-slate-400">{person.role}</span>
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed">
+                <p className="text-sm text-slate-300 leading-relaxed mb-3">
                   {person.relevance}
                 </p>
+
+                {person.quotes && person.quotes.length > 0 && (
+                  <div className="space-y-2 mt-3">
+                    {person.quotes.map((quote, qIndex) => (
+                      <div key={qIndex} className="relative pl-4 border-l-2 border-blue-500/30 bg-slate-800/50 rounded-r-lg p-2">
+                        <Quote className="w-3 h-3 text-blue-400/50 absolute top-2 left-1" />
+                        <p className="text-xs text-slate-400 italic leading-relaxed">
+                          "{quote}"
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -74,6 +74,7 @@ Deno.serve(async (req: Request) => {
             keyPersonnel: cachedAnalysis.key_personnel,
             timeline: cachedAnalysis.timeline_events,
             locations: cachedAnalysis.locations,
+            keyMoments: cachedAnalysis.key_moments || [],
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -92,7 +93,7 @@ Deno.serve(async (req: Request) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n2. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript with their role and relevance. Be thorough and comprehensive - include every person who plays a significant role in the discussion. Format: [{"name": "...", "role": "...", "relevance": "..."}]\n3. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. Be comprehensive and include all significant dates and events discussed. Format: [{"date": "...", "event": "...", "significance": "..."}]. Use relative dates if specific dates aren't mentioned (e.g., "2020", "Last year", "Beginning of career")\n4. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. Be thorough and include every location reference. Format: [{"name": "...", "context": "..."}]\n\nBe comprehensive and thorough in your extraction. Include as many relevant items as you can find in each category.\n\nReturn ONLY valid JSON, no additional text.`,
+              content: `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n\n2. "keyMoments": Array of 5-8 key moments that are important, interesting, or surprising from the episode. Format: [{"title": "Brief catchy title", "description": "2-3 sentence description", "quote": "direct quote from transcript if available", "timestamp": "approximate time or context"}]\n\n3. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript. For each person include:\n   - name: person's name\n   - role: their role/title\n   - relevance: detailed explanation (2-3 sentences) about their involvement and significance\n   - quotes: array of 1-2 relevant direct quotes from the transcript about or by this person\n   Format: [{"name": "...", "role": "...", "relevance": "...", "quotes": ["...", "..."]}]\n\n4. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. For each event include:\n   - date: the date (specific or relative like "2020", "Last year")\n   - event: brief title of the event\n   - significance: why it matters (1-2 sentences)\n   - details: more comprehensive details about what happened (2-3 sentences)\n   - quotes: array of 1-2 relevant direct quotes from the transcript about this event\n   Format: [{"date": "...", "event": "...", "significance": "...", "details": "...", "quotes": ["...", "..."]}]\n\n5. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. For each location include:\n   - name: location name\n   - context: detailed context (2-3 sentences) about what happened at this location according to the transcript, including specific events, people involved, and outcomes\n   - quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n   Format: [{"name": "...", "context": "...", "quotes": ["...", "..."]}]\n\nBe comprehensive and thorough. Include direct quotes from the transcript wherever possible to support the information. Make sure quotes are actual verbatim text from the transcript.\n\nReturn ONLY valid JSON, no additional text.`,
             },
             {
               role: "user",
@@ -100,7 +101,7 @@ Deno.serve(async (req: Request) => {
             },
           ],
           temperature: 0.3,
-          max_tokens: 4000,
+          max_tokens: 6000,
         }),
       });
 
@@ -114,7 +115,7 @@ Deno.serve(async (req: Request) => {
 
       if (!content) {
         return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [] }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -122,7 +123,7 @@ Deno.serve(async (req: Request) => {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [] }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -133,6 +134,7 @@ Deno.serve(async (req: Request) => {
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
+        keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
       };
 
       return new Response(
@@ -153,7 +155,7 @@ Deno.serve(async (req: Request) => {
           messages: [
             {
               role: "system",
-              content: `You are a location extraction expert. Extract ALL geographic locations (cities, countries, landmarks, regions, states, neighborhoods, etc.) mentioned throughout the ENTIRE text. Be comprehensive and thorough - include every location reference you find, no matter how brief. Return ONLY a JSON array of objects with "name" and optional "context" fields. The name should be the location name, and context should be a brief description of why it was mentioned. Return locations in order of importance. Example format: [{"name": "Paris", "context": "where the event took place"}, {"name": "New York", "context": "speaker's hometown"}]`,
+              content: `You are a location extraction expert. Extract ALL geographic locations (cities, countries, landmarks, regions, states, neighborhoods, etc.) mentioned throughout the ENTIRE text. For each location include:\n- name: location name\n- context: detailed context (2-3 sentences) about what happened at this location according to the transcript\n- quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n\nBe comprehensive and thorough. Return ONLY a JSON array. Example format: [{"name": "Paris", "context": "The conference took place here where major announcements were made about the future of AI", "quotes": ["We gathered in Paris for the biggest tech conference of the year", "Paris was buzzing with excitement"]}, {"name": "New York", "context": "...", "quotes": ["..."]}]`,
             },
             {
               role: "user",

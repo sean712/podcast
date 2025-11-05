@@ -11,6 +11,7 @@ export interface CachedAnalysis {
   key_personnel: any[];
   timeline_events: any[];
   locations: GeocodedLocation[];
+  key_moments: any[];
   analysis_version: string;
   created_at: string;
   updated_at: string;
@@ -48,7 +49,8 @@ export async function saveCachedAnalysis(
       key_personnel: analysis.keyPersonnel,
       timeline_events: analysis.timeline,
       locations: locations,
-      analysis_version: 'v1',
+      key_moments: analysis.keyMoments,
+      analysis_version: 'v2',
     });
 
   if (error) {

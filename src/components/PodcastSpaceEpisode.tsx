@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, MessageCircle } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
+import KeyMoments from './KeyMoments';
 import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
 import TranscriptViewer from './TranscriptViewer';
@@ -57,6 +58,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
           keyPersonnel: cachedAnalysis.key_personnel,
           timeline: cachedAnalysis.timeline_events,
           locations: cachedAnalysis.locations.map((loc: any) => loc.name || loc),
+          keyMoments: cachedAnalysis.key_moments || [],
         });
         setLocations(cachedAnalysis.locations);
         setIsLoadingLocations(false);
@@ -277,7 +279,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
                     </div>
                   )}
                   {analysis && (
-                    <EpisodeSummary summary={analysis.summary} />
+                    <>
+                      <EpisodeSummary summary={analysis.summary} />
+                      {analysis.keyMoments && analysis.keyMoments.length > 0 && (
+                        <KeyMoments moments={analysis.keyMoments} />
+                      )}
+                    </>
                   )}
                 </>
               )}
