@@ -170,7 +170,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
       </header>
 
       <main className="pt-[73px]">
-
+        <div className="lg:grid lg:grid-cols-[1fr_320px]">
+          <div>
         {/* Tabbed Navigation */}
         <div className="border-b border-slate-700 bg-slate-900 sticky top-[73px] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -370,6 +371,66 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack
               </div>
             </div>
           )}
+        </div>
+          </div>
+
+          {/* Sidebar - Recent Episodes */}
+          <aside className="hidden lg:block bg-slate-900 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-white uppercase tracking-wide">Recent Episodes</h3>
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  Show All
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {episodes.slice(0, 5).map((ep) => (
+                  <button
+                    key={ep.id}
+                    onClick={() => onEpisodeClick(ep)}
+                    className={`w-full text-left p-3 rounded-lg transition-all group ${
+                      ep.id === episode.id
+                        ? 'bg-blue-500/20 border border-blue-500/50'
+                        : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      {ep.image_url && (
+                        <img
+                          src={ep.image_url}
+                          alt={ep.title}
+                          className="w-12 h-12 rounded object-cover flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`text-sm font-medium mb-1 line-clamp-2 ${
+                          ep.id === episode.id ? 'text-blue-300' : 'text-white group-hover:text-blue-300'
+                        }`}>
+                          {ep.title}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          {ep.published_at && (
+                            <span>{new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          )}
+                          {ep.duration > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>{Math.floor(ep.duration / 60)}m</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
         </div>
       </main>
     </div>
