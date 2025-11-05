@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
+import { stripHtml } from '../utils/textUtils';
 
 interface PodcastSpaceHomeProps {
   podcast: PodcastSpace;
@@ -49,7 +50,7 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
                 <p className="text-gray-600 text-lg mb-3">{podcast.publisher_name}</p>
               )}
               {podcast.description && (
-                <p className="text-gray-700 leading-relaxed">{podcast.description}</p>
+                <p className="text-gray-700 leading-relaxed">{stripHtml(podcast.description)}</p>
               )}
             </div>
           </div>
@@ -121,7 +122,7 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
                   </h3>
                   {episode.description && (
                     <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                      {episode.description}
+                      {stripHtml(episode.description)}
                     </p>
                   )}
                   <div className="flex items-center gap-3 text-xs text-gray-500">
