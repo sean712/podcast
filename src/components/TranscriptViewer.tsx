@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2, MessageCircle, Save } from 'lucide-react';
+import { BookOpen, Search, X, Check, ChevronDown, ChevronUp, StickyNote, Type, Maximize2, Minimize2, Save } from 'lucide-react';
 import { createNote } from '../services/localStorageNotesService';
 
 interface TranscriptViewerProps {
@@ -8,11 +8,10 @@ interface TranscriptViewerProps {
   episodeId: string;
   podcastName: string;
   onTextSelected?: (text: string) => void;
-  onAskAI?: (text: string) => void;
   onNoteCreated?: () => void;
 }
 
-export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onAskAI, onNoteCreated }: TranscriptViewerProps) {
+export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onNoteCreated }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -129,13 +128,6 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
     window.getSelection()?.removeAllRanges();
   };
 
-  const handleAskAI = () => {
-    if (onAskAI && selectedText) {
-      onAskAI(selectedText);
-    }
-    setShowCreateNoteButton(false);
-    window.getSelection()?.removeAllRanges();
-  };
 
   const fontSizeClasses = {
     small: 'text-sm',
@@ -164,7 +156,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold text-white">Full Transcript</h3>
-              <p className="text-xs text-slate-400">Select text to add notes or ask AI</p>
+              <p className="text-xs text-slate-400">Select text to add notes</p>
             </div>
           </div>
         </div>
@@ -313,15 +305,6 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                 <StickyNote className="w-4 h-4" />
                 Add to Notes
               </button>
-              {onAskAI && (
-                <button
-                  onClick={handleAskAI}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 shadow-lg transition-colors text-sm font-medium whitespace-nowrap"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Ask AI
-                </button>
-              )}
             </div>
           )}
         </div>

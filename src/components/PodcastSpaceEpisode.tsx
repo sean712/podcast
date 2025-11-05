@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, MessageCircle, List } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
 import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
 import TranscriptViewer from './TranscriptViewer';
-import ChatWidget from './ChatWidget';
 import EpisodeNotes from './EpisodeNotes';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
-import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
+import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
@@ -23,7 +22,7 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'transcript' | 'notes' | 'chat';
+type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
@@ -104,13 +103,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     }
   };
 
-  const handleChatMessage = async (message: string): Promise<string> => {
-    if (!episode.transcript) {
-      throw new Error('No transcript available');
-    }
-
-    return await chatWithTranscript(episode.transcript, episode.title, message);
-  };
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
@@ -118,16 +110,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     setActiveTab('notes');
   };
 
-  const handleAskAI = (text: string) => {
-    // Switch to chat tab and populate the input with the quoted text
-    setActiveTab('chat');
-    // The chat will need access to this text - we'll pass it via a new state
-    setHighlightedTextForNote(`"${text}"`);
-    // Clear it after a brief moment so it doesn't persist
-    setTimeout(() => {
-      setHighlightedTextForNote(undefined);
-    }, 100);
-  };
 
   const handleHighlightUsed = () => {
     setHighlightedTextForNote(undefined);
@@ -276,17 +258,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     <StickyNote className="w-4 h-4" />
                     Notes
                   </button>
-                  <button
-                    onClick={() => setActiveTab('chat')}
-                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                      activeTab === 'chat'
-                        ? 'border-blue-500 text-white bg-slate-800/50'
-                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-                    }`}
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    AI Chat
-                  </button>
                 </>
               )}
             </nav>
@@ -379,7 +350,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 episodeId={episode.episode_id}
                 podcastName={podcast.name}
                 onTextSelected={handleTextSelected}
-                onAskAI={handleAskAI}
               />
             </div>
           )}
@@ -397,33 +367,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           )}
 
-          {/* Chat Tab */}
-          {activeTab === 'chat' && episode.transcript && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden">
-                <div className="bg-slate-800 border-b border-slate-700 text-white p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-base">AI Assistant</h3>
-                      <p className="text-xs text-slate-400">Ask me anything about this episode</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="h-[600px]">
-                  <ChatWidget
-                    transcript={episode.transcript}
-                    episodeTitle={episode.title}
-                    onSendMessage={handleChatMessage}
-                    embedded={true}
-                    initialInput={activeTab === 'chat' ? highlightedTextForNote : undefined}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
         </div>
           </div>
 
