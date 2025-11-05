@@ -23,6 +23,8 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteText, setNoteText] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
   const paragraphs = useMemo(() => {
     if (!transcript) return [];
@@ -126,6 +128,74 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
     setNoteText('');
     setShowNoteModal(false);
     window.getSelection()?.removeAllRanges();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+
+    longPressTimer.current = setTimeout(() => {
+      checkForSelection();
+    }, 800);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartPos.current.x);
+    const deltaY = Math.abs(touch.clientY - touchStartPos.current.y);
+
+    if (deltaX > 10 || deltaY > 10) {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    touchStartPos.current = null;
+
+    setTimeout(() => {
+      checkForSelection();
+    }, 300);
+  };
+
+  const checkForSelection = () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+
+    if (text && text.length > 0) {
+      setSelectedText(text);
+      const range = selection?.getRangeAt(0);
+      const rect = range?.getBoundingClientRect();
+      const container = containerRef.current;
+
+      if (rect && container) {
+        const containerRect = container.getBoundingClientRect();
+        const scrollTop = container.scrollTop;
+
+        const relativeTop = rect.bottom - containerRect.top + scrollTop + 8;
+        const relativeLeft = Math.max(
+          10,
+          Math.min(
+            rect.left - containerRect.left + (rect.width / 2) - 75,
+            containerRect.width - 160
+          )
+        );
+
+        setButtonPosition({
+          top: relativeTop,
+          left: relativeLeft
+        });
+        setShowCreateNoteButton(true);
+      }
+    }
   };
 
 
@@ -258,6 +328,9 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
           <div
             className={`max-w-4xl mx-auto ${fontSizeClasses[fontSize]}`}
             onMouseUp={handleTextSelection}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {searchQuery.trim() ? (
               highlightedParagraphs.map((p, i) => (
