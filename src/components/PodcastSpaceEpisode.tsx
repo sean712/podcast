@@ -12,7 +12,6 @@ import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalys
 import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml } from '../utils/textUtils';
-import { useAuth } from '../contexts/AuthContext';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
 
 interface PodcastSpaceEpisodeProps {
@@ -27,7 +26,6 @@ interface PodcastSpaceEpisodeProps {
 type TabType = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
-  const { user } = useAuth();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
