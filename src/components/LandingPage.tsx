@@ -202,8 +202,8 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
         </section>
 
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
                 Interactive Features
               </h2>
@@ -212,112 +212,150 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <List className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Key Moments</h4>
+            <div className="space-y-24">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="order-2 lg:order-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                      <Map className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900">Interactive Location Map</h3>
+                  </div>
+                  <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                    Every place mentioned in your episode is automatically mapped and displayed on a beautiful satellite view. Listeners can explore locations, see context, and understand the geographic story behind your content.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Automatic location extraction from transcript</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Satellite imagery with numbered markers</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Context and quotes for each location</span>
+                    </li>
+                  </ul>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Automatically extracted highlights and topics from each episode
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
-                  <div className="flex items-start gap-2 mb-2">
-                    <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5" />
-                    <div>Introduction to the topic</div>
-                  </div>
-                  <div className="flex items-start gap-2 mb-2">
-                    <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5" />
-                    <div>Main discussion points</div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5" />
-                    <div>Key takeaways</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <UsersIcon className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Key People</h4>
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Everyone mentioned in the episode with descriptions
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
-                  <div className="mb-3">
-                    <div className="font-medium text-slate-900">Guest Name</div>
-                    <div className="text-slate-500">Expert in topic discussed</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-slate-900">Person Mentioned</div>
-                    <div className="text-slate-500">Referenced in conversation</div>
+                <div className="order-1 lg:order-2">
+                  <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
+                    <img
+                      src="/Screenshot 2025-11-05 at 20.41.17.png"
+                      alt="Interactive map showing locations mentioned in podcast episode"
+                      className="w-full h-auto"
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Timeline</h4>
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="order-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900">Smart Timeline</h3>
+                  </div>
+                  <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                    AI identifies the most important moments and creates a chronological timeline of events discussed in your episode. Perfect for historical content, storytelling, and narrative podcasts.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Chronological event extraction</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Expandable details for each moment</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Visual timeline with dates and context</span>
+                    </li>
+                  </ul>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Interactive timeline of events and topics discussed
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg p-3 text-xs text-slate-600 space-y-2">
-                  <div className="flex gap-2">
-                    <div className="w-12 text-slate-400">0:00</div>
-                    <div>Opening remarks</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-12 text-slate-400">5:30</div>
-                    <div>Topic introduction</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-12 text-slate-400">15:00</div>
-                    <div>Deep dive discussion</div>
+                <div className="order-1">
+                  <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
+                    <img
+                      src="/Screenshot 2025-11-05 at 20.41.22.png"
+                      alt="Timeline showing key moments from podcast episode"
+                      className="w-full h-auto"
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <Map className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Location Map</h4>
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="order-2 lg:order-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
+                      <UsersIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900">Key People</h3>
+                  </div>
+                  <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                    Every person mentioned gets their own card with AI-generated descriptions, roles, and relevant quotes from the episode. Helps listeners keep track of who's who in complex stories.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Automatic person identification</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Role and context descriptions</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600">Relevant quotes and mentions</span>
+                    </li>
+                  </ul>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  See where the story takes place on an interactive map
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg h-24 flex items-center justify-center text-xs text-slate-400">
-                  [Map preview]
+                <div className="order-1 lg:order-2">
+                  <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
+                    <img
+                      src="/Screenshot 2025-11-05 at 20.41.11.png"
+                      alt="Key people mentioned in podcast episode with descriptions"
+                      className="w-full h-auto"
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <BookOpen className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Full Transcript</h4>
+            <div className="mt-24">
+              <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center">And More Features</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <List className="w-5 h-5 text-slate-900" />
+                    <h4 className="font-semibold text-slate-900">Key Moments</h4>
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Automatically extracted highlights and important topics from each episode
+                  </p>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Searchable, readable transcript with highlight and copy features
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg p-3 text-xs text-slate-600 leading-relaxed">
-                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor..."
-                </div>
-              </div>
 
-              <div className="bg-white rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <StickyNote className="w-5 h-5 text-slate-900" />
-                  <h4 className="font-semibold text-slate-900">Note Taking</h4>
+                <div className="bg-white rounded-xl p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <BookOpen className="w-5 h-5 text-slate-900" />
+                    <h4 className="font-semibold text-slate-900">Full Transcript</h4>
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Searchable, readable transcript with highlight and copy features
+                  </p>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Listeners can highlight and save notes while reading
-                </p>
-                <div className="mt-4 bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
-                  <div className="mb-2 text-slate-900 font-medium">My Notes</div>
-                  <div className="text-slate-500">Select text to create notes...</div>
+
+                <div className="bg-white rounded-xl p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <StickyNote className="w-5 h-5 text-slate-900" />
+                    <h4 className="font-semibold text-slate-900">Note Taking</h4>
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Listeners can highlight transcript text and save notes while reading
+                  </p>
                 </div>
               </div>
             </div>
