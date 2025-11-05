@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
                   },
                   keyMoments: {
                     type: "array",
-                    description: "3-5 key moments that are important, interesting, or surprising",
+                    description: "5-8 key moments that are important, interesting, or surprising",
                     items: {
                       type: "object",
                       properties: {
@@ -133,7 +133,7 @@ Deno.serve(async (req: Request) => {
                   },
                   keyPersonnel: {
                     type: "array",
-                    description: "Key people mentioned in the transcript (limit to top 5-10)",
+                    description: "Key people mentioned in the transcript (max 10)",
                     items: {
                       type: "object",
                       properties: {
@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
                   },
                   timeline: {
                     type: "array",
-                    description: "Key chronological events mentioned in the transcript (limit to top 5-10)",
+                    description: "Key chronological events mentioned in the transcript (max 10)",
                     items: {
                       type: "object",
                       properties: {
@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "Key geographic locations mentioned in the transcript (limit to top 5-10)",
+                    description: "Key geographic locations mentioned in the transcript - be thorough, find all relevant locations",
                     items: {
                       type: "object",
                       properties: {
@@ -286,7 +286,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are a location extraction expert. Extract ALL geographic locations mentioned in the text with context and supporting quotes."
+              content: "You are a location extraction expert. Extract ALL geographic locations mentioned in the text with context and supporting quotes. Be thorough. Success = finding as many locations mentioned as you can"
             },
             {
               role: "user",
