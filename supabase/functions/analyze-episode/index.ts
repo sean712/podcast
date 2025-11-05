@@ -105,14 +105,27 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("Raw API response:", JSON.stringify(data, null, 2));
+      console.log("Raw API response structure:", JSON.stringify({
+        hasOutput: !!data.output,
+        outputType: typeof data.output,
+        isOutputArray: Array.isArray(data.output),
+        outputLength: Array.isArray(data.output) ? data.output.length : 0,
+        firstOutputItem: Array.isArray(data.output) && data.output[0] ? {
+          type: data.output[0].type,
+          hasContent: !!data.output[0].content,
+          contentType: typeof data.output[0].content,
+        } : null,
+        keys: Object.keys(data),
+      }, null, 2));
 
       let content = "";
 
       if (data.output && Array.isArray(data.output)) {
         for (const outputItem of data.output) {
+          console.log("Processing output item:", { type: outputItem.type, hasContent: !!outputItem.content });
           if (outputItem.type === "message" && outputItem.content && Array.isArray(outputItem.content)) {
             for (const contentItem of outputItem.content) {
+              console.log("Processing content item:", { type: contentItem.type, hasText: !!contentItem.text });
               if (contentItem.type === "output_text" && contentItem.text) {
                 content += contentItem.text;
               }
@@ -121,7 +134,8 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      console.log("Extracted content:", content.substring(0, 500));
+      console.log("Extracted content length:", content.length);
+      console.log("Extracted content preview:", content.substring(0, 500));
 
       if (!content) {
         console.error("No content extracted from response");
