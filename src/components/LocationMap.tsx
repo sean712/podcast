@@ -31,7 +31,14 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isNowFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isNowFullscreen);
+
+      if (mapInstanceRef.current) {
+        setTimeout(() => {
+          mapInstanceRef.current.invalidateSize();
+        }, 100);
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -160,11 +167,13 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }
 
   return (
-    <div className="relative group" ref={containerRef}>
+    <div className={`relative group ${isFullscreen ? 'h-screen w-screen bg-slate-900' : ''}`} ref={containerRef}>
       {/* Animated gradient background */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+      {!isFullscreen && (
+        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+      )}
 
-      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+      <div className={`relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 overflow-hidden shadow-2xl ${isFullscreen ? 'h-full w-full' : 'rounded-2xl'}`}>
         {/* Header */}
         <div className="border-b border-slate-700/50 p-6 bg-slate-900/50">
           <div className="flex items-center justify-between gap-3">
@@ -194,14 +203,14 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+        <div className={`grid grid-cols-1 gap-0 ${isFullscreen ? 'lg:grid-cols-4 h-[calc(100vh-80px)]' : 'lg:grid-cols-3'}`}>
           {/* Map Container - Full Width on Large Screens */}
-          <div className="lg:col-span-2 h-[500px] relative" ref={mapContainerRef}>
+          <div className={`relative ${isFullscreen ? 'lg:col-span-3 h-full' : 'lg:col-span-2 h-[500px]'}`} ref={mapContainerRef}>
             {/* Map loads here */}
           </div>
 
           {/* Location List Sidebar */}
-          <div className="border-t lg:border-t-0 lg:border-l border-slate-700/50 bg-slate-900/50 p-4 overflow-y-auto max-h-[500px]">
+          <div className={`border-t lg:border-t-0 lg:border-l border-slate-700/50 bg-slate-900/50 p-4 overflow-y-auto ${isFullscreen ? 'h-full' : 'max-h-[500px]'}`}>
             <div className="space-y-2">
               {locations.map((location, index) => (
                 <button
