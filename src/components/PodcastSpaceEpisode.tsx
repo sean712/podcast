@@ -19,12 +19,14 @@ interface PodcastSpaceEpisodeProps {
   episode: StoredEpisode;
   podcast: PodcastSpace;
   settings: PodcastSettings | null;
+  episodes: StoredEpisode[];
   onBack: () => void;
+  onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
 type TabType = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
 
-export default function PodcastSpaceEpisode({ episode, podcast, settings, onBack }: PodcastSpaceEpisodeProps) {
+export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const { user } = useAuth();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);

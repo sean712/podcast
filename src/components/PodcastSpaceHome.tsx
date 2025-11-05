@@ -1,36 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
-import { getPodcastEpisodesFromDB } from '../services/podcastSpaceService';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
 
 interface PodcastSpaceHomeProps {
   podcast: PodcastSpace;
   settings: PodcastSettings | null;
+  episodes: StoredEpisode[];
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-export default function PodcastSpaceHome({ podcast, settings, onEpisodeClick }: PodcastSpaceHomeProps) {
-  const [episodes, setEpisodes] = useState<StoredEpisode[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadEpisodes();
-  }, [podcast.id]);
-
-  const loadEpisodes = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getPodcastEpisodesFromDB(podcast.id, 100);
-      setEpisodes(data);
-    } catch (err) {
-      console.error('Error loading episodes:', err);
-      setError('Failed to load episodes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisodeClick }: PodcastSpaceHomeProps) {
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   const primaryColor = settings?.primary_color || '#10b981';
 

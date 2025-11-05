@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug } from './services/podcastSpaceService';
+import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug, getPodcastEpisodesFromDB } from './services/podcastSpaceService';
 import { useAuth } from './contexts/AuthContext';
 import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
@@ -14,6 +14,7 @@ export default function AppRouter() {
   const [podcast, setPodcast] = useState<PodcastSpace | null>(null);
   const [settings, setSettings] = useState<PodcastSettings | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<StoredEpisode | null>(null);
+  const [episodes, setEpisodes] = useState<StoredEpisode[]>([]);
   const [isLoadingRoute, setIsLoadingRoute] = useState(true);
   const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -56,6 +57,8 @@ export default function AppRouter() {
       setPodcast(podcastData);
       const settingsData = await getPodcastSettings(podcastData.id);
       setSettings(settingsData);
+      const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
+      setEpisodes(episodesData);
       setRouteType('podcast-space');
     } catch (err) {
       console.error('Error loading podcast space:', err);
@@ -147,7 +150,9 @@ export default function AppRouter() {
           episode={selectedEpisode}
           podcast={podcast}
           settings={settings}
+          episodes={episodes}
           onBack={handleBackToHome}
+          onEpisodeClick={handleEpisodeClick}
         />
       );
     }
@@ -156,6 +161,7 @@ export default function AppRouter() {
       <PodcastSpaceHome
         podcast={podcast}
         settings={settings}
+        episodes={episodes}
         onEpisodeClick={handleEpisodeClick}
       />
     );
