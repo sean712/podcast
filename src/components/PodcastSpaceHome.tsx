@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
 
@@ -14,6 +14,13 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
   const [error] = useState<string | null>(null);
 
   const primaryColor = settings?.primary_color || '#10b981';
+
+  useEffect(() => {
+    document.title = `${podcast.name} | Augmented Pods`;
+    return () => {
+      document.title = 'Augmented Pods';
+    };
+  }, [podcast.name]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

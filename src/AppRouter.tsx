@@ -21,6 +21,13 @@ export default function AppRouter() {
 
   useEffect(() => {
     detectRoute();
+
+    const handlePopState = () => {
+      detectRoute();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const detectRoute = async () => {
@@ -43,10 +50,11 @@ export default function AppRouter() {
       return;
     }
 
-    const slug = pathSegments[0];
+    const podcastSlug = pathSegments[0];
+    const episodeSlug = pathSegments[1];
 
     try {
-      const podcastData = await getPodcastBySlug(slug);
+      const podcastData = await getPodcastBySlug(podcastSlug);
 
       if (!podcastData) {
         setNotFound(true);
@@ -60,6 +68,24 @@ export default function AppRouter() {
       const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
       setEpisodes(episodesData);
       setRouteType('podcast-space');
+
+      if (episodeSlug) {
+        setIsLoadingRoute(false);
+        setIsLoadingEpisode(true);
+        try {
+          const episodeData = await getEpisodeBySlug(podcastData.id, episodeSlug);
+          if (episodeData) {
+            setSelectedEpisode(episodeData);
+          } else {
+            setNotFound(true);
+          }
+        } catch (err) {
+          console.error('Error loading episode:', err);
+          setNotFound(true);
+        } finally {
+          setIsLoadingEpisode(false);
+        }
+      }
     } catch (err) {
       console.error('Error loading podcast space:', err);
       setNotFound(true);
@@ -76,17 +102,24 @@ export default function AppRouter() {
       const fullEpisode = await getEpisodeBySlug(podcast.id, episode.slug);
       if (fullEpisode) {
         setSelectedEpisode(fullEpisode);
+        const newUrl = `/${podcast.slug}/${episode.slug}`;
+        window.history.pushState({}, '', newUrl);
       }
     } catch (err) {
       console.error('Error loading full episode:', err);
       setSelectedEpisode(episode);
+      const newUrl = `/${podcast.slug}/${episode.slug}`;
+      window.history.pushState({}, '', newUrl);
     } finally {
       setIsLoadingEpisode(false);
     }
   };
 
   const handleBackToHome = () => {
+    if (!podcast) return;
     setSelectedEpisode(null);
+    const newUrl = `/${podcast.slug}`;
+    window.history.pushState({}, '', newUrl);
   };
 
   if (authLoading || isLoadingRoute) {
