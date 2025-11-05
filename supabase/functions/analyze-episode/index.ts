@@ -82,23 +82,26 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "analyze") {
-      const systemPrompt = `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n\n2. "keyMoments": Array of 5-8 key moments that are important, interesting, or surprising from the episode. Format: [{"title": "Brief catchy title", "description": "2-3 sentence description", "quote": "direct quote from transcript if available", "timestamp": "approximate time or context"}]\n\n3. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript. For each person include:\n   - name: person's name\n   - role: their role/title\n   - relevance: detailed explanation (2-3 sentences) about their involvement and significance\n   - quotes: array of 1-2 relevant direct quotes from the transcript about or by this person\n   Format: [{"name": "...", "role": "...", "relevance": "...", "quotes": ["...", "..."]}]\n\n4. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. For each event include:\n   - date: the date (specific or relative like "2020", "Last year")\n   - event: brief title of the event\n   - significance: why it matters (1-2 sentences)\n   - details: more comprehensive details about what happened (2-3 sentences)\n   - quotes: array of 1-2 relevant direct quotes from the transcript about this event\n   Format: [{"date": "...", "event": "...", "significance": "...", "details": "...", "quotes": ["...", "..."]}]\n\n5. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. For each location include:\n   - name: location name\n   - context: detailed context (2-3 sentences) about what happened at this location according to the transcript, including specific events, people involved, and outcomes\n   - quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n   Format: [{"name": "...", "context": "...", "quotes": ["...", "..."]}]\n\nBe comprehensive and thorough. Include direct quotes from the transcript wherever possible to support the information. Make sure quotes are actual verbatim text from the transcript.\n\nReturn ONLY valid JSON, no additional text.`;
-
-      const input = `${systemPrompt}\n\nAnalyze this podcast transcript:\n\n${transcript}`;
-
-      const response = await fetch("https://api.openai.com/v1/responses", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-5-mini",
-          input: input,
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert at analyzing podcast transcripts. Extract the following information and return it as a JSON object:\n\n1. "summary": A concise TL;DR summary (3-5 sentences) capturing the main points and takeaways\n\n2. "keyMoments": Array of 5-8 key moments that are important, interesting, or surprising from the episode. Format: [{"title": "Brief catchy title", "description": "2-3 sentence description", "quote": "direct quote from transcript if available", "timestamp": "approximate time or context"}]\n\n3. "keyPersonnel": Array of ALL key people mentioned throughout the ENTIRE transcript. For each person include:\n   - name: person's name\n   - role: their role/title\n   - relevance: detailed explanation (2-3 sentences) about their involvement and significance\n   - quotes: array of 1-2 relevant direct quotes from the transcript about or by this person\n   Format: [{"name": "...", "role": "...", "relevance": "...", "quotes": ["...", "..."]}]\n\n4. "timeline": Array of ALL chronological events mentioned throughout the ENTIRE transcript. For each event include:\n   - date: the date (specific or relative like "2020", "Last year")\n   - event: brief title of the event\n   - significance: why it matters (1-2 sentences)\n   - details: more comprehensive details about what happened (2-3 sentences)\n   - quotes: array of 1-2 relevant direct quotes from the transcript about this event\n   Format: [{"date": "...", "event": "...", "significance": "...", "details": "...", "quotes": ["...", "..."]}]\n\n5. "locations": Array of ALL geographic locations mentioned throughout the ENTIRE transcript. For each location include:\n   - name: location name\n   - context: detailed context (2-3 sentences) about what happened at this location according to the transcript, including specific events, people involved, and outcomes\n   - quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n   Format: [{"name": "...", "context": "...", "quotes": ["...", "..."]}]\n\nBe comprehensive and thorough. Include direct quotes from the transcript wherever possible to support the information. Make sure quotes are actual verbatim text from the transcript.\n\nReturn ONLY valid JSON, no additional text.`,
+            },
+            {
+              role: "user",
+              content: `Analyze this podcast transcript:\n\n${transcript}`,
+            },
+          ],
           temperature: 0.3,
-          max_output_tokens: 6000,
-          verbosity: "medium",
-          reasoning_effort: "high",
+          max_tokens: 6000,
         }),
       });
 
@@ -108,7 +111,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      const content = data.output || data.choices?.[0]?.message?.content;
+      const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
         return new Response(
@@ -141,23 +144,26 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "extractLocations") {
-      const systemPrompt = `You are a location extraction expert. Extract ALL geographic locations (cities, countries, landmarks, regions, states, neighborhoods, etc.) mentioned throughout the ENTIRE text. For each location include:\n- name: location name\n- context: detailed context (2-3 sentences) about what happened at this location according to the transcript\n- quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n\nBe comprehensive and thorough. Return ONLY a JSON array. Example format: [{"name": "Paris", "context": "The conference took place here where major announcements were made about the future of AI", "quotes": ["We gathered in Paris for the biggest tech conference of the year", "Paris was buzzing with excitement"]}, {"name": "New York", "context": "...", "quotes": ["..."]}]`;
-
-      const input = `${systemPrompt}\n\nExtract all geographic locations from this transcript:\n\n${transcript}`;
-
-      const response = await fetch("https://api.openai.com/v1/responses", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-5-mini",
-          input: input,
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are a location extraction expert. Extract ALL geographic locations (cities, countries, landmarks, regions, states, neighborhoods, etc.) mentioned throughout the ENTIRE text. For each location include:\n- name: location name\n- context: detailed context (2-3 sentences) about what happened at this location according to the transcript\n- quotes: array of 1-2 relevant direct quotes from the transcript mentioning this location\n\nBe comprehensive and thorough. Return ONLY a JSON array. Example format: [{"name": "Paris", "context": "The conference took place here where major announcements were made about the future of AI", "quotes": ["We gathered in Paris for the biggest tech conference of the year", "Paris was buzzing with excitement"]}, {"name": "New York", "context": "...", "quotes": ["..."]}]`,
+            },
+            {
+              role: "user",
+              content: `Extract all geographic locations from this transcript:\n\n${transcript}`,
+            },
+          ],
           temperature: 0.3,
-          max_output_tokens: 3000,
-          verbosity: "medium",
-          reasoning_effort: "minimal",
+          max_tokens: 3000,
         }),
       });
 
@@ -167,7 +173,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      const content = data.output || data.choices?.[0]?.message?.content;
+      const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
         return new Response(
