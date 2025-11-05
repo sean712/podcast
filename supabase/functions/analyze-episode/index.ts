@@ -100,7 +100,10 @@ Deno.serve(async (req: Request) => {
               content: `Analyze this podcast transcript:\n\n${transcript}`
             }
           ],
-          max_output_tokens: 4000,
+          max_output_tokens: 16000,
+          reasoning: {
+            effort: "medium"
+          },
           text: {
             format: {
               type: "json_schema",
@@ -280,7 +283,10 @@ Deno.serve(async (req: Request) => {
               content: `Extract all geographic locations from this transcript:\n\n${transcript}`
             }
           ],
-          max_output_tokens: 3000,
+          max_output_tokens: 8000,
+          reasoning: {
+            effort: "low"
+          },
           text: {
             format: {
               type: "json_schema",
