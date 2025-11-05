@@ -110,4 +110,36 @@ export async function getEpisode(
   }
 }
 
+export async function bulkDownloadEpisodes(
+  episodeIds: string[],
+  options: {
+    showFullPodcast?: boolean;
+    wordLevelTimestamps?: boolean;
+    transcriptFormatter?: 'paragraph';
+  } = {}
+): Promise<{ episodes: SingleEpisodeResponse['episode'][] }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'bulkDownloadEpisodes',
+        episodeIds,
+        showFullPodcast: options.showFullPodcast ?? false,
+        wordLevelTimestamps: options.wordLevelTimestamps ?? false,
+        transcriptFormatter: options.transcriptFormatter,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to bulk download episodes');
+    }
+
+    return data as { episodes: SingleEpisodeResponse['episode'][] };
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to bulk download episodes');
+  }
+}
+
 export { PodscanApiError };

@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 interface PodscanRequest {
-  action: "search" | "getEpisodes" | "getEpisode";
+  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes";
   query?: string;
   podcastId?: string;
   episodeId?: string;
+  episodeIds?: string[];
   perPage?: number;
   orderBy?: string;
   orderDir?: string;
@@ -19,6 +20,7 @@ interface PodscanRequest {
   showFullPodcast?: boolean;
   wordLevelTimestamps?: boolean;
   transcriptFormatter?: string;
+  page?: number;
 }
 
 async function getConfig(key: string): Promise<string | null> {
@@ -188,6 +190,66 @@ Deno.serve(async (req: Request) => {
 
       const response = await fetch(`${podscanApiUrl}/episodes/${episodeId}?${params}`, {
         headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "bulkDownloadEpisodes") {
+      const {
+        episodeIds,
+        showFullPodcast = false,
+        wordLevelTimestamps = false,
+        transcriptFormatter,
+      } = requestData;
+
+      if (!episodeIds || !Array.isArray(episodeIds) || episodeIds.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Episode IDs array required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (episodeIds.length > 250) {
+        return new Response(
+          JSON.stringify({ error: "Maximum 250 episode IDs allowed" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const bodyData: Record<string, unknown> = {
+        episode_ids: episodeIds.join(","),
+        show_full_podcast: showFullPodcast,
+        word_level_timestamps: wordLevelTimestamps,
+      };
+
+      if (transcriptFormatter) {
+        bodyData.transcript_formatter = transcriptFormatter;
+      }
+
+      const response = await fetch(`${podscanApiUrl}/episodes/bulk`, {
+        method: "POST",
+        headers: podscanHeaders,
+        body: JSON.stringify(bodyData),
       });
 
       if (!response.ok) {
