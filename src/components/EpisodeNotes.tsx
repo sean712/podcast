@@ -194,7 +194,9 @@ export default function EpisodeNotes({
     const shareText = formatNoteForSharing(note);
 
     try {
-      if (navigator.share) {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
         await navigator.share({
           text: shareText,
         });
