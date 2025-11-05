@@ -15,18 +15,12 @@ class GeocodingServiceError extends Error {
 
 export async function geocodeLocation(locationName: string): Promise<GeocodedLocation | null> {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
     const response = await fetch(
-      `${supabaseUrl}/functions/v1/geocode-location`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1`,
       {
-        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({ locationName }),
+          'User-Agent': 'PodcastTranscriptViewer/1.0'
+        }
       }
     );
 
@@ -36,11 +30,17 @@ export async function geocodeLocation(locationName: string): Promise<GeocodedLoc
 
     const data = await response.json();
 
-    if (!data) {
+    if (!Array.isArray(data) || data.length === 0) {
       return null;
     }
 
-    return data;
+    const result = data[0];
+    return {
+      name: locationName,
+      lat: parseFloat(result.lat),
+      lon: parseFloat(result.lon),
+      displayName: result.display_name,
+    };
   } catch (error) {
     console.error(`Failed to geocode location "${locationName}":`, error);
     return null;
