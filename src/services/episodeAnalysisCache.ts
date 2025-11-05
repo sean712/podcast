@@ -29,6 +29,12 @@ export async function getCachedAnalysis(episodeId: string): Promise<CachedAnalys
     return null;
   }
 
+  if (data) {
+    console.log('✓ Cache hit: Loaded analysis from database', { episodeId, version: data.analysis_version });
+  } else {
+    console.log('✗ Cache miss: No cached analysis found, will analyze transcript', { episodeId });
+  }
+
   return data;
 }
 
@@ -55,9 +61,12 @@ export async function saveCachedAnalysis(
 
   if (error) {
     if (error.code === '23505') {
+      console.log('✓ Analysis already cached by another user', { episodeId });
       return;
     }
-    console.error('Error saving cached analysis:', error);
+    console.error('✗ Error saving cached analysis:', error);
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
+
+  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v2' });
 }
