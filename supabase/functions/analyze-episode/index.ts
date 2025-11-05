@@ -105,6 +105,8 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
+      console.log("Raw API response:", JSON.stringify(data, null, 2));
+
       let content = "";
 
       if (data.output && Array.isArray(data.output)) {
@@ -119,7 +121,10 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      console.log("Extracted content:", content.substring(0, 500));
+
       if (!content) {
+        console.error("No content extracted from response");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -128,13 +133,31 @@ Deno.serve(async (req: Request) => {
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error("No JSON object found in content");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const analysis = JSON.parse(jsonMatch[0]);
+      let analysis;
+      try {
+        analysis = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        console.error("Attempted to parse:", jsonMatch[0].substring(0, 1000));
+        return new Response(
+          JSON.stringify({
+            error: "Failed to parse AI response",
+            summary: "",
+            keyPersonnel: [],
+            timeline: [],
+            locations: [],
+            keyMoments: []
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       const result = {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
@@ -173,6 +196,8 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
+      console.log("Location extraction raw response:", JSON.stringify(data, null, 2));
+
       let content = "";
 
       if (data.output && Array.isArray(data.output)) {
@@ -187,7 +212,10 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      console.log("Extracted location content:", content.substring(0, 500));
+
       if (!content) {
+        console.error("No content extracted for locations");
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -196,13 +224,24 @@ Deno.serve(async (req: Request) => {
 
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
+        console.error("No JSON array found in location content");
         return new Response(
           JSON.stringify([]),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const locations = JSON.parse(jsonMatch[0]);
+      let locations;
+      try {
+        locations = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("Location JSON parse error:", parseError);
+        console.error("Attempted to parse:", jsonMatch[0].substring(0, 1000));
+        return new Response(
+          JSON.stringify([]),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
         JSON.stringify(Array.isArray(locations) ? locations : []),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
