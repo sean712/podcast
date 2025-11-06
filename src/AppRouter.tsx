@@ -34,61 +34,66 @@ export default function AppRouter() {
     setIsLoadingRoute(true);
     setNotFound(false);
 
-    const path = window.location.pathname;
-
-    if (path === '/admin' || path === '/admin/') {
-      setRouteType('admin');
-      setIsLoadingRoute(false);
-      return;
-    }
-
-    const pathSegments = path.split('/').filter(Boolean);
-
-    if (pathSegments.length === 0) {
-      setRouteType('main');
-      setIsLoadingRoute(false);
-      return;
-    }
-
-    const podcastSlug = pathSegments[0];
-    const episodeSlug = pathSegments[1];
-
     try {
-      const podcastData = await getPodcastBySlug(podcastSlug);
+      const path = window.location.pathname;
 
-      if (!podcastData) {
-        setNotFound(true);
+      if (path === '/admin' || path === '/admin/') {
+        setRouteType('admin');
         setIsLoadingRoute(false);
         return;
       }
 
-      setPodcast(podcastData);
-      const settingsData = await getPodcastSettings(podcastData.id);
-      setSettings(settingsData);
-      const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
-      setEpisodes(episodesData);
-      setRouteType('podcast-space');
+      const pathSegments = path.split('/').filter(Boolean);
 
-      if (episodeSlug) {
+      if (pathSegments.length === 0) {
+        setRouteType('main');
         setIsLoadingRoute(false);
-        setIsLoadingEpisode(true);
-        try {
-          const episodeData = await getEpisodeBySlug(podcastData.id, episodeSlug);
-          if (episodeData) {
-            setSelectedEpisode(episodeData);
-          } else {
-            setNotFound(true);
-          }
-        } catch (err) {
-          console.error('Error loading episode:', err);
+        return;
+      }
+
+      const podcastSlug = pathSegments[0];
+      const episodeSlug = pathSegments[1];
+
+      try {
+        const podcastData = await getPodcastBySlug(podcastSlug);
+
+        if (!podcastData) {
           setNotFound(true);
-        } finally {
-          setIsLoadingEpisode(false);
+          setIsLoadingRoute(false);
+          return;
         }
+
+        setPodcast(podcastData);
+        const settingsData = await getPodcastSettings(podcastData.id);
+        setSettings(settingsData);
+        const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
+        setEpisodes(episodesData);
+        setRouteType('podcast-space');
+
+        if (episodeSlug) {
+          setIsLoadingRoute(false);
+          setIsLoadingEpisode(true);
+          try {
+            const episodeData = await getEpisodeBySlug(podcastData.id, episodeSlug);
+            if (episodeData) {
+              setSelectedEpisode(episodeData);
+            } else {
+              setNotFound(true);
+            }
+          } catch (err) {
+            console.error('Error loading episode:', err);
+            setNotFound(true);
+          } finally {
+            setIsLoadingEpisode(false);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading podcast space:', err);
+        setNotFound(true);
       }
     } catch (err) {
-      console.error('Error loading podcast space:', err);
-      setNotFound(true);
+      console.error('Critical error in detectRoute:', err);
+      setRouteType('main');
     } finally {
       setIsLoadingRoute(false);
     }
