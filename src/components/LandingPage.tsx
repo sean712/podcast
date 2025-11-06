@@ -48,11 +48,11 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 </p>
               </div>
               <div className="flex justify-center lg:justify-end">
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-lg">
                   <img
                     src="/Gemini_Generated_Image_gqxzpogqxzpogqxz.png"
                     alt="Person listening to podcast with interactive features"
-                    className="w-full h-auto drop-shadow-2xl"
+                    className="w-full h-auto"
                   />
                 </div>
               </div>
