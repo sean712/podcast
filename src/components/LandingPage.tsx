@@ -27,24 +27,35 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
       <main>
         <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-                Beautiful interactive pages for every episode
-              </h1>
-              <p className="text-xl text-slate-600 mb-10 leading-relaxed">
-                Give your listeners more than just audio. Automated, branded episode pages with AI-powered features—no extra work required.
-              </p>
-              <button
-                onClick={onGetStarted}
-                className="bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg"
-              >
-                Get This For Your Podcast
-                <Sparkles className="w-5 h-5" />
-              </button>
-              <p className="text-sm text-slate-500 mt-4">
-                Setup handled by us • Live in 48 hours
-              </p>
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="text-center lg:text-left">
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
+                  Beautiful interactive pages for every episode
+                </h1>
+                <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+                  Give your listeners more than just audio. Automated, branded episode pages with AI-powered features—no extra work required.
+                </p>
+                <button
+                  onClick={onGetStarted}
+                  className="bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg"
+                >
+                  Get This For Your Podcast
+                  <Sparkles className="w-5 h-5" />
+                </button>
+                <p className="text-sm text-slate-500 mt-4">
+                  Setup handled by us • Live in 48 hours
+                </p>
+              </div>
+              <div className="flex justify-center lg:justify-end">
+                <div className="w-full max-w-md">
+                  <img
+                    src="/Gemini_Generated_Image_gqxzpogqxzpogqxz.png"
+                    alt="Person listening to podcast with interactive features"
+                    className="w-full h-auto drop-shadow-2xl"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>
