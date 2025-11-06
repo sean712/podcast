@@ -77,8 +77,8 @@ This inquiry was submitted via the Augmented Pods contact form.
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "onboarding@resend.dev",
-        to: "sean.ogrady712@gmail.com",
+        from: "Augmented Pods <sean@augmentedpods.com>",
+        to: "sean@augmentedpods.com",
         reply_to: email,
         subject: `New Podcast Inquiry: ${podcastName}`,
         html: emailHtml,
