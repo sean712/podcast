@@ -23,8 +23,8 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
           <Users className="w-5 h-5 text-blue-400" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-white">Key People</h3>
-          <p className="text-sm text-slate-400">{personnel.length} people mentioned</p>
+          <h3 className="text-2xl font-bold text-slate-900">Key People</h3>
+          <p className="text-sm text-slate-600">{personnel.length} people mentioned</p>
         </div>
       </div>
 
@@ -33,7 +33,7 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
         {personnel.map((person, index) => (
           <div
             key={index}
-            className="bg-slate-800/30 border border-slate-700 rounded-xl p-5 hover:border-slate-600 hover:bg-slate-800/50 transition-all"
+            className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
           >
             {/* Avatar and Name */}
             <div className="flex items-start gap-3 mb-3">
@@ -43,7 +43,7 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-white text-base mb-1 line-clamp-2">{person.name}</h4>
+                <h4 className="font-semibold text-slate-900 text-base mb-1 line-clamp-2">{person.name}</h4>
                 <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md inline-block">
                   {person.role}
                 </span>
@@ -51,33 +51,33 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
             </div>
 
             {/* Relevance */}
-            <p className="text-sm text-slate-300 leading-relaxed mb-3">
+            <p className="text-sm text-slate-700 leading-relaxed mb-3">
               {person.relevance}
             </p>
 
             {/* Quotes Section - Collapsible */}
             {person.quotes && person.quotes.length > 0 && (
-              <div className="border-t border-slate-700/50 pt-3">
+              <div className="border-t border-slate-200 pt-3">
                 <button
                   onClick={() => togglePerson(index)}
                   className="flex items-center justify-between w-full text-left group"
                 >
-                  <span className="text-xs font-medium text-slate-400 group-hover:text-slate-300 flex items-center gap-1.5">
+                  <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 flex items-center gap-1.5">
                     <Quote className="w-3.5 h-3.5" />
                     {person.quotes.length} {person.quotes.length === 1 ? 'quote' : 'quotes'}
                   </span>
                   {expandedPerson === index ? (
-                    <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-slate-300" />
+                    <ChevronUp className="w-4 h-4 text-slate-600 group-hover:text-slate-900" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-300" />
+                    <ChevronDown className="w-4 h-4 text-slate-600 group-hover:text-slate-900" />
                   )}
                 </button>
 
                 {expandedPerson === index && (
                   <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-500/30 bg-slate-900/50 rounded-r-lg p-2">
-                        <p className="text-xs text-slate-400 italic leading-relaxed">
+                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-300 bg-blue-50 rounded-r-lg p-2">
+                        <p className="text-xs text-slate-600 italic leading-relaxed">
                           "{quote}"
                         </p>
                       </div>

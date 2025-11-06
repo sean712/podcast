@@ -136,14 +136,14 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors group flex-shrink-0"
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors group flex-shrink-0"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back</span>
@@ -158,14 +158,14 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-white truncate">{episode.title}</h1>
-                <p className="text-sm text-slate-400 truncate">{podcast.name}</p>
+                <h1 className="text-lg font-bold text-slate-900 truncate">{episode.title}</h1>
+                <p className="text-sm text-slate-600 truncate">{podcast.name}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
               {episode.duration && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/50 border border-slate-700/50 rounded-full text-xs text-slate-300">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-700">
                   <Clock className="w-3.5 h-3.5" />
                   {Math.floor(episode.duration / 60)}m
                 </span>
@@ -187,15 +187,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         <div className="lg:grid lg:grid-cols-[1fr_320px]">
           <div>
         {/* Tabbed Navigation */}
-        <div className="border-b border-slate-700 bg-slate-900 sticky top-[73px] z-40">
+        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'overview'
-                    ? 'border-blue-500 text-white bg-slate-800/50'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                    ? 'border-blue-500 text-slate-900 bg-slate-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -205,8 +205,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 onClick={() => setActiveTab('people')}
                 className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'people'
-                    ? 'border-blue-500 text-white bg-slate-800/50'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                    ? 'border-blue-500 text-slate-900 bg-slate-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <UsersIcon className="w-4 h-4" />
@@ -216,8 +216,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 onClick={() => setActiveTab('timeline')}
                 className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'timeline'
-                    ? 'border-blue-500 text-white bg-slate-800/50'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                    ? 'border-blue-500 text-slate-900 bg-slate-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <Clock className="w-4 h-4" />
@@ -227,8 +227,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 onClick={() => setActiveTab('map')}
                 className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === 'map'
-                    ? 'border-blue-500 text-white bg-slate-800/50'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                    ? 'border-blue-500 text-slate-900 bg-slate-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <Map className="w-4 h-4" />
@@ -240,8 +240,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     onClick={() => setActiveTab('transcript')}
                     className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                       activeTab === 'transcript'
-                        ? 'border-blue-500 text-white bg-slate-800/50'
-                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                        ? 'border-blue-500 text-slate-900 bg-slate-50'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     <BookOpen className="w-4 h-4" />
@@ -251,8 +251,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     onClick={() => setActiveTab('notes')}
                     className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
                       activeTab === 'notes'
-                        ? 'border-blue-500 text-white bg-slate-800/50'
-                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                        ? 'border-blue-500 text-slate-900 bg-slate-50'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     <StickyNote className="w-4 h-4" />
@@ -270,13 +270,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {isLoadingAnalysis ? (
-                <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-12">
+                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
                   <div className="flex flex-col items-center justify-center gap-4">
                     <div className="relative">
                       <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
                       <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
                     </div>
-                    <p className="text-slate-300 text-lg font-medium">Analysing episode transcript</p>
+                    <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
                     <p className="text-slate-500 text-sm">Please wait a moment</p>
                   </div>
                 </div>
@@ -310,8 +310,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               {analysis ? (
                 <KeyPersonnel personnel={analysis.keyPersonnel} />
               ) : (
-                <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                  <p className="text-slate-300">No personnel data available yet</p>
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No personnel data available yet</p>
                 </div>
               )}
             </div>
@@ -323,8 +323,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               {analysis ? (
                 <Timeline events={analysis.timeline} />
               ) : (
-                <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                  <p className="text-slate-300">No timeline data available yet</p>
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No timeline data available yet</p>
                 </div>
               )}
             </div>
@@ -371,13 +371,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
 
           {/* Sidebar - Recent Episodes */}
-          <aside className="hidden lg:block bg-slate-900 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+          <aside className="hidden lg:block bg-slate-50 border-l border-slate-200 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white uppercase tracking-wide">Recent Episodes</h3>
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Recent Episodes</h3>
                 <button
                   onClick={onBack}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   <List className="w-3.5 h-3.5" />
                   Show All
@@ -391,8 +391,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     onClick={() => onEpisodeClick(ep)}
                     className={`w-full text-left p-3 rounded-lg transition-all group ${
                       ep.id === episode.id
-                        ? 'bg-blue-500/20 border border-blue-500/50'
-                        : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600'
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex gap-3">
@@ -405,11 +405,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className={`text-sm font-medium mb-1 line-clamp-2 ${
-                          ep.id === episode.id ? 'text-blue-300' : 'text-white group-hover:text-blue-300'
+                          ep.id === episode.id ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-700'
                         }`}>
                           {ep.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
                           {ep.published_at && (
                             <span>{new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                           )}
@@ -436,22 +436,22 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           onClick={() => setShowShareModal(false)}
         >
           <div
-            className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl max-w-md w-full p-6"
+            className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Share2 className="w-5 h-5 text-blue-400" />
                 Share Episode
               </h3>
             </div>
 
-            <p className="text-slate-300 text-sm mb-4">
+            <p className="text-slate-600 text-sm mb-4">
               Copy the link below to share this episode with others:
             </p>
 
-            <div className="bg-slate-900 rounded-lg border border-slate-700 p-3 mb-4">
-              <p className="text-slate-300 text-sm break-all font-mono">
+            <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 mb-4">
+              <p className="text-slate-700 text-sm break-all font-mono">
                 {shareUrl}
               </p>
             </div>
@@ -465,7 +465,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               </button>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg font-medium transition-colors"
               >
                 Close
               </button>
