@@ -50,7 +50,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
               <div className="flex justify-center lg:justify-end">
                 <div className="w-full max-w-lg">
                   <img
-                    src="/Gemini_Generated_Image_gqxzpogqxzpogqxz.png"
+                    src="/Screenshot 2025-11-06 at 15.41.27.png"
                     alt="Person listening to podcast with interactive features"
                     className="w-full h-auto"
                   />
