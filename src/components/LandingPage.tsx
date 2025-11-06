@@ -86,9 +86,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-400 via-orange-400 to-blue-400 rounded-3xl blur-3xl opacity-20 animate-pulse" />
                     <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-200">
                       <img
-                        src="/Gemini_Generated_Image_gqxzpogqxzpogqxz.png"
+                        src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&h=600&fit=crop&q=80"
                         alt="AI-powered podcast features including transcripts, summaries, and interactive elements"
                         className="w-full h-auto rounded-2xl"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=Podcast+Features';
+                        }}
                       />
                     </div>
 
@@ -163,9 +166,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1 lg:order-2">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="/Screenshot 2025-11-05 at 20.41.17.png"
+                      src="https://images.unsplash.com/photo-1569163139394-de4798aa62b6?w=1000&h=700&fit=crop&q=80"
                       alt="Interactive map showing locations mentioned in podcast episode"
                       className="w-full h-auto"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://placehold.co/1000x700/fed7aa/ea580c?text=Interactive+Location+Map';
+                      }}
                     />
                   </div>
                 </div>
@@ -200,9 +206,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="/Screenshot 2025-11-05 at 20.41.22.png"
+                      src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1000&h=700&fit=crop&q=80"
                       alt="Timeline showing key moments from podcast episode"
                       className="w-full h-auto"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://placehold.co/1000x700/dbeafe/2563eb?text=Smart+Timeline';
+                      }}
                     />
                   </div>
                 </div>
@@ -237,9 +246,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1 lg:order-2">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="/Screenshot 2025-11-05 at 20.41.11.png"
+                      src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1000&h=700&fit=crop&q=80"
                       alt="Key people mentioned in podcast episode with descriptions"
                       className="w-full h-auto"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://placehold.co/1000x700/e0e7ff/6366f1?text=Key+People';
+                      }}
                     />
                   </div>
                 </div>
