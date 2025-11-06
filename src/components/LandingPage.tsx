@@ -50,158 +50,6 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
         </section>
 
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
-                What You Get
-              </h2>
-              <p className="text-lg text-slate-600">
-                Everything you need to bring your podcast to life
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
-              <div className="bg-white rounded-xl p-8 border border-slate-200">
-                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-slate-900" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                  Beautiful Episode Pages
-                </h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Each episode gets its own interactive page with your branding, ready to share or embed anywhere.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-8 border border-slate-200">
-                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-slate-900" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                  Automatic Publishing
-                </h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Pages go live as soon as you publish. Your entire back catalog is processed and ready too.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-8 border border-slate-200">
-                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-6 h-6 text-slate-900" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                  Done-For-You Setup
-                </h3>
-                <p className="text-slate-600 leading-relaxed">
-                  We handle everything from setup to ongoing sync. Zero maintenance required from you.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-8 border border-slate-200">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="flex-1">
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                    <Share2 className="w-6 h-6 text-slate-900" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-slate-900 mb-3">
-                    Share Anywhere
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed mb-6">
-                    Get a clean URL to share with your audience or embed the pages directly into your website.
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 rounded-lg p-4 font-mono">
-                    yourpodcast.augmentedpods.com
-                  </div>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="w-64 h-64 bg-slate-100 rounded-xl flex items-center justify-center">
-                    <div className="text-slate-400 text-sm text-center">
-                      [Preview mockup]
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
-                Why Get This?
-              </h2>
-              <p className="text-lg text-slate-600">
-                Stand out and offer more value to your listeners
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Offer More to Your Listeners</h4>
-                  <p className="text-slate-600 text-sm">Give fans an immersive experience beyond just listening</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Bring Your Podcast to Life</h4>
-                  <p className="text-slate-600 text-sm">Make episodes more engaging and discoverable</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Build Community</h4>
-                  <p className="text-slate-600 text-sm">Give listeners more ways to engage with your content</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Differentiate From Competitors</h4>
-                  <p className="text-slate-600 text-sm">Stand out with premium features other shows don't have</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 md:col-span-2">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">No Extra Work</h4>
-                  <p className="text-slate-600 text-sm">Everything happens automatically—you just publish episodes as usual</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
@@ -356,6 +204,158 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                   <p className="text-slate-600 text-sm leading-relaxed">
                     Listeners can highlight transcript text and save notes while reading
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+                What You Get
+              </h2>
+              <p className="text-lg text-slate-600">
+                Everything you need to bring your podcast to life
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="bg-white rounded-xl p-8 border border-slate-200">
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 text-slate-900" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                  Beautiful Episode Pages
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Each episode gets its own interactive page with your branding, ready to share or embed anywhere.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-8 border border-slate-200">
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Zap className="w-6 h-6 text-slate-900" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                  Automatic Publishing
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Pages go live as soon as you publish. Your entire back catalog is processed and ready too.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-8 border border-slate-200">
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-6 h-6 text-slate-900" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                  Done-For-You Setup
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  We handle everything from setup to ongoing sync. Zero maintenance required from you.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-1">
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                    <Share2 className="w-6 h-6 text-slate-900" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-slate-900 mb-3">
+                    Share Anywhere
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Get a clean URL to share with your audience or embed the pages directly into your website.
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 rounded-lg p-4 font-mono">
+                    yourpodcast.augmentedpods.com
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="w-64 h-64 bg-slate-100 rounded-xl flex items-center justify-center">
+                    <div className="text-slate-400 text-sm text-center">
+                      [Preview mockup]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+                Why Get This?
+              </h2>
+              <p className="text-lg text-slate-600">
+                Stand out and offer more value to your listeners
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Offer More to Your Listeners</h4>
+                  <p className="text-slate-600 text-sm">Give fans an immersive experience beyond just listening</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Bring Your Podcast to Life</h4>
+                  <p className="text-slate-600 text-sm">Make episodes more engaging and discoverable</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Build Community</h4>
+                  <p className="text-slate-600 text-sm">Give listeners more ways to engage with your content</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">Differentiate From Competitors</h4>
+                  <p className="text-slate-600 text-sm">Stand out with premium features other shows don't have</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 md:col-span-2">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-slate-900" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-1">No Extra Work</h4>
+                  <p className="text-slate-600 text-sm">Everything happens automatically—you just publish episodes as usual</p>
                 </div>
               </div>
             </div>
