@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Radio, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Radio, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
 
 interface CreatorContactModalProps {
   isOpen: boolean;
@@ -15,24 +15,52 @@ export default function CreatorContactModal({ isOpen, onClose }: CreatorContactM
     message: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creator Contact Form Submission:', formData);
-    setIsSubmitted(true);
-    setTimeout(() => {
-      onClose();
-      setIsSubmitted(false);
-      setFormData({
-        podcastName: '',
-        creatorName: '',
-        email: '',
-        podcastUrl: '',
-        message: '',
-      });
-    }, 2000);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      setIsSubmitted(true);
+      setTimeout(() => {
+        onClose();
+        setIsSubmitted(false);
+        setFormData({
+          podcastName: '',
+          creatorName: '',
+          email: '',
+          podcastUrl: '',
+          message: '',
+        });
+      }, 2000);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -80,6 +108,16 @@ export default function CreatorContactModal({ isOpen, onClose }: CreatorContactM
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-900">
+                    <p className="font-semibold mb-1">Error</p>
+                    <p className="text-red-700">{error}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
@@ -169,9 +207,10 @@ export default function CreatorContactModal({ isOpen, onClose }: CreatorContactM
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Submit Inquiry
+                {isSubmitting ? 'Sending...' : 'Submit Inquiry'}
               </button>
 
               <p className="text-xs text-center text-gray-500">
