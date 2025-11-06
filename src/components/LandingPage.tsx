@@ -26,106 +26,30 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </header>
 
       <main>
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-orange-50 to-blue-50 opacity-40" />
-
-          <div className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div className="order-2 lg:order-1">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 mb-6">
-                    <Sparkles className="w-4 h-4 text-teal-600" />
-                    <span className="text-sm font-medium text-slate-700">AI-Powered Podcast Pages</span>
-                  </div>
-
-                  <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-                    Transform episodes into
-                    <span className="block bg-gradient-to-r from-teal-600 via-orange-500 to-blue-600 bg-clip-text text-transparent">
-                      interactive experiences
-                    </span>
-                  </h1>
-
-                  <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                    Give your listeners more than just audio. Automated, branded episode pages with AI-powered summaries, maps, timelines, and more—no extra work required.
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <button
-                      onClick={onGetStarted}
-                      className="bg-slate-900 text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2 text-lg group"
-                    >
-                      Get This For Your Podcast
-                      <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    </button>
-                    <button
-                      onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                      className="bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold hover:bg-slate-50 transition-all border-2 border-slate-200 inline-flex items-center justify-center gap-2 text-lg"
-                    >
-                      See Features
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-6 text-sm text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-teal-600" />
-                      <span>Setup handled by us</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-orange-500" />
-                      <span>Live in 48 hours</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                      <span>Zero maintenance</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="order-1 lg:order-2">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-400 via-orange-400 to-blue-400 rounded-3xl blur-3xl opacity-20 animate-pulse" />
-                    <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-200">
-                      <img
-                        src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&h=600&fit=crop&q=80"
-                        alt="AI-powered podcast features including transcripts, summaries, and interactive elements"
-                        className="w-full h-auto rounded-2xl"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=Podcast+Features';
-                        }}
-                      />
-                    </div>
-
-                    <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 max-w-xs hidden lg:block">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
-                          <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-slate-500">AI-Powered</p>
-                          <p className="text-sm font-semibold text-slate-900">Auto-generated insights</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="absolute -top-6 -right-6 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 max-w-xs hidden lg:block">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                          <Map className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-slate-500">Interactive</p>
-                          <p className="text-sm font-semibold text-slate-900">Location maps</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
+                Beautiful interactive pages for every episode
+              </h1>
+              <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+                Give your listeners more than just audio. Automated, branded episode pages with AI-powered features—no extra work required.
+              </p>
+              <button
+                onClick={onGetStarted}
+                className="bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg"
+              >
+                Get This For Your Podcast
+                <Sparkles className="w-5 h-5" />
+              </button>
+              <p className="text-sm text-slate-500 mt-4">
+                Setup handled by us • Live in 48 hours
+              </p>
             </div>
           </div>
         </section>
 
-        <section id="features" className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
@@ -166,12 +90,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1 lg:order-2">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="https://images.unsplash.com/photo-1569163139394-de4798aa62b6?w=1000&h=700&fit=crop&q=80"
+                      src="/Screenshot 2025-11-05 at 20.41.17.png"
                       alt="Interactive map showing locations mentioned in podcast episode"
                       className="w-full h-auto"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://placehold.co/1000x700/fed7aa/ea580c?text=Interactive+Location+Map';
-                      }}
                     />
                   </div>
                 </div>
@@ -206,12 +127,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1000&h=700&fit=crop&q=80"
+                      src="/Screenshot 2025-11-05 at 20.41.22.png"
                       alt="Timeline showing key moments from podcast episode"
                       className="w-full h-auto"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://placehold.co/1000x700/dbeafe/2563eb?text=Smart+Timeline';
-                      }}
                     />
                   </div>
                 </div>
@@ -246,12 +164,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 <div className="order-1 lg:order-2">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
                     <img
-                      src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1000&h=700&fit=crop&q=80"
+                      src="/Screenshot 2025-11-05 at 20.41.11.png"
                       alt="Key people mentioned in podcast episode with descriptions"
                       className="w-full h-auto"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://placehold.co/1000x700/e0e7ff/6366f1?text=Key+People';
-                      }}
                     />
                   </div>
                 </div>
