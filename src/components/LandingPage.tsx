@@ -26,7 +26,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </header>
 
       <main>
-        <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+        <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="text-center lg:text-left">
