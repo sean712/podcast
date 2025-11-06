@@ -24,14 +24,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const recipientEmail = Deno.env.get("CONTACT_EMAIL");
 
     if (!resendApiKey) {
       throw new Error("RESEND_API_KEY is not configured");
-    }
-
-    if (!recipientEmail) {
-      throw new Error("CONTACT_EMAIL is not configured");
     }
 
     const formData: ContactFormData = await req.json();
@@ -82,8 +77,8 @@ This inquiry was submitted via the Augmented Pods contact form.
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Augmented Pods <onboarding@resend.dev>",
-        to: recipientEmail,
+        from: "onboarding@resend.dev",
+        to: "sean.ogrady712@gmail.com",
         reply_to: email,
         subject: `New Podcast Inquiry: ${podcastName}`,
         html: emailHtml,
