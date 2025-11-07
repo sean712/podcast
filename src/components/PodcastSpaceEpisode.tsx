@@ -283,8 +283,47 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* No Transcript Message */}
+          {!episode.transcript && (
+            <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-blue-100 rounded-2xl p-12 text-center shadow-sm">
+              <div className="max-w-2xl mx-auto">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Sparkles className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                  Episode Not Yet Transcribed
+                </h3>
+                <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                  It looks like this episode hasn't been transcribed yet. Check back later to see timelines, maps, key moments, and much more.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-500" />
+                    <span>Timelines</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Map className="w-4 h-4 text-blue-500" />
+                    <span>Location Maps</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UsersIcon className="w-4 h-4 text-blue-500" />
+                    <span>Key People</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-500" />
+                    <span>Key Moments</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <span>Full Transcript</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Overview Tab */}
-          {activeTab === 'overview' && (
+          {episode.transcript && activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {isLoadingAnalysis ? (
                 <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
@@ -322,7 +361,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           )}
 
           {/* People Tab */}
-          {activeTab === 'people' && (
+          {episode.transcript && activeTab === 'people' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
                 <KeyPersonnel personnel={analysis.keyPersonnel} />
@@ -335,7 +374,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           )}
 
           {/* Timeline Tab */}
-          {activeTab === 'timeline' && (
+          {episode.transcript && activeTab === 'timeline' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
                 <Timeline events={analysis.timeline} />
@@ -348,7 +387,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           )}
 
           {/* Map Tab - Full width */}
-          {activeTab === 'map' && (
+          {episode.transcript && activeTab === 'map' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <LocationMap
                 locations={locations}
