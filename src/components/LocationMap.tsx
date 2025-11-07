@@ -67,20 +67,9 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     });
 
     const bounds = L.latLngBounds([]);
-    const colors = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
 
     locations.forEach((location, index) => {
-      const color = colors[index % colors.length];
-
-      const customIcon = L.divIcon({
-        html: `<div style="background: ${color}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: white;">${index + 1}</div>`,
-        className: '',
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-        popupAnchor: [0, -18]
-      });
-
-      const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
+      const marker = L.marker([location.lat, location.lon]).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
 
