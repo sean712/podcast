@@ -67,9 +67,13 @@
 }
 
 /* Leaflet map marker styles */
-.custom-number-marker {
+.leaflet-marker-icon.leaflet-div-icon.custom-number-marker {
   background: transparent !important;
   border: none !important;
+}
+
+.leaflet-marker-icon.leaflet-div-icon.custom-number-marker div {
+  pointer-events: none;
 }
 
 .custom-popup .leaflet-popup-content-wrapper {
