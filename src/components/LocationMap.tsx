@@ -83,13 +83,15 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     const bounds = L.latLngBounds([]);
 
     locations.forEach((location, index) => {
+      const customIcon = L.divIcon({
+        html: `<div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f97316 0%, #ef4444 100%); border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">${index + 1}</span></div>`,
+        className: 'custom-number-marker',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+      });
+
       const marker = L.marker([location.lat, location.lon], {
-        icon: L.divIcon({
-          className: '',
-          html: `<div class="custom-marker-pin"><span>${index + 1}</span></div>`,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
-        }),
+        icon: customIcon
       }).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
