@@ -37,7 +37,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       if (mapInstanceRef.current) {
         setTimeout(() => {
           mapInstanceRef.current.invalidateSize();
-        }, 100);
+        }, 200);
       }
     };
 
@@ -46,6 +46,14 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+      }, 100);
+    }
+  }, [isFullscreen]);
 
   useEffect(() => {
     if (!mapContainerRef.current || locations.length === 0) return;
@@ -223,7 +231,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
         <div className="flex flex-col">
           {/* Map Container - Full Width */}
-          <div className={`relative ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[500px]'}`} ref={mapContainerRef}>
+          <div className={`relative ${isFullscreen ? 'h-[calc(100vh-200px)]' : 'h-[500px]'}`} ref={mapContainerRef}>
             {/* Map loads here */}
           </div>
 
