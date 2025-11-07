@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug, getPodcastEpisodesFromDB } from './services/podcastSpaceService';
 import { useAuth } from './contexts/AuthContext';
-import MiniPlayer from './components/MiniPlayer';
 import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
 import AdminPanel from './components/AdminPanel';
-import App from './App';
+import LandingPage from './components/LandingPage';
+import AuthModal from './components/AuthModal';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multiTenant';
 
 export default function AppRouter() {
@@ -19,6 +19,7 @@ export default function AppRouter() {
   const [isLoadingRoute, setIsLoadingRoute] = useState(true);
   const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     detectRoute();
@@ -123,7 +124,7 @@ export default function AppRouter() {
     window.history.pushState({}, '', newUrl);
   };
 
-  if (authLoading || isLoadingRoute) {
+  if (isLoadingRoute) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -149,19 +150,30 @@ export default function AppRouter() {
   }
 
   if (routeType === 'admin') {
-    if (!user) {
+    if (!user && !authLoading) {
+      return (
+        <>
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access Required</h1>
+              <p className="text-gray-600 mb-6">Please sign in to access the admin panel</p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+          <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+        </>
+      );
+    }
+
+    if (authLoading) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access Required</h1>
-            <p className="text-gray-600 mb-4">Please sign in to access the admin panel</p>
-            <a
-              href="/"
-              className="text-emerald-600 hover:text-emerald-700 font-medium"
-            >
-              Go to home
-            </a>
-          </div>
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
         </div>
       );
     }
@@ -201,10 +213,5 @@ export default function AppRouter() {
     );
   }
 
-  return (
-    <>
-      <App />
-      <MiniPlayer />
-    </>
-  );
+  return <LandingPage onGetStarted={() => {}} onSignIn={() => {}} />;
 }
