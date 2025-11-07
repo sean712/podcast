@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, User, Quote, ChevronDown, ChevronUp } from 'lucide-react';
+import { Quote, ChevronDown, ChevronUp } from 'lucide-react';
 import type { KeyPerson } from '../services/openaiService';
 
 interface KeyPersonnelProps {
@@ -15,6 +15,17 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
     setExpandedPerson(expandedPerson === index ? null : index);
   };
 
+  const colors = [
+    { bg: 'bg-teal-600', border: 'border-teal-600', quoteBorder: 'border-teal-600', quoteBg: 'bg-teal-50' },
+    { bg: 'bg-emerald-600', border: 'border-emerald-600', quoteBorder: 'border-emerald-600', quoteBg: 'bg-emerald-50' },
+    { bg: 'bg-cyan-600', border: 'border-cyan-600', quoteBorder: 'border-cyan-600', quoteBg: 'bg-cyan-50' },
+    { bg: 'bg-sky-600', border: 'border-sky-600', quoteBorder: 'border-sky-600', quoteBg: 'bg-sky-50' },
+    { bg: 'bg-violet-600', border: 'border-violet-600', quoteBorder: 'border-violet-600', quoteBg: 'bg-violet-50' },
+    { bg: 'bg-fuchsia-600', border: 'border-fuchsia-600', quoteBorder: 'border-fuchsia-600', quoteBg: 'bg-fuchsia-50' },
+  ];
+
+  const getColor = (index: number) => colors[index % colors.length];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -25,25 +36,27 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
 
       {/* Personnel Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {personnel.map((person, index) => (
-          <div
-            key={index}
-            className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
-          >
-            {/* Avatar and Name */}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-white" />
+        {personnel.map((person, index) => {
+          const color = getColor(index);
+          return (
+            <div
+              key={index}
+              className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
+            >
+              {/* Avatar and Name */}
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0">
+                  <div className={`w-12 h-12 ${color.bg} rounded-full flex items-center justify-center text-white font-bold text-lg`}>
+                    {person.name.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-slate-900 text-base mb-1 line-clamp-2">{person.name}</h4>
+                  <span className={`text-xs font-medium text-white ${color.bg} px-2 py-1 rounded-md inline-block`}>
+                    {person.role}
+                  </span>
                 </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-slate-900 text-base mb-1 line-clamp-2">{person.name}</h4>
-                <span className="text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded-md inline-block">
-                  {person.role}
-                </span>
-              </div>
-            </div>
 
             {/* Relevance */}
             <p className="text-sm text-slate-700 leading-relaxed mb-3">
@@ -71,7 +84,7 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                 {expandedPerson === index && (
                   <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-600 bg-blue-50 rounded-r-lg p-2">
+                      <div key={qIndex} className={`relative pl-3 border-l-2 ${color.quoteBorder} ${color.quoteBg} rounded-r-lg p-2`}>
                         <p className="text-xs text-slate-600 italic leading-relaxed">
                           "{quote}"
                         </p>
@@ -81,8 +94,9 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                 )}
               </div>
             )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
