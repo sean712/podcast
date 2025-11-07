@@ -155,13 +155,13 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-12">
+      <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="relative">
             <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
             <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
           </div>
-          <p className="text-slate-300 text-lg font-medium">Discovering locations...</p>
+          <p className="text-slate-700 text-lg font-medium">Discovering locations...</p>
           <p className="text-slate-500 text-sm">Mapping places mentioned in the episode</p>
         </div>
       </div>
@@ -182,62 +182,54 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   if (locations.length === 0) {
     return (
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-        <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center">
+        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <MapPin className="w-8 h-8 text-slate-400" />
         </div>
-        <p className="text-slate-300 font-medium">No locations mentioned</p>
+        <p className="text-slate-700 font-medium">No locations mentioned</p>
         <p className="text-slate-500 text-sm mt-1">This episode doesn't reference specific places</p>
       </div>
     );
   }
 
   return (
-    <div className={`relative group ${isFullscreen ? 'h-screen w-screen bg-slate-900' : ''}`} ref={containerRef}>
-      {/* Animated gradient background */}
-      {!isFullscreen && (
-        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
-      )}
-
-      <div className={`relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 overflow-hidden shadow-2xl ${isFullscreen ? 'h-full w-full' : 'rounded-2xl'}`}>
+    <div className={`relative group ${isFullscreen ? 'h-screen w-screen bg-white' : ''}`} ref={containerRef}>
+      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-full w-full' : 'rounded-2xl'}`}>
         {/* Header */}
-        <div className="border-b border-slate-700/50 p-6 bg-slate-900/50">
+        <div className="border-b border-slate-200 p-6 bg-white">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-md opacity-50" />
-                <div className="relative p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                  <MapPin className="w-6 h-6 text-white" />
-                </div>
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                <MapPin className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-1">Interactive Map</h3>
-                <p className="text-sm text-slate-400">{locations.length} locations discovered</p>
+                <h3 className="text-2xl font-bold text-slate-900 mb-1">Interactive Map</h3>
+                <p className="text-sm text-slate-600">{locations.length} locations discovered</p>
               </div>
             </div>
             <button
               onClick={toggleFullscreen}
-              className="p-2 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-colors group/btn"
+              className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors group/btn"
               aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               {isFullscreen ? (
-                <Minimize2 className="w-5 h-5 text-slate-300 group-hover/btn:text-white" />
+                <Minimize2 className="w-5 h-5 text-slate-700 group-hover/btn:text-slate-900" />
               ) : (
-                <Maximize2 className="w-5 h-5 text-slate-300 group-hover/btn:text-white" />
+                <Maximize2 className="w-5 h-5 text-slate-700 group-hover/btn:text-slate-900" />
               )}
             </button>
           </div>
         </div>
 
-        <div className={`grid grid-cols-1 gap-0 ${isFullscreen ? 'lg:grid-cols-4 h-[calc(100vh-80px)]' : 'lg:grid-cols-3'}`}>
-          {/* Map Container - Full Width on Large Screens */}
-          <div className={`relative ${isFullscreen ? 'lg:col-span-3 h-full' : 'lg:col-span-2 h-[500px]'}`} ref={mapContainerRef}>
+        <div className="flex flex-col">
+          {/* Map Container - Full Width */}
+          <div className={`relative ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[500px]'}`} ref={mapContainerRef}>
             {/* Map loads here */}
           </div>
 
-          {/* Location List Sidebar */}
-          <div className={`border-t lg:border-t-0 lg:border-l border-slate-700/50 bg-slate-900/50 p-4 overflow-y-auto ${isFullscreen ? 'h-full' : 'max-h-[500px]'}`}>
-            <div className="space-y-2">
+          {/* Location List Below Map */}
+          <div className="border-t border-slate-200 bg-slate-50 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {locations.map((location, index) => (
                 <button
                   key={index}
@@ -248,11 +240,8 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                       const map = mapInstanceRef.current;
                       const currentZoom = map.getZoom();
 
-                      // Keep zoom level modest - only zoom to level 8 instead of 12
-                      // This prevents excessive zooming that causes tile rendering issues
                       const targetZoom = Math.min(8, Math.max(currentZoom, 6));
 
-                      // Simple, smooth pan with minimal zoom change
                       map.flyTo([location.lat, location.lon], targetZoom, {
                         duration: 1.2,
                         easeLinearity: 0.25,
@@ -260,15 +249,15 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                       });
                     }
                   }}
-                  className={`w-full text-left p-4 rounded-xl transition-all duration-300 group/location ${
+                  className={`w-full text-left p-3 rounded-lg transition-all duration-300 group/location ${
                     selectedLocation === location
-                      ? 'bg-orange-500/20 border-2 border-orange-500/50 shadow-lg shadow-orange-500/10'
-                      : 'bg-slate-800/50 border-2 border-transparent hover:bg-slate-700/50 hover:border-slate-600/50'
+                      ? 'bg-orange-100 border-2 border-orange-500 shadow-sm'
+                      : 'bg-white border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0">
-                      <div className={`w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg ${
+                      <div className={`w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
                         selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
                       } transition-transform duration-300`}>
                         {index + 1}
@@ -276,25 +265,13 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className={`font-semibold text-sm mb-1 ${
-                        selectedLocation === location ? 'text-orange-300' : 'text-white'
+                        selectedLocation === location ? 'text-orange-700' : 'text-slate-900'
                       }`}>
                         {location.name}
                       </div>
                       {location.context && (
-                        <div className="text-xs text-slate-400 mb-2">
+                        <div className="text-xs text-slate-600 line-clamp-2">
                           {location.context}
-                        </div>
-                      )}
-                      {location.quotes && location.quotes.length > 0 && (
-                        <div className="space-y-1 mt-2">
-                          {location.quotes.slice(0, 1).map((quote, qIndex) => (
-                            <div key={qIndex} className="relative pl-3 border-l-2 border-orange-500/30 bg-slate-900/50 rounded-r p-1.5">
-                              <Quote className="w-2.5 h-2.5 text-orange-400/50 absolute top-1.5 left-0.5" />
-                              <p className="text-xs text-slate-500 italic leading-tight line-clamp-2">
-                                "{quote}"
-                              </p>
-                            </div>
-                          ))}
                         </div>
                       )}
                     </div>
