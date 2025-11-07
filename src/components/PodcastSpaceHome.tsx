@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Radio, Clock, Calendar, Settings, List as ListIcon, FolderTree, ChevronDown, ChevronRight } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { isOwner } from '../services/adminAuthService';
+import { Loader2, AlertCircle, Radio, Clock, Calendar, List as ListIcon, FolderTree, ChevronDown, ChevronRight } from 'lucide-react';
 import { getGroupsByPodcast, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getGroupedEpisodes } from '../services/episodeGroupMembersService';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
@@ -18,7 +16,6 @@ interface PodcastSpaceHomeProps {
 type ViewMode = 'chronological' | 'grouped';
 
 export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisodeClick }: PodcastSpaceHomeProps) {
-  const { user } = useAuth();
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
   const [groups, setGroups] = useState<EpisodeGroup[]>([]);
@@ -28,7 +25,6 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
   const primaryColor = settings?.primary_color || '#10b981';
-  const showAdminLink = user && isOwner(user);
 
   useEffect(() => {
     document.title = `${podcast.name} | Augmented Pods`;
@@ -63,11 +59,6 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
     } finally {
       setIsLoadingGroups(false);
     }
-  };
-
-  const handleAdminClick = () => {
-    window.history.pushState({}, '', `/${podcast.slug}/admin`);
-    window.dispatchEvent(new Event('popstate'));
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
@@ -112,17 +103,6 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {showAdminLink && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={handleAdminClick}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors text-sm font-medium"
-              >
-                <Settings className="w-4 h-4" />
-                Admin Panel
-              </button>
-            </div>
-          )}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             {podcast.image_url ? (
               <img
