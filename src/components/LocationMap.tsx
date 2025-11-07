@@ -86,27 +86,15 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       const color = modernColors[colorIndex];
 
       const svgIcon = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="32" height="48">
-          <defs>
-            <filter id="shadow-${index}" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-              <feOffset dx="0" dy="2" result="offsetblur"/>
-              <feComponentTransfer>
-                <feFuncA type="linear" slope="0.3"/>
-              </feComponentTransfer>
-              <feMerge>
-                <feMergeNode/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <path d="M12 0C7.589 0 4 3.589 4 8c0 6 8 16 8 16s8-10 8-16c0-4.411-3.589-8-8-8z"
-                fill="${color}"
-                stroke="white"
-                stroke-width="1.5"
-                filter="url(#shadow-${index})"/>
-          <circle cx="12" cy="8" r="3" fill="white" opacity="0.9"/>
-        </svg>
+        <div style="width: 32px; height: 48px; position: relative;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="32" height="48" style="display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+            <path d="M12 0C7.589 0 4 3.589 4 8c0 6 8 16 8 16s8-10 8-16c0-4.411-3.589-8-8-8z"
+                  fill="${color}"
+                  stroke="#ffffff"
+                  stroke-width="1.5"/>
+            <circle cx="12" cy="8" r="3" fill="#ffffff"/>
+          </svg>
+        </div>
       `;
 
       const customIcon = L.divIcon({
