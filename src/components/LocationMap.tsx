@@ -85,27 +85,8 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     locations.forEach((location, index) => {
       const marker = L.marker([location.lat, location.lon], {
         icon: L.divIcon({
-          className: '',
-          html: `
-            <div style="
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              width: 40px !important;
-              height: 40px !important;
-              background: linear-gradient(135deg, #f97316 0%, #ef4444 100%) !important;
-              border-radius: 50% !important;
-              border: 3px solid white !important;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-              color: white !important;
-              font-weight: bold !important;
-              font-size: 14px !important;
-              cursor: pointer !important;
-              position: relative !important;
-            ">
-              ${index + 1}
-            </div>
-          `,
+          className: 'custom-map-marker',
+          html: `<span class="marker-number">${index + 1}</span>`,
           iconSize: [40, 40],
           iconAnchor: [20, 20],
         }),
