@@ -47,23 +47,25 @@ export async function saveCachedAnalysis(
 ): Promise<void> {
   const { error } = await supabase
     .from('episode_analyses')
-    .insert({
-      episode_id: episodeId,
-      episode_title: episodeTitle,
-      podcast_name: podcastName,
-      summary: analysis.summary,
-      key_personnel: analysis.keyPersonnel,
-      timeline_events: analysis.timeline,
-      locations: locations,
-      key_moments: analysis.keyMoments,
-      analysis_version: 'v3',
-    });
+    .upsert(
+      {
+        episode_id: episodeId,
+        episode_title: episodeTitle,
+        podcast_name: podcastName,
+        summary: analysis.summary,
+        key_personnel: analysis.keyPersonnel,
+        timeline_events: analysis.timeline,
+        locations: locations,
+        key_moments: analysis.keyMoments,
+        analysis_version: 'v3',
+      },
+      {
+        onConflict: 'episode_id',
+        ignoreDuplicates: false,
+      }
+    );
 
   if (error) {
-    if (error.code === '23505') {
-      console.log('✓ Analysis already cached by another user', { episodeId });
-      return;
-    }
     console.error('✗ Error saving cached analysis:', error);
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
