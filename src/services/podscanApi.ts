@@ -44,6 +44,72 @@ export async function searchPodcasts(
   }
 }
 
+export async function getPodcastByItunesId(itunesId: string): Promise<any> {
+  try {
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'getPodcastByItunesId',
+        itunesId,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to get podcast by iTunes ID');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to get podcast by iTunes ID');
+  }
+}
+
+export async function getPodcastByRssFeed(rssFeedUrl: string): Promise<any> {
+  try {
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'getPodcastByRssFeed',
+        rssFeedUrl,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to get podcast by RSS feed');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to get podcast by RSS feed');
+  }
+}
+
+export async function batchProbeForLatestEpisodes(podcastIds: string[]): Promise<any> {
+  try {
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'batchProbeLatestEpisodes',
+        podcastIds,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to batch probe for latest episodes');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to batch probe for latest episodes');
+  }
+}
+
 export async function getPodcastEpisodes(
   podcastId: string,
   options: {

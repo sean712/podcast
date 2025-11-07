@@ -8,11 +8,14 @@ const corsHeaders = {
 };
 
 interface PodscanRequest {
-  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes";
+  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes" | "getPodcastByItunesId" | "getPodcastByRssFeed" | "batchProbeLatestEpisodes";
   query?: string;
   podcastId?: string;
+  podcastIds?: string[];
   episodeId?: string;
   episodeIds?: string[];
+  itunesId?: string;
+  rssFeedUrl?: string;
   perPage?: number;
   orderBy?: string;
   orderDir?: string;
@@ -260,6 +263,103 @@ Deno.serve(async (req: Request) => {
           );
         }
 
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getPodcastByItunesId") {
+      const { itunesId } = requestData;
+
+      if (!itunesId) {
+        return new Response(
+          JSON.stringify({ error: "iTunes ID required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/itunes/${itunesId}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getPodcastByRssFeed") {
+      const { rssFeedUrl } = requestData;
+
+      if (!rssFeedUrl) {
+        return new Response(
+          JSON.stringify({ error: "RSS feed URL required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const params = new URLSearchParams({
+        rss_feed_url: rssFeedUrl,
+      });
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/rss?${params}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "batchProbeLatestEpisodes") {
+      const { podcastIds } = requestData;
+
+      if (!podcastIds || !Array.isArray(podcastIds) || podcastIds.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Podcast IDs array required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const bodyData = {
+        podcast_ids: podcastIds.join(","),
+      };
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/batch_probe_for_latest_episodes`, {
+        method: "POST",
+        headers: podscanHeaders,
+        body: JSON.stringify(bodyData),
+      });
+
+      if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         return new Response(
           JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),

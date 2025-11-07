@@ -24,15 +24,31 @@ export async function syncPodcastEpisodes(
   let errors = 0;
 
   try {
-    const episodesPerPage = Math.min(batchSize, maxEpisodes);
-    const response = await getPodcastEpisodes(podscanPodcastId, {
-      perPage: episodesPerPage,
-      showOnlyFullyProcessed: true,
-      orderBy: 'posted_at',
-      orderDir: 'desc',
-    });
+    let allEpisodes = [];
+    let page = 1;
+    const episodesPerPage = Math.min(batchSize, 100);
 
-    const episodes = response.episodes || [];
+    while (allEpisodes.length < maxEpisodes) {
+      console.log(`Fetching page ${page} of episodes...`);
+      const response = await getPodcastEpisodes(podscanPodcastId, {
+        perPage: episodesPerPage,
+        showOnlyFullyProcessed: false,
+        orderBy: 'posted_at',
+        orderDir: 'desc',
+      });
+
+      const episodes = response.episodes || [];
+      if (episodes.length === 0) break;
+
+      allEpisodes = allEpisodes.concat(episodes);
+
+      if (episodes.length < episodesPerPage) break;
+      page++;
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    const episodes = allEpisodes.slice(0, maxEpisodes);
     const totalEpisodes = episodes.length;
 
     if (episodes.length === 0) {
