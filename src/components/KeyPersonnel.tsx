@@ -43,19 +43,12 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
               key={index}
               className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
             >
-              {/* Avatar and Name */}
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-shrink-0">
-                  <div className={`w-12 h-12 ${color.bg} rounded-full flex items-center justify-center text-white font-bold text-lg`}>
-                    {person.name.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-slate-900 text-base mb-1 line-clamp-2">{person.name}</h4>
-                  <span className={`text-xs font-medium text-white ${color.bg} px-2 py-1 rounded-md inline-block`}>
-                    {person.role}
-                  </span>
-                </div>
+              {/* Name and Role */}
+              <div className="mb-3">
+                <h4 className="font-semibold text-slate-900 text-base mb-2">{person.name}</h4>
+                <span className={`text-xs font-medium text-white ${color.bg} px-2 py-1 rounded-md inline-block`}>
+                  {person.role}
+                </span>
               </div>
 
             {/* Relevance */}
