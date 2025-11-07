@@ -11,12 +11,12 @@ interface EpisodeNotesProps {
 }
 
 const noteColors = [
-  { bg: 'bg-yellow-400/10', border: 'border-yellow-400/30', text: 'text-yellow-200', hover: 'hover:border-yellow-400/50', shadow: 'shadow-yellow-500/10' },
-  { bg: 'bg-blue-400/10', border: 'border-blue-400/30', text: 'text-blue-200', hover: 'hover:border-blue-400/50', shadow: 'shadow-blue-500/10' },
-  { bg: 'bg-green-400/10', border: 'border-green-400/30', text: 'text-green-200', hover: 'hover:border-green-400/50', shadow: 'shadow-green-500/10' },
-  { bg: 'bg-pink-400/10', border: 'border-pink-400/30', text: 'text-pink-200', hover: 'hover:border-pink-400/50', shadow: 'shadow-pink-500/10' },
-  { bg: 'bg-purple-400/10', border: 'border-purple-400/30', text: 'text-purple-200', hover: 'hover:border-purple-400/50', shadow: 'shadow-purple-500/10' },
-  { bg: 'bg-orange-400/10', border: 'border-orange-400/30', text: 'text-orange-200', hover: 'hover:border-orange-400/50', shadow: 'shadow-orange-500/10' },
+  { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-900', hover: 'hover:border-yellow-300', accent: 'border-yellow-400' },
+  { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', hover: 'hover:border-blue-300', accent: 'border-blue-400' },
+  { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900', hover: 'hover:border-green-300', accent: 'border-green-400' },
+  { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-900', hover: 'hover:border-pink-300', accent: 'border-pink-400' },
+  { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900', hover: 'hover:border-purple-300', accent: 'border-purple-400' },
+  { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-900', hover: 'hover:border-orange-300', accent: 'border-orange-400' },
 ];
 
 export default function EpisodeNotes({
@@ -226,227 +226,215 @@ export default function EpisodeNotes({
   };
 
   return (
-    <div className="relative group">
-      {/* Animated gradient background */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
-
-      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
-        <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="text-blue-300 font-medium mb-1">Notes are stored locally in your browser</p>
-            <p className="text-blue-200/80 text-xs">Your notes won't sync across devices. Use export to back them up.</p>
-          </div>
+    <div className="space-y-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm">
+          <p className="text-blue-900 font-medium mb-1">Notes are stored locally in your browser</p>
+          <p className="text-blue-700 text-xs">Your notes won't sync across devices. Use export to back them up.</p>
         </div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl blur-md opacity-50" />
-              <div className="relative p-3 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl">
-                <StickyNote className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-1">Your Notes</h3>
-              <p className="text-sm text-slate-400">{notes.length} notes saved</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isCreating && (
-              <button
-                onClick={() => setIsCreating(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all shadow-lg shadow-yellow-500/30 text-sm font-bold"
-              >
-                <Plus className="w-4 h-4" />
-                New Note
-              </button>
-            )}
-            <div className="relative">
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
-                title="Export & Import"
-              >
-                <Download className="w-5 h-5" />
-              </button>
-              {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10">
-                  <button
-                    onClick={handleExportJSON}
-                    className="w-full px-4 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center gap-2 rounded-t-lg"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export as JSON
-                  </button>
-                  <button
-                    onClick={handleExportText}
-                    className="w-full px-4 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export as Text
-                  </button>
-                  <button
-                    onClick={handleImport}
-                    className="w-full px-4 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Import Notes
-                  </button>
-                  <div className="border-t border-slate-700" />
-                  <button
-                    onClick={handleClearAll}
-                    className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 rounded-b-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear All Notes
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-2xl font-bold text-slate-900">Your Notes</h3>
+          <p className="text-sm text-slate-600 mt-1">{notes.length} notes saved</p>
         </div>
-
-        {highlightedText && isCreating && (
-          <div className="mb-4 p-4 bg-amber-500/10 border-l-4 border-amber-400 rounded-lg">
-            <p className="text-sm text-amber-300 mb-2 font-semibold">Highlighted text:</p>
-            <p className="text-sm text-slate-200 italic">"{highlightedText}"</p>
-          </div>
-        )}
-
-        {isCreating && (
-          <div className="mb-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
-            <textarea
-              value={newNoteText}
-              onChange={(e) => setNewNoteText(e.target.value)}
-              placeholder="Write your note here..."
-              className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-yellow-500/50 focus:ring-2 focus:ring-yellow-500/20 focus:outline-none text-sm text-white placeholder-slate-500 resize-none"
-              rows={4}
-              autoFocus
-            />
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={handleCreateNote}
-                disabled={!newNoteText.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-500/30 text-sm font-bold"
-              >
-                <Save className="w-4 h-4" />
-                Save Note
-              </button>
-              <button
-                onClick={() => {
-                  setIsCreating(false);
-                  setNewNoteText('');
-                  if (onHighlightUsed) {
-                    onHighlightUsed();
-                  }
-                }}
-                className="px-4 py-2 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors text-sm font-medium"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="text-center py-12 text-slate-400">Loading notes...</div>
-        ) : notes.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <StickyNote className="w-8 h-8 text-slate-500" />
-            </div>
-            <p className="text-slate-300 font-medium mb-1">No notes yet</p>
-            <p className="text-slate-500 text-sm">Create your first note to remember important details!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {notes.map((note, index) => {
-              const color = getNoteColor(index);
-              return (
-                <div
-                  key={note.id}
-                  className={`p-5 ${color.bg} border ${color.border} rounded-xl ${color.hover} transition-all duration-300 hover:shadow-lg ${color.shadow}`}
+        <div className="flex items-center gap-2">
+          {!isCreating && (
+            <button
+              onClick={() => setIsCreating(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              New Note
+            </button>
+          )}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Export & Import"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-10">
+                <button
+                  onClick={handleExportJSON}
+                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 rounded-t-lg"
                 >
-                {editingNoteId === note.id ? (
-                  <>
-                    <textarea
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600/50 focus:border-yellow-500/50 focus:ring-2 focus:ring-yellow-500/20 focus:outline-none text-sm text-white resize-none mb-3"
-                      rows={4}
-                    />
+                  <Download className="w-4 h-4" />
+                  Export as JSON
+                </button>
+                <button
+                  onClick={handleExportText}
+                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export as Text
+                </button>
+                <button
+                  onClick={handleImport}
+                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Import Notes
+                </button>
+                <div className="border-t border-slate-200" />
+                <button
+                  onClick={handleClearAll}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 rounded-b-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Clear All Notes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {highlightedText && isCreating && (
+        <div className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
+          <p className="text-sm text-amber-800 mb-2 font-semibold">Highlighted text:</p>
+          <p className="text-sm text-slate-700 italic">"{highlightedText}"</p>
+        </div>
+      )}
+
+      {isCreating && (
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <textarea
+            value={newNoteText}
+            onChange={(e) => setNewNoteText(e.target.value)}
+            placeholder="Write your note here..."
+            className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 placeholder-slate-400 resize-none"
+            rows={4}
+            autoFocus
+          />
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleCreateNote}
+              disabled={!newNoteText.trim()}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors text-sm font-medium shadow-sm"
+            >
+              <Save className="w-4 h-4" />
+              Save Note
+            </button>
+            <button
+              onClick={() => {
+                setIsCreating(false);
+                setNewNoteText('');
+                if (onHighlightUsed) {
+                  onHighlightUsed();
+                }
+              }}
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="text-center py-12 text-slate-600">Loading notes...</div>
+      ) : notes.length === 0 ? (
+        <div className="text-center py-12 bg-white border border-slate-200 rounded-xl">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <StickyNote className="w-8 h-8 text-slate-400" />
+          </div>
+          <p className="text-slate-700 font-medium mb-1">No notes yet</p>
+          <p className="text-slate-500 text-sm">Create your first note to remember important details!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {notes.map((note, index) => {
+            const color = getNoteColor(index);
+            return (
+              <div
+                key={note.id}
+                className={`bg-white border ${color.border} rounded-xl p-5 ${color.hover} transition-all shadow-sm hover:shadow-md`}
+              >
+              {editingNoteId === note.id ? (
+                <>
+                  <textarea
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 resize-none mb-3"
+                    rows={4}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleUpdateNote(note.id)}
+                      disabled={!editingText.trim()}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                    >
+                      <Save className="w-3 h-3" />
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {note.highlightedText && (
+                    <div className={`mb-3 p-3 ${color.bg} border-l-4 ${color.accent} rounded`}>
+                      <p className="text-xs text-slate-700 italic">"{note.highlightedText}"</p>
+                    </div>
+                  )}
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap mb-4 leading-relaxed">{note.noteText}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">
+                    {new Date(note.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                    </span>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleUpdateNote(note.id)}
-                        disabled={!editingText.trim()}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all text-sm font-bold"
+                        onClick={() => handleShareNote(note)}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        aria-label="Share note"
+                        title="Share or copy to clipboard"
                       >
-                        <Save className="w-3 h-3" />
-                        Save
+                        {copiedNoteId === note.id ? (
+                          <Check className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <Share2 className="w-4 h-4" />
+                        )}
                       </button>
                       <button
-                        onClick={cancelEditing}
-                        className="px-3 py-1.5 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors text-sm font-medium"
+                        onClick={() => startEditing(note)}
+                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                        aria-label="Edit note"
                       >
-                        Cancel
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        aria-label="Delete note"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    {note.highlightedText && (
-                      <div className="mb-3 p-3 bg-amber-500/10 border-l-4 border-amber-400 rounded">
-                        <p className="text-xs text-amber-300 italic">"{note.highlightedText}"</p>
-                      </div>
-                    )}
-                    <p className="text-sm text-slate-200 whitespace-pre-wrap mb-4">{note.noteText}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">
-                      {new Date(note.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                      </span>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleShareNote(note)}
-                          className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
-                          aria-label="Share note"
-                          title="Share or copy to clipboard"
-                        >
-                          {copiedNoteId === note.id ? (
-                            <Check className="w-4 h-4 text-green-400" />
-                          ) : (
-                            <Share2 className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => startEditing(note)}
-                          className="p-1.5 text-slate-400 hover:text-yellow-400 hover:bg-yellow-500/10 rounded transition-colors"
-                          aria-label="Edit note"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteNote(note.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                          aria-label="Delete note"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  </div>
+                </>
+              )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

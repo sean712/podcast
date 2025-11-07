@@ -52,7 +52,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
     const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     return paragraphs.map(p => ({
       text: p,
-      highlighted: p.replace(regex, '<mark class="bg-yellow-400/30 text-yellow-200 px-1 rounded">$1</mark>')
+      highlighted: p.replace(regex, '<mark class="bg-yellow-200 text-slate-900 px-1 rounded">$1</mark>')
     }));
   }, [paragraphs, searchQuery]);
 
@@ -207,34 +207,51 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
 
   if (!transcript) {
     return (
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-        <BookOpen className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-        <p className="text-slate-300 font-medium">No transcript available</p>
+      <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+        <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+        <p className="text-slate-700 font-medium">No transcript available</p>
         <p className="text-slate-500 text-sm mt-1">This episode doesn't have a transcript yet</p>
       </div>
     );
   }
 
   return (
-    <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 p-4' : ''}`}>
-      <div className="relative bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
-        {/* Header */}
-        <div className="p-4 flex items-center justify-between border-b border-slate-700 bg-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <BookOpen className="w-5 h-5 text-blue-400" />
+    <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 p-4 bg-white' : ''}`}>
+      <div className="relative bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-2xl font-bold text-slate-900">Full Transcript</h3>
+              <p className="text-sm text-slate-600 mt-1">Select text to add notes</p>
             </div>
-            <div className="text-left">
-              <h3 className="text-lg font-semibold text-white">Full Transcript</h3>
-              <p className="text-xs text-slate-400">Select text to add notes</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              >
+                {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors text-sm font-medium"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span className="text-emerald-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="w-4 h-4" />
+                    <span className="hidden sm:inline">Copy All</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Toolbar */}
-        <div className="border-b border-slate-700 p-3 bg-slate-800/50">
           <div className="flex flex-wrap items-center gap-3">
-            {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
@@ -242,27 +259,27 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search transcript..."
-                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-900 border border-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm text-white placeholder-slate-500"
+                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-900"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Font Size Controls */}
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
               <button
                 onClick={() => setFontSize('small')}
                 className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'small'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
+                title="Small text"
               >
                 <Type className="w-3 h-3" />
               </button>
@@ -270,9 +287,10 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                 onClick={() => setFontSize('medium')}
                 className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'medium'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
+                title="Medium text"
               >
                 <Type className="w-4 h-4" />
               </button>
@@ -280,48 +298,21 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                 onClick={() => setFontSize('large')}
                 className={`px-2.5 py-1.5 rounded text-sm font-medium transition-colors ${
                   fontSize === 'large'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
+                title="Large text"
               >
                 <Type className="w-5 h-5" />
               </button>
             </div>
-
-            {/* Fullscreen Toggle */}
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 bg-slate-900 border border-slate-600 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-
-            {/* Copy Button */}
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <BookOpen className="w-4 h-4" />
-                  <span className="hidden sm:inline">Copy All</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
 
-        {/* Transcript Content */}
         <div
           ref={containerRef}
-          className={`p-8 overflow-y-auto bg-slate-900/50 ${
-            isFullscreen ? 'max-h-[calc(100vh-200px)]' : 'max-h-[600px]'
+          className={`p-8 overflow-y-auto bg-slate-50 ${
+            isFullscreen ? 'max-h-[calc(100vh-250px)]' : 'max-h-[600px]'
           } relative`}
           style={{ scrollBehavior: 'smooth' }}
         >
@@ -336,7 +327,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               highlightedParagraphs.map((p, i) => (
                 <p
                   key={i}
-                  className="mb-6 text-slate-200 leading-relaxed"
+                  className="mb-6 text-slate-700 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
                 />
               ))
@@ -347,14 +338,14 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                   const speaker = speakerMatch[1];
                   const text = p.substring(speakerMatch[0].length);
                   return (
-                    <p key={i} className="mb-6 text-slate-200 leading-relaxed">
-                      <span className="font-bold text-blue-400">{speaker}:</span>{' '}
+                    <p key={i} className="mb-6 text-slate-700 leading-relaxed">
+                      <span className="font-bold text-emerald-700">{speaker}:</span>{' '}
                       {text}
                     </p>
                   );
                 }
                 return (
-                  <p key={i} className="mb-6 text-slate-200 leading-relaxed">
+                  <p key={i} className="mb-6 text-slate-700 leading-relaxed">
                     {p}
                   </p>
                 );
@@ -362,7 +353,6 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             )}
           </div>
 
-          {/* Floating Action Buttons */}
           {showCreateNoteButton && (
             <div
               className="absolute z-50 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
@@ -373,7 +363,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             >
               <button
                 onClick={handleCreateNote}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-lg transition-colors text-sm font-medium whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-lg transition-colors text-sm font-medium whitespace-nowrap"
               >
                 <StickyNote className="w-4 h-4" />
                 Add to Notes
@@ -383,27 +373,26 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
         </div>
       </div>
 
-      {/* Note Creation Modal */}
       {showNoteModal && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={handleCancelNote}
         >
           <div
-            className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl max-w-2xl w-full p-6"
+            className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <StickyNote className="w-5 h-5 text-yellow-400" />
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <StickyNote className="w-5 h-5 text-amber-600" />
               </div>
-              <h3 className="text-lg font-bold text-white">Create Note</h3>
+              <h3 className="text-lg font-bold text-slate-900">Create Note</h3>
             </div>
 
             {selectedText && (
-              <div className="mb-4 p-4 bg-amber-500/10 border-l-4 border-amber-400 rounded-lg">
-                <p className="text-sm text-amber-300 mb-2 font-semibold">Highlighted text:</p>
-                <p className="text-sm text-slate-200 italic">"{selectedText}"</p>
+              <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
+                <p className="text-sm text-amber-800 mb-2 font-semibold">Highlighted text:</p>
+                <p className="text-sm text-slate-700 italic">"{selectedText}"</p>
               </div>
             )}
 
@@ -411,7 +400,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Write your note here..."
-              className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-600 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 focus:outline-none text-sm text-white placeholder-slate-500 resize-none mb-4"
+              className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 placeholder-slate-400 resize-none mb-4"
               rows={6}
               autoFocus
             />
@@ -419,14 +408,14 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleCancelNote}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveNote}
                 disabled={!noteText.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-500/30 font-bold"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
               >
                 <Save className="w-4 h-4" />
                 Save Note
