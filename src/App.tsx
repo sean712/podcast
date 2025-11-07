@@ -15,7 +15,7 @@ import CreatorContactModal from './components/CreatorContactModal';
 import SavedPodcastsList from './components/SavedPodcastsList';
 import SavedEpisodesList from './components/SavedEpisodesList';
 import EpisodeNotes from './components/EpisodeNotes';
-import { searchPodcasts, getPodcastEpisodes, getEpisode, PodscanApiError } from './services/podscanApi';
+import { searchPodcasts, getPodcastEpisodes, getEpisode, getPodcastByItunesId, getPodcastByRssFeed, PodscanApiError } from './services/podscanApi';
 import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from './services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from './services/geocodingService';
 import { getCachedAnalysis, saveCachedAnalysis } from './services/episodeAnalysisCache';
@@ -77,8 +77,22 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await searchPodcasts(query, { perPage: 20 });
-      setPodcasts(response.podcasts || []);
+      const itunesMatch = query.match(/(?:podcasts\.apple\.com\/[^\/]+\/podcast\/[^\/]+\/id(\d+)|^(\d{8,})$)/);
+      const isRssFeed = query.match(/^https?:\/\/.+\.(xml|rss)(\?.*)?$/i) || query.includes('feed');
+
+      if (itunesMatch) {
+        const itunesId = itunesMatch[1] || itunesMatch[2];
+        console.log('Detected iTunes ID:', itunesId);
+        const podcastData = await getPodcastByItunesId(itunesId);
+        setPodcasts(podcastData.podcast ? [podcastData.podcast] : []);
+      } else if (isRssFeed && (query.startsWith('http://') || query.startsWith('https://'))) {
+        console.log('Detected RSS feed URL:', query);
+        const podcastData = await getPodcastByRssFeed(query);
+        setPodcasts(podcastData.podcast ? [podcastData.podcast] : []);
+      } else {
+        const response = await searchPodcasts(query, { perPage: 20 });
+        setPodcasts(response.podcasts || []);
+      }
     } catch (err) {
       if (err instanceof PodscanApiError) {
         setError(err.message);
@@ -98,8 +112,8 @@ function App() {
     setError(null);
     try {
       const response = await getPodcastEpisodes(podcast.podcast_id, {
-        perPage: 50,
-        showOnlyFullyProcessed: true
+        perPage: 100,
+        showOnlyFullyProcessed: false
       });
       setEpisodes(response.episodes || []);
     } catch (err) {
@@ -375,7 +389,7 @@ function App() {
                   Search thousands of podcasts and read their transcripts
                 </p>
               </div>
-              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="Search by name, iTunes URL, or RSS feed..." />
             </div>
 
             {error && (
