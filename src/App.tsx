@@ -50,6 +50,16 @@ function App() {
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
   const [activeEpisodeTab, setActiveEpisodeTab] = useState<EpisodeTab>('overview');
   const [showTabMenu, setShowTabMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -505,7 +515,8 @@ function App() {
             {/* Tabbed Navigation */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
               {/* Desktop Tabs */}
-              <nav className="hidden sm:hidden md:flex gap-2 px-4">
+              {!isMobile && (
+              <nav className="flex gap-2 px-4">
                 <button
                   onClick={() => setActiveEpisodeTab('overview')}
                   className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
@@ -579,9 +590,11 @@ function App() {
                   </>
                 )}
               </nav>
+              )}
 
               {/* Mobile Dropdown Menu */}
-              <div className="block sm:block md:hidden relative px-4 py-3 tab-menu-container">
+              {isMobile && (
+              <div className="relative px-4 py-3 tab-menu-container">
                 <button
                   onClick={() => setShowTabMenu(!showTabMenu)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -692,6 +705,7 @@ function App() {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {/* Tab Content */}
