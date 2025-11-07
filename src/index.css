@@ -7,6 +7,20 @@
 @layer base {
   body {
     font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  * {
+    max-width: 100%;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
   }
 }
 

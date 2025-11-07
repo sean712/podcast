@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen, Sparkles, Zap, Users, Clock, BarChart3, FileText, Users as UsersIcon, Map, StickyNote } from 'lucide-react';
+import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen, Sparkles, Zap, Users, Clock, BarChart3, FileText, Users as UsersIcon, Map, StickyNote, ChevronDown } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SearchBar from './components/SearchBar';
 import PodcastCard from './components/PodcastCard';
@@ -49,6 +49,19 @@ function App() {
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
   const [activeEpisodeTab, setActiveEpisodeTab] = useState<EpisodeTab>('overview');
+  const [showTabMenu, setShowTabMenu] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showTabMenu && !target.closest('.tab-menu-container')) {
+        setShowTabMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTabMenu]);
 
   const handleSearch = async (query: string) => {
     setIsLoading(true);
@@ -286,10 +299,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               {view !== 'saved' && (
                 <button
@@ -301,33 +314,34 @@ function App() {
               )}
               <button
                 onClick={() => setView('saved')}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
               >
-                <Radio className="w-8 h-8 text-emerald-500" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Augmented Pods</h1>
+                <Radio className="w-8 h-8 text-emerald-500 flex-shrink-0" />
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent truncate">Augmented Pods</h1>
               </button>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => setView('search')}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
               >
                 <SearchIcon className="w-4 h-4" />
-                Search Podcasts
+                <span className="hidden sm:inline">Search Podcasts</span>
+                <span className="sm:hidden">Search</span>
               </button>
               <button
                 onClick={signOut}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {view === 'saved' && (
           <div className="space-y-8">
             <SavedPodcastsList
@@ -436,19 +450,19 @@ function App() {
         )}
 
         {view === 'transcript' && selectedEpisode && (
-          <div className="space-y-0">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
-              <div className="flex gap-6">
+          <div className="space-y-0 w-full max-w-full overflow-x-hidden">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 mb-6">
+              <div className="flex gap-4 sm:gap-6">
                 {selectedEpisode.episode_image_url && (
                   <img
                     src={selectedEpisode.episode_image_url}
                     alt={selectedEpisode.episode_title}
-                    className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover flex-shrink-0"
                   />
                 )}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900 flex-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4 mb-2">
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 flex-1 break-words">
                       {selectedEpisode.episode_title}
                     </h2>
                     {user && (
@@ -490,7 +504,8 @@ function App() {
 
             {/* Tabbed Navigation */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-              <nav className="flex gap-2 overflow-x-auto scrollbar-hide px-4">
+              {/* Desktop Tabs */}
+              <nav className="hidden md:flex gap-2 px-4">
                 <button
                   onClick={() => setActiveEpisodeTab('overview')}
                   className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
@@ -559,11 +574,124 @@ function App() {
                       }`}
                     >
                       <MessageCircle className="w-4 h-4" />
-                      AI Chat
+                      Chat
                     </button>
                   </>
                 )}
               </nav>
+
+              {/* Mobile Dropdown Menu */}
+              <div className="md:hidden relative px-4 py-3 tab-menu-container">
+                <button
+                  onClick={() => setShowTabMenu(!showTabMenu)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2 font-semibold text-sm text-gray-700">
+                    {activeEpisodeTab === 'overview' && <><FileText className="w-4 h-4" /> Overview</>}
+                    {activeEpisodeTab === 'insights' && <><UsersIcon className="w-4 h-4" /> People & Timeline</>}
+                    {activeEpisodeTab === 'map' && <><Map className="w-4 h-4" /> Locations</>}
+                    {activeEpisodeTab === 'transcript' && <><BookOpen className="w-4 h-4" /> Transcript</>}
+                    {activeEpisodeTab === 'notes' && <><StickyNote className="w-4 h-4" /> Notes</>}
+                    {activeEpisodeTab === 'chat' && <><MessageCircle className="w-4 h-4" /> Chat</>}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showTabMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showTabMenu && (
+                  <div className="absolute left-4 right-4 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-20 overflow-hidden max-w-full">
+                    <button
+                      onClick={() => {
+                        setActiveEpisodeTab('overview');
+                        setShowTabMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                        activeEpisodeTab === 'overview'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Overview
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveEpisodeTab('insights');
+                        setShowTabMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                        activeEpisodeTab === 'insights'
+                          ? 'bg-purple-50 text-purple-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <UsersIcon className="w-4 h-4" />
+                      People & Timeline
+                    </button>
+                    {locations.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setActiveEpisodeTab('map');
+                          setShowTabMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                          activeEpisodeTab === 'map'
+                            ? 'bg-orange-50 text-orange-700'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Map className="w-4 h-4" />
+                        Locations ({locations.length})
+                      </button>
+                    )}
+                    {selectedEpisode.episode_transcript && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('transcript');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'transcript'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          Transcript
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('notes');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'notes'
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <StickyNote className="w-4 h-4" />
+                          Notes
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('chat');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'chat'
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Chat
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Tab Content */}
