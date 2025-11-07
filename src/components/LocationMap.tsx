@@ -69,16 +69,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     const bounds = L.latLngBounds([]);
 
     locations.forEach((location, index) => {
-      const customIcon = L.divIcon({
-        html: `<div style="width: 40px; height: 40px; border-radius: 50%; background: #f97316; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">${index + 1}</span></div>`,
-        className: '',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-      });
-
-      const marker = L.marker([location.lat, location.lon], {
-        icon: customIcon
-      }).addTo(map);
+      const marker = L.marker([location.lat, location.lon]).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
 
