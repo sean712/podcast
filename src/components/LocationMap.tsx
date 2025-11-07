@@ -83,22 +83,9 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     const bounds = L.latLngBounds([]);
 
     locations.forEach((location, index) => {
-      const svgIcon = `
-        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad${index}" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <circle cx="20" cy="20" r="17" fill="url(#grad${index})" stroke="white" stroke-width="3"/>
-          <text x="20" y="20" text-anchor="middle" dy=".35em" fill="white" font-size="14" font-weight="bold">${index + 1}</text>
-        </svg>
-      `;
-
       const customIcon = L.divIcon({
-        html: svgIcon,
-        className: 'svg-marker',
+        html: `<div style="width: 40px; height: 40px; border-radius: 50%; background: #f97316; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">${index + 1}</span></div>`,
+        className: '',
         iconSize: [40, 40],
         iconAnchor: [20, 20],
       });
