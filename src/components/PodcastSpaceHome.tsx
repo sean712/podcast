@@ -91,37 +91,26 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
             <p>No episodes available yet. Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {episodes.map((episode) => (
               <button
                 key={episode.id}
                 onClick={() => onEpisodeClick(episode)}
-                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all text-left group"
+                className="w-full bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all text-left group p-4 flex items-start gap-4"
               >
-                <div className="aspect-video relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-                  {episode.image_url ? (
-                    <img
-                      src={episode.image_url}
-                      alt={episode.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Radio className="w-16 h-16 text-gray-300" />
-                    </div>
-                  )}
-                  {episode.word_count > 0 && (
-                    <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded-full text-xs font-medium text-white">
-                      Transcript Available
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {episode.image_url && (
+                  <img
+                    src={episode.image_url}
+                    alt={episode.title}
+                    className="w-16 h-16 rounded-md object-cover flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
                     {episode.title}
                   </h3>
                   {episode.description && (
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                       {stripHtml(episode.description)}
                     </p>
                   )}
@@ -136,6 +125,12 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
                       <div className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
                         <span>{Math.floor(episode.duration / 60)} min</span>
+                      </div>
+                    )}
+                    {episode.word_count > 0 && (
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <Radio className="w-3.5 h-3.5" />
+                        <span>Transcript</span>
                       </div>
                     )}
                   </div>
