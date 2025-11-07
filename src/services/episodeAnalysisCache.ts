@@ -74,3 +74,17 @@ export async function saveCachedAnalysis(
 
   console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v4' });
 }
+
+export async function deleteAnalysis(episodeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('episode_analyses')
+    .delete()
+    .eq('episode_id', episodeId);
+
+  if (error) {
+    console.error('✗ Error deleting cached analysis:', error);
+    throw new Error(`Failed to delete analysis: ${error.message}`);
+  }
+
+  console.log('✓ Successfully deleted cached analysis', { episodeId });
+}

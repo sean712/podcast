@@ -4,6 +4,7 @@ import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug, getPodcastEpiso
 import { useAuth } from './contexts/AuthContext';
 import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
+import PodcastSpaceAdmin from './components/PodcastSpaceAdmin';
 import AdminPanel from './components/AdminPanel';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
@@ -11,7 +12,7 @@ import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multi
 
 export default function AppRouter() {
   const { user, loading: authLoading } = useAuth();
-  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'main'>('main');
+  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'podcast-admin' | 'main'>('main');
   const [podcast, setPodcast] = useState<PodcastSpace | null>(null);
   const [settings, setSettings] = useState<PodcastSettings | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<StoredEpisode | null>(null);
@@ -53,7 +54,32 @@ export default function AppRouter() {
     }
 
     const podcastSlug = pathSegments[0];
-    const episodeSlug = pathSegments[1];
+    const secondSegment = pathSegments[1];
+
+    if (secondSegment === 'admin') {
+      try {
+        const podcastData = await getPodcastBySlug(podcastSlug);
+        if (!podcastData) {
+          setNotFound(true);
+          setIsLoadingRoute(false);
+          return;
+        }
+        setPodcast(podcastData);
+        const settingsData = await getPodcastSettings(podcastData.id);
+        setSettings(settingsData);
+        const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
+        setEpisodes(episodesData);
+        setRouteType('podcast-admin');
+      } catch (err) {
+        console.error('Error loading podcast for admin:', err);
+        setNotFound(true);
+      } finally {
+        setIsLoadingRoute(false);
+      }
+      return;
+    }
+
+    const episodeSlug = secondSegment;
 
     try {
       const podcastData = await getPodcastBySlug(podcastSlug);
@@ -124,6 +150,13 @@ export default function AppRouter() {
     window.history.pushState({}, '', newUrl);
   };
 
+  const handleBackFromAdmin = () => {
+    if (!podcast) return;
+    const newUrl = `/${podcast.slug}`;
+    window.history.pushState({}, '', newUrl);
+    detectRoute();
+  };
+
   if (isLoadingRoute) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -179,6 +212,38 @@ export default function AppRouter() {
     }
 
     return <AdminPanel />;
+  }
+
+  if (routeType === 'podcast-admin' && podcast) {
+    if (!user && !authLoading) {
+      return (
+        <>
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access Required</h1>
+              <p className="text-gray-600 mb-6">Please sign in to access the admin panel</p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+          <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+        </>
+      );
+    }
+
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      );
+    }
+
+    return <PodcastSpaceAdmin podcast={podcast} episodes={episodes} onBack={handleBackFromAdmin} />;
   }
 
   if (routeType === 'podcast-space' && podcast) {
