@@ -26,31 +26,31 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             {podcast.image_url ? (
               <img
                 src={podcast.image_url}
                 alt={podcast.name}
-                className="w-32 h-32 rounded-xl object-cover shadow-lg"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover shadow-lg flex-shrink-0"
               />
             ) : (
               <div
-                className="w-32 h-32 rounded-xl flex items-center justify-center shadow-lg"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
                 style={{ backgroundColor: primaryColor }}
               >
-                <Radio className="w-16 h-16 text-white" />
+                <Radio className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
               </div>
             )}
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2 text-gray-900">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-4xl font-bold mb-2 text-gray-900">
                 {settings?.custom_header_text || podcast.name}
               </h1>
               {podcast.publisher_name && (
-                <p className="text-gray-600 text-lg mb-3">{podcast.publisher_name}</p>
+                <p className="text-gray-600 text-base sm:text-lg mb-3">{podcast.publisher_name}</p>
               )}
               {podcast.description && (
-                <p className="text-gray-700 leading-relaxed">{stripHtml(podcast.description)}</p>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed line-clamp-3">{stripHtml(podcast.description)}</p>
               )}
             </div>
           </div>
