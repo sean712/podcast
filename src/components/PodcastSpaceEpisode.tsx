@@ -582,9 +582,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           </aside>
         </div>
-
-        <PodcastFooter />
       </main>
+
+      <PodcastFooter />
 
       {showShareModal && (
         <div
