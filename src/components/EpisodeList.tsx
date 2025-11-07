@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Calendar, Bookmark } from 'lucide-react';
+import { Clock, Calendar, Bookmark, Play } from 'lucide-react';
 import type { Episode } from '../types/podcast';
 import { saveEpisode, unsaveEpisode, getBatchSavedStatus } from '../services/savedEpisodesService';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,6 +60,11 @@ function EpisodeItem({ episode, isSaved, onEpisodeClick, onSaveChange }: { episo
     }
   };
 
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEpisodeClick(episode);
+  };
+
   return (
     <div className="relative w-full bg-gradient-to-br from-white to-slate-50 rounded-xl p-4 hover:shadow-lg transition-all border border-slate-200 hover:border-emerald-300 group">
       <button
@@ -68,14 +73,27 @@ function EpisodeItem({ episode, isSaved, onEpisodeClick, onSaveChange }: { episo
         aria-label="View episode"
       />
       <div className="flex gap-4">
-        {episode.episode_image_url && (
-          <img
-            src={episode.episode_image_url}
-            alt={episode.episode_title}
-            className="w-16 h-16 rounded object-cover flex-shrink-0"
-            loading="lazy"
-          />
-        )}
+        <div className="relative flex-shrink-0">
+          {episode.episode_image_url && (
+            <img
+              src={episode.episode_image_url}
+              alt={episode.episode_title}
+              className="w-16 h-16 rounded object-cover"
+              loading="lazy"
+            />
+          )}
+          {episode.episode_audio_url && (
+            <button
+              onClick={handlePlayClick}
+              className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              aria-label="Play episode"
+            >
+              <div className="p-2 bg-emerald-500 hover:bg-emerald-600 rounded-full shadow-lg transition-colors">
+                <Play className="w-4 h-4 text-white fill-white" />
+              </div>
+            </button>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:bg-gradient-to-r group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:bg-clip-text group-hover:text-transparent transition-all flex-1">

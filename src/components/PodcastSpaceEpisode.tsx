@@ -7,6 +7,7 @@ import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
 import TranscriptViewer from './TranscriptViewer';
 import EpisodeNotes from './EpisodeNotes';
+import AudioPlayer from './AudioPlayer';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
@@ -266,6 +267,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Audio Player - Always visible at top */}
+          {episode.audio_url && (
+            <div className="mb-8">
+              <AudioPlayer
+                audioUrl={episode.audio_url}
+                episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
+                episodeImage={episode.image_url}
+              />
+            </div>
+          )}
+
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

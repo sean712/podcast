@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getPodcastBySlug, getPodcastSettings, getEpisodeBySlug, getPodcastEpisodesFromDB } from './services/podcastSpaceService';
 import { useAuth } from './contexts/AuthContext';
+import MiniPlayer from './components/MiniPlayer';
 import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
 import AdminPanel from './components/AdminPanel';
@@ -200,5 +201,10 @@ export default function AppRouter() {
     );
   }
 
-  return <App />;
+  return (
+    <>
+      <App />
+      <MiniPlayer />
+    </>
+  );
 }
