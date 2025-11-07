@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
+import PodcastFooter from './PodcastFooter';
 
 interface PodcastSpaceHomeProps {
   podcast: PodcastSpace;
@@ -140,6 +141,8 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
           </div>
         )}
       </main>
+
+      <PodcastFooter />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import TranscriptViewer from './TranscriptViewer';
 import EpisodeNotes from './EpisodeNotes';
 import References from './References';
 import AudioPlayer from './AudioPlayer';
+import PodcastFooter from './PodcastFooter';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
@@ -581,6 +582,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           </aside>
         </div>
+
+        <PodcastFooter />
       </main>
 
       {showShareModal && (
