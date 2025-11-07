@@ -16,44 +16,20 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
-    if (!containerRef.current) return;
+    setIsFullscreen(!isFullscreen);
 
-    if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
       }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
+    }, 100);
   };
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      const isNowFullscreen = !!document.fullscreenElement;
-      setIsFullscreen(isNowFullscreen);
-
-      if (mapInstanceRef.current) {
-        setTimeout(() => {
-          mapInstanceRef.current.invalidateSize();
-        }, 300);
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
-  useEffect(() => {
     if (mapInstanceRef.current) {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          mapInstanceRef.current.invalidateSize();
-        }, 300);
-      });
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+      }, 150);
     }
   }, [isFullscreen]);
 
@@ -200,10 +176,10 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }
 
   return (
-    <div className={`relative group ${isFullscreen ? 'h-screen w-screen bg-white flex flex-col' : ''}`} ref={containerRef}>
-      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-full w-full flex flex-col' : 'rounded-2xl'}`}>
+    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
+      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
         {/* Header */}
-        <div className="border-b border-slate-200 p-6 bg-white flex-shrink-0">
+        <div className="border-b border-slate-200 p-6 bg-white">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
@@ -228,14 +204,18 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
           </div>
         </div>
 
-        <div className={`flex flex-col ${isFullscreen ? 'flex-1 overflow-hidden' : ''}`}>
+        <div className="flex flex-col">
           {/* Map Container - Full Width */}
-          <div className={`relative ${isFullscreen ? 'flex-1' : 'h-[500px]'}`} ref={mapContainerRef}>
+          <div
+            className="relative"
+            style={{ height: isFullscreen ? 'calc(100vh - 300px)' : '500px' }}
+            ref={mapContainerRef}
+          >
             {/* Map loads here */}
           </div>
 
           {/* Location List Below Map */}
-          <div className={`border-t border-slate-200 bg-slate-50 p-4 flex-shrink-0 ${isFullscreen ? 'hidden' : ''}`}>
+          <div className="border-t border-slate-200 bg-slate-50 p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {locations.map((location, index) => (
                 <button
