@@ -68,41 +68,19 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
     const bounds = L.latLngBounds([]);
 
-    const modernColors = [
-      '#ef4444',
-      '#f97316',
-      '#eab308',
-      '#22c55e',
-      '#06b6d4',
-      '#3b82f6',
-      '#8b5cf6',
-      '#ec4899',
-      '#d946ef',
-      '#14b8a6'
-    ];
+    const markerColors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet', 'gold', 'grey'];
 
     locations.forEach((location, index) => {
-      const colorIndex = index % modernColors.length;
-      const color = modernColors[colorIndex];
+      const colorIndex = index % markerColors.length;
+      const color = markerColors[colorIndex];
 
-      const svgIcon = `
-        <div style="width: 32px; height: 48px; position: relative;">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="32" height="48" style="display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-            <path d="M12 0C7.589 0 4 3.589 4 8c0 6 8 16 8 16s8-10 8-16c0-4.411-3.589-8-8-8z"
-                  fill="${color}"
-                  stroke="#ffffff"
-                  stroke-width="1.5"/>
-            <circle cx="12" cy="8" r="3" fill="#ffffff"/>
-          </svg>
-        </div>
-      `;
-
-      const customIcon = L.divIcon({
-        html: svgIcon,
-        className: 'custom-marker',
-        iconSize: [32, 48],
-        iconAnchor: [16, 48],
-        popupAnchor: [0, -48]
+      const customIcon = L.icon({
+        iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
       });
 
       const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
