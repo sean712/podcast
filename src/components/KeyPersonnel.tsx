@@ -18,14 +18,9 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/10 rounded-lg">
-          <Users className="w-5 h-5 text-blue-400" />
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold text-slate-900">Key People</h3>
-          <p className="text-sm text-slate-600">{personnel.length} people mentioned</p>
-        </div>
+      <div>
+        <h3 className="text-2xl font-bold text-slate-900 mb-1">Key People</h3>
+        <p className="text-sm text-slate-600">{personnel.length} people mentioned</p>
       </div>
 
       {/* Personnel Grid */}
@@ -38,13 +33,13 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
             {/* Avatar and Name */}
             <div className="flex items-start gap-3 mb-3">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-slate-900 text-base mb-1 line-clamp-2">{person.name}</h4>
-                <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md inline-block">
+                <span className="text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded-md inline-block">
                   {person.role}
                 </span>
               </div>
@@ -76,7 +71,7 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
                 {expandedPerson === index && (
                   <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-300 bg-blue-50 rounded-r-lg p-2">
+                      <div key={qIndex} className="relative pl-3 border-l-2 border-blue-600 bg-blue-50 rounded-r-lg p-2">
                         <p className="text-xs text-slate-600 italic leading-relaxed">
                           "{quote}"
                         </p>
