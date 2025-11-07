@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Radio, Clock, Calendar } from 'lucide-react';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
-import { stripHtml } from '../utils/textUtils';
+import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 
 interface PodcastSpaceHomeProps {
   podcast: PodcastSpace;
@@ -107,7 +107,7 @@ export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisod
                 )}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {episode.title}
+                    {decodeHtmlEntities(episode.title)}
                   </h3>
                   {episode.description && (
                     <p className="text-gray-600 text-sm line-clamp-2 mb-2">

@@ -12,7 +12,7 @@ import AudioPlayer from './AudioPlayer';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
-import { stripHtml } from '../utils/textUtils';
+import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
 
 interface PodcastSpaceEpisodeProps {
@@ -187,7 +187,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-base font-bold text-slate-900 line-clamp-2">{episode.title}</h1>
+                <h1 className="text-base font-bold text-slate-900 line-clamp-2">{decodeHtmlEntities(episode.title)}</h1>
                 <p className="text-sm text-slate-600 truncate">{podcast.name}</p>
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-slate-900 truncate">{episode.title}</h1>
+                <h1 className="text-lg font-bold text-slate-900 truncate">{decodeHtmlEntities(episode.title)}</h1>
                 <p className="text-sm text-slate-600 truncate">{podcast.name}</p>
               </div>
             </div>
@@ -560,7 +560,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                         <h4 className={`text-sm font-medium mb-1 line-clamp-2 ${
                           ep.id === episode.id ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-700'
                         }`}>
-                          {ep.title}
+                          {decodeHtmlEntities(ep.title)}
                         </h4>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                           {ep.published_at && (

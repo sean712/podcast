@@ -3,6 +3,7 @@ import { Clock, Calendar, Bookmark, Play } from 'lucide-react';
 import type { Episode } from '../types/podcast';
 import { saveEpisode, unsaveEpisode, getBatchSavedStatus } from '../services/savedEpisodesService';
 import { useAuth } from '../contexts/AuthContext';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 interface EpisodeListProps {
   episodes: Episode[];
@@ -97,7 +98,7 @@ function EpisodeItem({ episode, isSaved, onEpisodeClick, onSaveChange }: { episo
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:bg-gradient-to-r group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:bg-clip-text group-hover:text-transparent transition-all flex-1">
-              {episode.episode_title}
+              {decodeHtmlEntities(episode.episode_title)}
             </h3>
             {user && (
               <button
