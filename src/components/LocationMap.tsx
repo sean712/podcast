@@ -37,7 +37,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       if (mapInstanceRef.current) {
         setTimeout(() => {
           mapInstanceRef.current.invalidateSize();
-        }, 200);
+        }, 300);
       }
     };
 
@@ -49,9 +49,11 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   useEffect(() => {
     if (mapInstanceRef.current) {
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
-      }, 100);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          mapInstanceRef.current.invalidateSize();
+        }, 300);
+      });
     }
   }, [isFullscreen]);
 
@@ -143,8 +145,6 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     });
 
     if (locations.length > 0) {
-      // Constrain initial zoom to prevent over-zooming on single locations
-      // Use maxZoom: 6 for a cleaner, less aggressive initial view
       map.fitBounds(bounds, {
         padding: [50, 50],
         maxZoom: 6,
@@ -153,12 +153,11 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       });
     }
 
-    return () => {
+    setTimeout(() => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
+        mapInstanceRef.current.invalidateSize();
       }
-    };
+    }, 100);
   }, [locations]);
 
   if (isLoading) {
