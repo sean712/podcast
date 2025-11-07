@@ -18,7 +18,7 @@ function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdat
         .eq('podcast_id', podcastId)
         .maybeSingle();
 
-      setCurrentSettings(data?.visible_tabs || ['overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes']);
+      setCurrentSettings(data?.visible_tabs || ['player', 'overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes']);
     };
     fetchSettings();
   }, [podcastId]);
@@ -35,7 +35,7 @@ function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdat
     <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
       <h4 className="text-sm font-semibold text-gray-900 mb-3">Visible Tabs</h4>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {['overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes'].map((tab) => {
+        {['player', 'overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes'].map((tab) => {
           const isVisible = currentSettings.includes(tab);
           return (
             <button

@@ -241,7 +241,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         <div className="lg:grid lg:grid-cols-[1fr_320px]">
           <div>
         {/* Audio Player Bar */}
-        {episode.audio_url && (
+        {episode.audio_url && isTabVisible('player') && (
           <div className="border-b border-slate-200 bg-white sticky top-[130px] md:top-[73px] z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <AudioPlayer
@@ -257,7 +257,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         )}
 
         {/* Tabbed Navigation */}
-        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40" style={{ top: episode.audio_url ? '145px' : '73px' }}>
+        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40" style={{ top: episode.audio_url && isTabVisible('player') ? '145px' : '73px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
               {isTabVisible('overview') && (
