@@ -86,7 +86,25 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       const marker = L.marker([location.lat, location.lon], {
         icon: L.divIcon({
           className: 'custom-marker',
-          html: `<div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full border-3 border-white shadow-2xl text-white font-bold text-sm animate-bounce" style="animation-duration: 2s;">${index + 1}</div>`,
+          html: `
+            <div style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+              border-radius: 50%;
+              border: 3px solid white;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+              color: white;
+              font-weight: bold;
+              font-size: 14px;
+              cursor: pointer;
+            ">
+              ${index + 1}
+            </div>
+          `,
           iconSize: [40, 40],
           iconAnchor: [20, 20],
         }),
@@ -95,11 +113,35 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       bounds.extend([location.lat, location.lon]);
 
       marker.bindPopup(`
-        <div class="p-3 bg-slate-900 rounded-lg border border-slate-700">
-          <div class="font-bold text-white mb-1">${location.name}</div>
-          ${location.context ? `<div class="text-sm text-slate-300 mt-1">${location.context}</div>` : ''}
+        <div style="
+          padding: 12px;
+          background: #0f172a;
+          border-radius: 8px;
+          border: 1px solid #334155;
+          min-width: 200px;
+          max-width: 300px;
+        ">
+          <div style="
+            font-weight: bold;
+            color: white;
+            margin-bottom: 4px;
+            font-size: 14px;
+          ">
+            ${location.name}
+          </div>
+          ${location.context ? `
+            <div style="
+              color: #cbd5e1;
+              font-size: 12px;
+              margin-top: 4px;
+              line-height: 1.4;
+            ">
+              ${location.context}
+            </div>
+          ` : ''}
         </div>
       `, {
+        maxWidth: 300,
         className: 'custom-popup'
       });
 
