@@ -73,20 +73,11 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       const color = colors[index % colors.length];
 
       const customIcon = L.divIcon({
-        html: `
-          <svg width="32" height="44" viewBox="0 0 32 44" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.5 16 28 16 28s16-16.5 16-28C32 7.163 24.837 0 16 0z"
-                  fill="${color}"
-                  stroke="white"
-                  stroke-width="2"/>
-            <circle cx="16" cy="16" r="6" fill="white"/>
-            <text x="16" y="20" font-size="12" font-weight="bold" fill="${color}" text-anchor="middle">${index + 1}</text>
-          </svg>
-        `,
+        html: `<div style="background: ${color}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: white;">${index + 1}</div>`,
         className: '',
-        iconSize: [32, 44],
-        iconAnchor: [16, 44],
-        popupAnchor: [0, -44]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -18]
       });
 
       const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
