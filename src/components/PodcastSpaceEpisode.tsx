@@ -187,8 +187,24 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       <main className="pt-[73px]">
         <div className="lg:grid lg:grid-cols-[1fr_320px]">
           <div>
+        {/* Audio Player Bar */}
+        {episode.audio_url && (
+          <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <AudioPlayer
+                audioUrl={episode.audio_url}
+                episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
+                episodeImage={episode.image_url}
+                compact={true}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Tabbed Navigation */}
-        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40">
+        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40" style={{ top: episode.audio_url ? '145px' : '73px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
               <button
@@ -267,19 +283,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Audio Player - Always visible at top */}
-          {episode.audio_url && (
-            <div className="mb-8">
-              <AudioPlayer
-                audioUrl={episode.audio_url}
-                episodeTitle={episode.title}
-                episodeId={episode.episode_id}
-                podcastName={podcast.name}
-                episodeImage={episode.image_url}
-              />
-            </div>
-          )}
-
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -385,7 +388,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
 
           {/* Sidebar - Recent Episodes */}
-          <aside className="hidden lg:block bg-slate-50 border-l border-slate-200 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+          <aside
+            className="hidden lg:block bg-slate-50 border-l border-slate-200 sticky overflow-y-auto"
+            style={{
+              top: episode.audio_url ? '145px' : '73px',
+              height: episode.audio_url ? 'calc(100vh - 145px)' : 'calc(100vh - 73px)'
+            }}
+          >
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Recent Episodes</h3>

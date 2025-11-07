@@ -205,45 +205,96 @@ export default function AudioPlayer({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 bg-white rounded-lg border border-slate-200 p-3">
+      <div className="flex items-center gap-4">
         <audio ref={audioRef} src={audioUrl} preload="metadata" />
-        {episodeImage && (
-          <img
-            src={episodeImage}
-            alt={episodeTitle}
-            className="w-12 h-12 rounded object-cover"
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-slate-900 truncate mb-1">
-            {episodeTitle}
+
+        <button
+          onClick={togglePlayPause}
+          disabled={isLoading || !!error}
+          className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0"
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : isPlaying ? (
+            <Pause className="w-5 h-5" />
+          ) : (
+            <Play className="w-5 h-5 ml-0.5" />
+          )}
+        </button>
+
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600 whitespace-nowrap">
+            <span>{formatTime(currentTime)}</span>
+            <span className="text-slate-400">/</span>
+            <span>{formatTime(duration)}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={togglePlayPause}
+
+          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden cursor-pointer group relative">
+            <input
+              type="range"
+              min="0"
+              max={duration || 0}
+              value={currentTime}
+              onChange={handleSeek}
               disabled={isLoading || !!error}
-              className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+            />
+            <div
+              className="h-full bg-blue-600 transition-all relative"
+              style={{ width: `${progressPercentage}%` }}
             >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : isPlaying ? (
-                <Pause className="w-4 h-4" />
-              ) : (
-                <Play className="w-4 h-4 ml-0.5" />
-              )}
-            </button>
-            <div className="flex-1 flex items-center gap-2 text-xs text-slate-600">
-              <span>{formatTime(currentTime)}</span>
-              <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 transition-all"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-              <span>{formatTime(duration)}</span>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
             </div>
           </div>
+
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {[0.5, 1, 1.5, 2].map((rate) => (
+              <button
+                key={rate}
+                onClick={() => setPlaybackRate(rate)}
+                className={`px-1.5 py-0.5 text-xs font-medium rounded transition-colors ${
+                  playbackRate === rate
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {rate}x
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => skip(-15)}
+            disabled={isLoading || !!error}
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            aria-label="Skip back 15 seconds"
+            title="Skip back 15s"
+          >
+            <SkipBack className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => skip(15)}
+            disabled={isLoading || !!error}
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            aria-label="Skip forward 15 seconds"
+            title="Skip forward 15s"
+          >
+            <SkipForward className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={toggleMute}
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
     );
