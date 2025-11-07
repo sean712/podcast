@@ -10,8 +10,7 @@ export default function EpisodeSummary({ summary }: EpisodeSummaryProps) {
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
       {/* Header */}
       <div className="mb-4">
-        <h3 className="text-xl font-semibold text-slate-900 mb-1">Episode Summary</h3>
-        <p className="text-sm text-slate-600">AI-powered insights</p>
+        <h3 className="text-xl font-semibold text-slate-900">Episode Summary</h3>
       </div>
 
       {/* Summary text */}

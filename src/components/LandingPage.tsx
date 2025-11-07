@@ -34,7 +34,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                   Beautiful interactive pages for every episode
                 </h1>
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed">
-                  Give your listeners more than just audio. Automated, branded episode pages with AI-powered features—no extra work required.
+                  Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
                 </p>
                 <button
                   onClick={onGetStarted}
@@ -67,7 +67,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 Interactive Features
               </h2>
               <p className="text-lg text-slate-600">
-                AI-powered tools that make each episode more engaging
+                Smart tools that make each episode more engaging
               </p>
             </div>
 
@@ -118,7 +118,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                     <h3 className="text-2xl font-bold text-slate-900">Smart Timeline</h3>
                   </div>
                   <p className="text-slate-600 text-lg leading-relaxed mb-6">
-                    AI identifies the most important moments and creates a chronological timeline of events discussed in your episode. Perfect for historical content, storytelling, and narrative podcasts.
+                    Automatically identifies the most important moments and creates a chronological timeline of events discussed in your episode. Perfect for historical content, storytelling, and narrative podcasts.
                   </p>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
@@ -155,7 +155,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                     <h3 className="text-2xl font-bold text-slate-900">Key People</h3>
                   </div>
                   <p className="text-slate-600 text-lg leading-relaxed mb-6">
-                    Every person mentioned gets their own card with AI-generated descriptions, roles, and relevant quotes from the episode. Helps listeners keep track of who's who in complex stories.
+                    Every person mentioned gets their own card with descriptions, roles, and relevant quotes from the episode. Helps listeners keep track of who's who in complex stories.
                   </p>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
