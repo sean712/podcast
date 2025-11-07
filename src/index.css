@@ -72,6 +72,12 @@
   border: none !important;
 }
 
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .custom-popup .leaflet-popup-content-wrapper {
   background: transparent !important;
   box-shadow: none !important;
