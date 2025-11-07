@@ -67,9 +67,29 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     });
 
     const bounds = L.latLngBounds([]);
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
 
     locations.forEach((location, index) => {
-      const marker = L.marker([location.lat, location.lon]).addTo(map);
+      const color = colors[index % colors.length];
+
+      const customIcon = L.divIcon({
+        html: `
+          <svg width="32" height="44" viewBox="0 0 32 44" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.5 16 28 16 28s16-16.5 16-28C32 7.163 24.837 0 16 0z"
+                  fill="${color}"
+                  stroke="white"
+                  stroke-width="2"/>
+            <circle cx="16" cy="16" r="6" fill="white"/>
+            <text x="16" y="20" font-size="12" font-weight="bold" fill="${color}" text-anchor="middle">${index + 1}</text>
+          </svg>
+        `,
+        className: '',
+        iconSize: [32, 44],
+        iconAnchor: [16, 44],
+        popupAnchor: [0, -44]
+      });
+
+      const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
 
