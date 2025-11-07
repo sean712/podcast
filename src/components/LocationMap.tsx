@@ -86,7 +86,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
       const marker = L.marker([location.lat, location.lon], {
         icon: L.divIcon({
           className: 'custom-map-marker',
-          html: `<span class="marker-number">${index + 1}</span>`,
+          html: `<span>${index + 1}</span>`,
           iconSize: [40, 40],
           iconAnchor: [20, 20],
         }),
