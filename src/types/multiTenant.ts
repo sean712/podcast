@@ -21,6 +21,7 @@ export interface PodcastSettings {
   logo_url: string | null;
   custom_header_text: string | null;
   analytics_code: string | null;
+  visible_tabs: string[] | null;
   created_at: string;
   updated_at: string;
 }

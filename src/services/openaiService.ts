@@ -28,12 +28,20 @@ export interface KeyMoment {
   timestamp?: string;
 }
 
+export interface Reference {
+  type: 'book' | 'film' | 'company' | 'product' | 'article' | 'website' | 'other';
+  name: string;
+  context?: string;
+  quote?: string;
+}
+
 export interface TranscriptAnalysis {
   summary: string;
   keyPersonnel: KeyPerson[];
   timeline: TimelineEvent[];
   locations: ExtractedLocation[];
   keyMoments: KeyMoment[];
+  references: Reference[];
 }
 
 class OpenAIServiceError extends Error {
@@ -66,6 +74,7 @@ export async function analyzeTranscript(
       timeline: Array.isArray(data?.timeline) ? data.timeline : [],
       locations: Array.isArray(data?.locations) ? data.locations : [],
       keyMoments: Array.isArray(data?.keyMoments) ? data.keyMoments : [],
+      references: Array.isArray(data?.references) ? data.references : [],
     };
   } catch (error) {
     if (error instanceof OpenAIServiceError) {

@@ -1,11 +1,60 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye } from 'lucide-react';
 import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug } from '../services/podcastSpaceService';
 import { syncPodcastEpisodes } from '../services/episodeSyncService';
 import { searchPodcasts } from '../services/podscanApi';
 import { supabase } from '../lib/supabase';
 import type { PodcastSpace } from '../types/multiTenant';
 import type { Podcast } from '../types/podcast';
+
+function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdate: (id: string, tabs: string[]) => void }) {
+  const [currentSettings, setCurrentSettings] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('podcast_settings')
+        .select('visible_tabs')
+        .eq('podcast_id', podcastId)
+        .maybeSingle();
+
+      setCurrentSettings(data?.visible_tabs || ['overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes']);
+    };
+    fetchSettings();
+  }, [podcastId]);
+
+  const handleToggleTab = (tab: string) => {
+    const updated = currentSettings.includes(tab)
+      ? currentSettings.filter(t => t !== tab)
+      : [...currentSettings, tab];
+    setCurrentSettings(updated);
+    onUpdate(podcastId, updated);
+  };
+
+  return (
+    <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <h4 className="text-sm font-semibold text-gray-900 mb-3">Visible Tabs</h4>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {['overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes'].map((tab) => {
+          const isVisible = currentSettings.includes(tab);
+          return (
+            <button
+              key={tab}
+              onClick={() => handleToggleTab(tab)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isVisible
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPanel() {
   const [podcasts, setPodcasts] = useState<PodcastSpace[]>([]);
@@ -24,6 +73,8 @@ export default function AdminPanel() {
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [newSlug, setNewSlug] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [editingTabs, setEditingTabs] = useState<string | null>(null);
+  const [tabSettings, setTabSettings] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     loadPodcasts();
@@ -219,6 +270,30 @@ export default function AdminPanel() {
     setNewSlug('');
   };
 
+  const handleUpdateVisibleTabs = async (podcastId: string, visibleTabs: string[]) => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { error: updateError } = await supabase
+        .from('podcast_settings')
+        .upsert({
+          podcast_id: podcastId,
+          visible_tabs: visibleTabs,
+        }, {
+          onConflict: 'podcast_id'
+        });
+
+      if (updateError) throw updateError;
+
+      setSuccess('Tab visibility updated successfully');
+      setEditingTabs(null);
+    } catch (err) {
+      console.error('Error updating tab visibility:', err);
+      setError('Failed to update tab visibility');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -379,9 +454,9 @@ export default function AdminPanel() {
           ) : (
             <div className="space-y-2">
               {podcasts.map((podcast) => (
-                <div
-                  key={podcast.id}
-                  className={`flex items-center justify-between p-4 bg-white border rounded-lg transition-all ${
+                <div key={podcast.id}>
+                  <div
+                    className={`flex items-center justify-between p-4 bg-white border rounded-lg transition-all ${
                     podcast.is_paused
                       ? 'border-amber-300 bg-amber-50'
                       : 'border-gray-200 hover:border-gray-300'
@@ -460,6 +535,13 @@ export default function AdminPanel() {
                       />
                     </button>
                     <button
+                      onClick={() => setEditingTabs(editingTabs === podcast.id ? null : podcast.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Configure visible tabs"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => handleTogglePause(podcast)}
                       className={`p-2 rounded-lg transition-colors ${
                         podcast.is_paused
@@ -486,6 +568,13 @@ export default function AdminPanel() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                  </div>
+                  {editingTabs === podcast.id && (
+                    <TabSettingsEditor
+                      podcastId={podcast.id}
+                      onUpdate={handleUpdateVisibleTabs}
+                    />
+                  )}
                 </div>
               ))}
             </div>

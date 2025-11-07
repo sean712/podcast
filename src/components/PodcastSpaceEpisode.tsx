@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -7,6 +7,7 @@ import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
 import TranscriptViewer from './TranscriptViewer';
 import EpisodeNotes from './EpisodeNotes';
+import References from './References';
 import AudioPlayer from './AudioPlayer';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
@@ -23,7 +24,7 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'transcript' | 'notes';
+type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
@@ -66,6 +67,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           timeline: cachedAnalysis.timeline_events,
           locations: cachedAnalysis.locations.map((loc: any) => loc.name || loc),
           keyMoments: cachedAnalysis.key_moments || [],
+          references: cachedAnalysis.references || [],
         });
         setLocations(cachedAnalysis.locations);
         setIsLoadingLocations(false);
@@ -114,6 +116,14 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
   const handleHighlightUsed = () => {
     setHighlightedTextForNote(undefined);
+  };
+
+  const isTabVisible = (tabName: string): boolean => {
+    const visibleTabs = settings?.visible_tabs;
+    if (!visibleTabs || visibleTabs.length === 0) {
+      return true;
+    }
+    return visibleTabs.includes(tabName);
   };
 
   const primaryColor = settings?.primary_color || '#10b981';
@@ -250,74 +260,99 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40" style={{ top: episode.audio_url ? '145px' : '73px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === 'overview'
-                    ? 'border-blue-500 text-slate-900 bg-slate-50'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveTab('people')}
-                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === 'people'
-                    ? 'border-blue-500 text-slate-900 bg-slate-50'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <UsersIcon className="w-4 h-4" />
-                Key People
-              </button>
-              <button
-                onClick={() => setActiveTab('timeline')}
-                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === 'timeline'
-                    ? 'border-blue-500 text-slate-900 bg-slate-50'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Clock className="w-4 h-4" />
-                Timeline
-              </button>
-              <button
-                onClick={() => setActiveTab('map')}
-                className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === 'map'
-                    ? 'border-blue-500 text-slate-900 bg-slate-50'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Map className="w-4 h-4" />
-                Locations {locations.length > 0 && `(${locations.length})`}
-              </button>
+              {isTabVisible('overview') && (
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'overview'
+                      ? 'border-blue-500 text-slate-900 bg-slate-50'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Overview
+                </button>
+              )}
+              {isTabVisible('people') && (
+                <button
+                  onClick={() => setActiveTab('people')}
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'people'
+                      ? 'border-blue-500 text-slate-900 bg-slate-50'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <UsersIcon className="w-4 h-4" />
+                  Key People
+                </button>
+              )}
+              {isTabVisible('timeline') && (
+                <button
+                  onClick={() => setActiveTab('timeline')}
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'timeline'
+                      ? 'border-blue-500 text-slate-900 bg-slate-50'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
+                  Timeline
+                </button>
+              )}
+              {isTabVisible('map') && (
+                <button
+                  onClick={() => setActiveTab('map')}
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'map'
+                      ? 'border-blue-500 text-slate-900 bg-slate-50'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Map className="w-4 h-4" />
+                  Locations {locations.length > 0 && `(${locations.length})`}
+                </button>
+              )}
+              {isTabVisible('references') && (
+                <button
+                  onClick={() => setActiveTab('references')}
+                  className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'references'
+                      ? 'border-blue-500 text-slate-900 bg-slate-50'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Tag className="w-4 h-4" />
+                  References {analysis?.references && analysis.references.length > 0 && `(${analysis.references.length})`}
+                </button>
+              )}
               {episode.transcript && (
                 <>
-                  <button
-                    onClick={() => setActiveTab('transcript')}
-                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                      activeTab === 'transcript'
-                        ? 'border-blue-500 text-slate-900 bg-slate-50'
-                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    Transcript
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('notes')}
-                    className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
-                      activeTab === 'notes'
-                        ? 'border-blue-500 text-slate-900 bg-slate-50'
-                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <StickyNote className="w-4 h-4" />
-                    Notes
-                  </button>
+                  {isTabVisible('transcript') && (
+                    <button
+                      onClick={() => setActiveTab('transcript')}
+                      className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeTab === 'transcript'
+                          ? 'border-blue-500 text-slate-900 bg-slate-50'
+                          : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Transcript
+                    </button>
+                  )}
+                  {isTabVisible('notes') && (
+                    <button
+                      onClick={() => setActiveTab('notes')}
+                      className={`flex items-center gap-2 px-6 py-3.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeTab === 'notes'
+                          ? 'border-blue-500 text-slate-900 bg-slate-50'
+                          : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <StickyNote className="w-4 h-4" />
+                      Notes
+                    </button>
+                  )}
                 </>
               )}
             </nav>
@@ -437,6 +472,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 isLoading={isLoadingLocations}
                 error={locationError}
               />
+            </div>
+          )}
+
+          {/* References Tab */}
+          {episode.transcript && activeTab === 'references' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {analysis ? (
+                <References references={analysis.references} />
+              ) : (
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No references data available yet</p>
+                </div>
+              )}
             </div>
           )}
 

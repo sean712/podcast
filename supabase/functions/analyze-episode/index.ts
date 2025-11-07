@@ -75,6 +75,7 @@ Deno.serve(async (req: Request) => {
             timeline: cachedAnalysis.timeline_events,
             locations: cachedAnalysis.locations,
             keyMoments: cachedAnalysis.key_moments || [],
+            references: cachedAnalysis.references || [],
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -184,9 +185,27 @@ Deno.serve(async (req: Request) => {
                       required: ["name", "context", "quotes"],
                       additionalProperties: false
                     }
+                  },
+                  references: {
+                    type: "array",
+                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
+                    items: {
+                      type: "object",
+                      properties: {
+                        type: {
+                          type: "string",
+                          enum: ["book", "film", "company", "product", "article", "website", "other"]
+                        },
+                        name: { type: "string" },
+                        context: { type: "string" },
+                        quote: { type: "string" }
+                      },
+                      required: ["type", "name", "context", "quote"],
+                      additionalProperties: false
+                    }
                   }
                 },
-                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations"],
+                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations", "references"],
                 additionalProperties: false
               }
             }
@@ -265,6 +284,7 @@ Deno.serve(async (req: Request) => {
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
+        references: Array.isArray(analysis.references) ? analysis.references : [],
       };
       console.log("Final result:", JSON.stringify(result, null, 2));
 
