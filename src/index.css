@@ -67,30 +67,9 @@
 }
 
 /* Leaflet map marker styles */
-.custom-marker {
+.svg-marker {
   background: transparent !important;
   border: none !important;
-  width: 40px !important;
-  height: 40px !important;
-}
-
-.marker-pin {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  background: linear-gradient(135deg, #f97316 0%, #ef4444 100%) !important;
-  border: 3px solid white !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.marker-number {
-  color: white !important;
-  font-weight: bold !important;
-  font-size: 14px !important;
-  line-height: 1 !important;
 }
 
 .custom-popup .leaflet-popup-content-wrapper {

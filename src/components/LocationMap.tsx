@@ -83,16 +83,28 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     const bounds = L.latLngBounds([]);
 
     locations.forEach((location, index) => {
-      const numberIcon = L.divIcon({
-        html: `<div class="marker-pin"><div class="marker-number">${index + 1}</div></div>`,
-        className: 'custom-marker',
+      const svgIcon = `
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad${index}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="20" cy="20" r="17" fill="url(#grad${index})" stroke="white" stroke-width="3"/>
+          <text x="20" y="20" text-anchor="middle" dy=".35em" fill="white" font-size="14" font-weight="bold">${index + 1}</text>
+        </svg>
+      `;
+
+      const customIcon = L.divIcon({
+        html: svgIcon,
+        className: 'svg-marker',
         iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
+        iconAnchor: [20, 20],
       });
 
       const marker = L.marker([location.lat, location.lon], {
-        icon: numberIcon
+        icon: customIcon
       }).addTo(map);
 
       bounds.extend([location.lat, location.lon]);
