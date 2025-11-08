@@ -84,6 +84,28 @@ export async function analyzeTranscript(
   }
 }
 
+export async function extractLocations(transcript: string): Promise<ExtractedLocation[]> {
+  try {
+    const { data, error } = await supabase.functions.invoke('analyze-episode', {
+      body: {
+        action: 'extract_locations',
+        transcript,
+      },
+    });
+
+    if (error) {
+      throw new OpenAIServiceError(error.message || 'Failed to extract locations');
+    }
+
+    return Array.isArray(data?.locations) ? data.locations : [];
+  } catch (error) {
+    if (error instanceof OpenAIServiceError) {
+      throw error;
+    }
+    throw new OpenAIServiceError('Failed to extract locations');
+  }
+}
+
 export async function chatWithTranscript(
   transcript: string,
   episodeTitle: string,

@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface AnalyzeRequest {
-  action: "analyze" | "chat";
+  action: "analyze" | "chat" | "extract_locations";
   episodeId?: string;
   transcript: string;
   episodeTitle?: string;
@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and references with supporting quotes."
             },
             {
               role: "user",
@@ -169,23 +169,6 @@ Deno.serve(async (req: Request) => {
                       additionalProperties: false
                     }
                   },
-                  locations: {
-                    type: "array",
-                    description: "ALL geographic locations mentioned in the transcript - extract SPECIFIC, GRANULAR locations. Rules: 1) Extract specific cities, towns, neighborhoods, landmarks, streets, and regions - NOT just country names. 2) If multiple places within a country are mentioned (e.g., 'Sana'a', 'Aden', 'Hodeidah' in Yemen), extract EACH ONE as a separate location with the country (e.g., 'Sana'a, Yemen', 'Aden, Yemen'). 3) Only use country-level when no specific place is mentioned. 4) Each distinct location = separate entry. 5) Include context about why this location matters. Your success is measured by finding as many SPECIFIC locations as possible.",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: { type: "string" },
-                        context: { type: "string" },
-                        quotes: {
-                          type: "array",
-                          items: { type: "string" }
-                        }
-                      },
-                      required: ["name", "context", "quotes"],
-                      additionalProperties: false
-                    }
-                  },
                   references: {
                     type: "array",
                     description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
@@ -205,7 +188,7 @@ Deno.serve(async (req: Request) => {
                     }
                   }
                 },
-                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations", "references"],
+                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "references"],
                 additionalProperties: false
               }
             }
@@ -238,7 +221,6 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Find the message output item (skip reasoning items)
       const messageItem = data.output.find((item: any) => item.type === "message");
       if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
         console.error("No message content in output");
@@ -248,7 +230,6 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Find the output_text content item
       const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
 
       if (!contentItem) {
@@ -282,7 +263,7 @@ Deno.serve(async (req: Request) => {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
-        locations: Array.isArray(analysis.locations) ? analysis.locations : [],
+        locations: [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
         references: Array.isArray(analysis.references) ? analysis.references : [],
       };
@@ -335,6 +316,92 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ content }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "extract_locations") {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert at extracting geographic locations from text. Your goal is to find EVERY location mentioned, no matter how brief the reference.\n\nCRITICAL RULES:\n1. Extract SPECIFIC locations: cities, towns, neighborhoods, landmarks, streets, buildings, regions\n2. When multiple places within a country are mentioned, extract EACH ONE separately\n3. For each location, use format: "City, Country" or "Specific Place, City, Country" or "Region, Country"\n4. Only use country-level when no specific place is mentioned\n5. Include locations mentioned in any context: visited, mentioned, referenced, discussed, etc.\n6. Extract locations from: stories, anecdotes, news references, historical events, personal experiences\n7. Don't skip locations just because they're mentioned briefly\n8. Include context about why the location was mentioned\n\nExamples:\n- If transcript says "I visited Sana'a, then Aden, and finally Hodeidah" → Extract: "Sana'a, Yemen", "Aden, Yemen", "Hodeidah, Yemen"\n- If transcript says "The Pentagon announced..." → Extract: "Pentagon, Arlington, Virginia, USA"\n- If transcript says "Growing up in Brooklyn" → Extract: "Brooklyn, New York, USA"\n- If transcript says "France" without specifics → Extract: "France"\n\nYour success is measured by comprehensiveness - find EVERY location, no matter how small the mention.`
+            },
+            {
+              role: "user",
+              content: `Extract ALL locations from this podcast transcript. Be thorough and extract every single geographic location mentioned:\n\n${transcript}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 4000,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "location_extraction",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  locations: {
+                    type: "array",
+                    description: "All geographic locations mentioned in the transcript",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: {
+                          type: "string",
+                          description: "Full location name with country (e.g., 'Brooklyn, New York, USA' or 'Sana'a, Yemen')"
+                        },
+                        context: {
+                          type: "string",
+                          description: "Brief explanation of why this location was mentioned or what happened there"
+                        },
+                        quotes: {
+                          type: "array",
+                          description: "Direct quotes from transcript mentioning this location",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["name", "context", "quotes"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["locations"],
+                additionalProperties: false
+              }
+            }
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `OpenAI API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) {
+        return new Response(
+          JSON.stringify({ locations: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const parsed = JSON.parse(content);
+      console.log(`Extracted ${parsed.locations?.length || 0} locations`);
+
+      return new Response(
+        JSON.stringify({ locations: parsed.locations || [] }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

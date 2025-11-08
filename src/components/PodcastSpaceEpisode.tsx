@@ -11,7 +11,7 @@ import References from './References';
 import AudioPlayer from './AudioPlayer';
 import PodcastFooter from './PodcastFooter';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
-import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
+import { analyzeTranscript, extractLocations, OpenAIServiceError, type TranscriptAnalysis, type ExtractedLocation } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
@@ -78,19 +78,30 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       const transcriptAnalysis = await analyzeTranscript(episode.transcript, episode.episode_id);
       setAnalysis(transcriptAnalysis);
+      setIsLoadingAnalysis(false);
+
+      console.log('🌍 Starting dedicated location extraction...');
+      const extractedLocations = await extractLocations(episode.transcript);
+      console.log(`🌍 Extracted ${extractedLocations.length} locations:`, extractedLocations.map(l => l.name));
 
       let geocoded: GeocodedLocation[] = [];
-      if (transcriptAnalysis.locations.length > 0) {
-        geocoded = await geocodeLocations(transcriptAnalysis.locations.slice(0, 25));
+      if (extractedLocations.length > 0) {
+        geocoded = await geocodeLocations(extractedLocations);
         setLocations(geocoded);
+        console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
       }
       setIsLoadingLocations(false);
+
+      const analysisWithExtractedLocations = {
+        ...transcriptAnalysis,
+        locations: extractedLocations,
+      };
 
       await saveCachedAnalysis(
         episode.episode_id,
         episode.title,
         podcast.name,
-        transcriptAnalysis,
+        analysisWithExtractedLocations,
         geocoded
       );
     } catch (err) {
