@@ -240,7 +240,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 lg:right-[320px] border-t border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40" style={{ top: '61px' }}>
+        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40" style={{ top: '61px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -255,7 +255,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
       {/* Tabbed Navigation - Fixed to viewport */}
-      <div className="fixed left-0 right-0 lg:right-[320px] border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? '118px' : '61px' }}>
+      <div className="fixed left-0 right-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? '118px' : '61px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
@@ -358,8 +358,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
 
       <main style={{ paddingTop: episode.audio_url && isTabVisible('player') ? '158px' : '100px' }}>
-        <div className="lg:grid lg:grid-cols-[1fr_320px]">
-          <div>
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* No Transcript Message */}
@@ -516,71 +514,59 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           )}
 
         </div>
-          </div>
 
-          {/* Sidebar - Recent Episodes */}
-          <aside
-            className="hidden lg:block bg-slate-50 border-l border-slate-200 sticky overflow-y-auto"
-            style={{
-              top: episode.audio_url && isTabVisible('player') ? '158px' : '100px',
-              height: episode.audio_url && isTabVisible('player') ? 'calc(100vh - 158px)' : 'calc(100vh - 100px)'
-            }}
-          >
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Recent Episodes</h3>
-                <button
-                  onClick={onBack}
-                  className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  <List className="w-3.5 h-3.5" />
-                  Show All
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {episodes.slice(0, 5).map((ep) => (
-                  <button
-                    key={ep.id}
-                    onClick={() => onEpisodeClick(ep)}
-                    className={`w-full text-left p-3 rounded-lg transition-all group ${
-                      ep.id === episode.id
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex gap-3">
-                      {ep.image_url && (
-                        <img
-                          src={ep.image_url}
-                          alt={ep.title}
-                          className="w-12 h-12 rounded object-cover flex-shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className={`text-sm font-medium mb-1 line-clamp-2 ${
-                          ep.id === episode.id ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-700'
-                        }`}>
-                          {decodeHtmlEntities(ep.title)}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          {ep.published_at && (
-                            <span>{new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                          )}
-                          {ep.duration > 0 && (
-                            <>
-                              <span>•</span>
-                              <span>{Math.floor(ep.duration / 60)}m</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+        {/* Recent Episodes - Below Main Content */}
+        <div className="bg-slate-50 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">More Episodes</h3>
+              <button
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <List className="w-4 h-4" />
+                View All Episodes
+              </button>
             </div>
-          </aside>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {episodes.slice(0, 8).map((ep) => (
+                <button
+                  key={ep.id}
+                  onClick={() => onEpisodeClick(ep)}
+                  className={`text-left p-4 rounded-xl transition-all group ${
+                    ep.id === episode.id
+                      ? 'bg-blue-100 border-2 border-blue-300 shadow-sm'
+                      : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md'
+                  }`}
+                >
+                  {ep.image_url && (
+                    <img
+                      src={ep.image_url}
+                      alt={ep.title}
+                      className="w-full aspect-square rounded-lg object-cover mb-3"
+                    />
+                  )}
+                  <h4 className={`text-sm font-medium mb-2 line-clamp-2 ${
+                    ep.id === episode.id ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-700'
+                  }`}>
+                    {decodeHtmlEntities(ep.title)}
+                  </h4>
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    {ep.published_at && (
+                      <span>{new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    )}
+                    {ep.duration > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{Math.floor(ep.duration / 60)}m</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
 
