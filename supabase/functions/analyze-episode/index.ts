@@ -321,15 +321,15 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "extract_locations") {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
+          model: "gpt-5-mini",
+          input: [
             {
               role: "system",
               content: `You are an expert at extracting geographic locations from text. Your goal is to find EVERY location mentioned, no matter how brief the reference.\n\nCRITICAL RULES:\n1. Extract SPECIFIC locations: cities, towns, neighborhoods, landmarks, streets, buildings, regions\n2. When multiple places within a country are mentioned, extract EACH ONE separately\n3. For each location, use format: "City, Country" or "Specific Place, City, Country" or "Region, Country"\n4. Only use country-level when no specific place is mentioned\n5. Include locations mentioned in any context: visited, mentioned, referenced, discussed, etc.\n6. Extract locations from: stories, anecdotes, news references, historical events, personal experiences\n7. Don't skip locations just because they're mentioned briefly\n8. Include context about why the location was mentioned\n\nExamples:\n- If transcript says "I visited Sana'a, then Aden, and finally Hodeidah" → Extract: "Sana'a, Yemen", "Aden, Yemen", "Hodeidah, Yemen"\n- If transcript says "The Pentagon announced..." → Extract: "Pentagon, Arlington, Virginia, USA"\n- If transcript says "Growing up in Brooklyn" → Extract: "Brooklyn, New York, USA"\n- If transcript says "France" without specifics → Extract: "France"\n\nYour success is measured by comprehensiveness - find EVERY location, no matter how small the mention.`
@@ -339,11 +339,13 @@ Deno.serve(async (req: Request) => {
               content: `Extract ALL locations from this podcast transcript. Be thorough and extract every single geographic location mentioned:\n\n${transcript}`
             }
           ],
-          temperature: 0.3,
-          max_tokens: 4000,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
+          max_output_tokens: 8000,
+          reasoning: {
+            effort: "medium"
+          },
+          text: {
+            format: {
+              type: "json_schema",
               name: "location_extraction",
               strict: true,
               schema: {
@@ -388,17 +390,45 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
+      console.log("Location extraction API response status:", data.status);
 
-      if (!content) {
+      if (data.status === "incomplete") {
+        console.error("Incomplete location extraction response:", data.incomplete_details);
         return new Response(
           JSON.stringify({ locations: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const parsed = JSON.parse(content);
-      console.log(`Extracted ${parsed.locations?.length || 0} locations`);
+      if (!data.output || !Array.isArray(data.output) || data.output.length === 0) {
+        console.error("No output in location extraction response");
+        return new Response(
+          JSON.stringify({ locations: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const messageItem = data.output.find((item: any) => item.type === "message");
+      if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
+        console.error("No message content in location extraction output");
+        return new Response(
+          JSON.stringify({ locations: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
+
+      if (!contentItem || !contentItem.text) {
+        console.error("No output_text in location extraction message content");
+        return new Response(
+          JSON.stringify({ locations: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const parsed = JSON.parse(contentItem.text);
+      console.log(`✓ Extracted ${parsed.locations?.length || 0} locations`);
 
       return new Response(
         JSON.stringify({ locations: parsed.locations || [] }),
