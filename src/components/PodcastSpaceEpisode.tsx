@@ -70,9 +70,46 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           keyMoments: cachedAnalysis.key_moments || [],
           references: cachedAnalysis.references || [],
         });
-        setLocations(cachedAnalysis.locations);
-        setIsLoadingLocations(false);
         setIsLoadingAnalysis(false);
+
+        if (cachedAnalysis.locations && cachedAnalysis.locations.length > 0) {
+          setLocations(cachedAnalysis.locations);
+          setIsLoadingLocations(false);
+          return;
+        }
+
+        console.log('🔄 Cached analysis has no locations, running location extraction...');
+        try {
+          const extractedLocations = await extractLocations(episode.transcript);
+          console.log(`🌍 Extracted ${extractedLocations.length} locations for cached analysis:`, extractedLocations.map(l => l.name));
+
+          let geocoded: GeocodedLocation[] = [];
+          if (extractedLocations.length > 0) {
+            geocoded = await geocodeLocations(extractedLocations);
+            setLocations(geocoded);
+            console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
+
+            const analysisWithLocations = {
+              summary: cachedAnalysis.summary,
+              keyPersonnel: cachedAnalysis.key_personnel,
+              timeline: cachedAnalysis.timeline_events,
+              locations: extractedLocations,
+              keyMoments: cachedAnalysis.key_moments || [],
+              references: cachedAnalysis.references || [],
+            };
+
+            await saveCachedAnalysis(
+              episode.episode_id,
+              episode.title,
+              podcast.name,
+              analysisWithLocations,
+              geocoded
+            );
+          }
+        } catch (err) {
+          console.error('Failed to extract locations for cached analysis:', err);
+        }
+        setIsLoadingLocations(false);
         return;
       }
 
