@@ -94,11 +94,11 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and references with supporting quotes."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, references, and ALL geographic locations mentioned.\n\nFor LOCATIONS: Find EVERY location mentioned, no matter how brief. Extract SPECIFIC locations: cities, towns, neighborhoods, landmarks, streets, buildings, regions. When multiple places within a country are mentioned, extract EACH ONE separately. Use format: 'City, Country' or 'Specific Place, City, Country' or 'Region, Country'. Only use country-level when no specific place is mentioned. Include locations from stories, anecdotes, news references, historical events, personal experiences."
             },
             {
               role: "user",
-              content: `Analyze this podcast transcript:\n\n${transcript}`
+              content: `Analyze this podcast transcript and extract ALL locations mentioned:\n\n${transcript}`
             }
           ],
           max_output_tokens: 16000,
@@ -186,9 +186,33 @@ Deno.serve(async (req: Request) => {
                       required: ["type", "name", "context", "quote"],
                       additionalProperties: false
                     }
+                  },
+                  locations: {
+                    type: "array",
+                    description: "ALL geographic locations mentioned in the transcript. Extract EVERY location no matter how brief: cities, towns, neighborhoods, landmarks, streets, buildings, regions. When multiple places within a country are mentioned, extract EACH ONE separately.",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: {
+                          type: "string",
+                          description: "Full location name with country (e.g., 'Brooklyn, New York, USA' or 'Sana'a, Yemen' or 'Pentagon, Arlington, Virginia, USA')"
+                        },
+                        context: {
+                          type: "string",
+                          description: "Brief explanation of why this location was mentioned or what happened there"
+                        },
+                        quotes: {
+                          type: "array",
+                          description: "Direct quotes from transcript mentioning this location",
+                          items: { type: "string" }
+                        }
+                      },
+                      required: ["name", "context", "quotes"],
+                      additionalProperties: false
+                    }
                   }
                 },
-                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "references"],
+                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "references", "locations"],
                 additionalProperties: false
               }
             }
@@ -263,11 +287,12 @@ Deno.serve(async (req: Request) => {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
-        locations: [],
+        locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
         references: Array.isArray(analysis.references) ? analysis.references : [],
       };
-      console.log("Final result:", JSON.stringify(result, null, 2));
+      console.log(`Final result: ${result.locations.length} locations extracted`);
+      console.log("First 3 locations:", JSON.stringify(result.locations.slice(0, 3), null, 2));
 
       return new Response(
         JSON.stringify({ cached: false, ...result }),
