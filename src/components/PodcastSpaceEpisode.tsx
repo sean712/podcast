@@ -529,38 +529,32 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {episodes.slice(0, 8).map((ep) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {episodes.slice(0, 12).map((ep) => (
                 <button
                   key={ep.id}
                   onClick={() => onEpisodeClick(ep)}
-                  className={`text-left p-4 rounded-xl transition-all group ${
+                  className={`text-left p-2 rounded-lg transition-all group ${
                     ep.id === episode.id
-                      ? 'bg-blue-100 border-2 border-blue-300 shadow-sm'
-                      : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md'
+                      ? 'bg-blue-100 border border-blue-300'
+                      : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   {ep.image_url && (
                     <img
                       src={ep.image_url}
                       alt={ep.title}
-                      className="w-full aspect-square rounded-lg object-cover mb-3"
+                      className="w-full aspect-square rounded object-cover mb-2"
                     />
                   )}
-                  <h4 className={`text-sm font-medium mb-2 line-clamp-2 ${
-                    ep.id === episode.id ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-700'
+                  <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
+                    ep.id === episode.id ? 'text-blue-700' : 'text-slate-900'
                   }`}>
                     {decodeHtmlEntities(ep.title)}
                   </h4>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    {ep.published_at && (
-                      <span>{new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                    )}
+                  <div className="text-[10px] text-slate-500">
                     {ep.duration > 0 && (
-                      <>
-                        <span>•</span>
-                        <span>{Math.floor(ep.duration / 60)}m</span>
-                      </>
+                      <span>{Math.floor(ep.duration / 60)}m</span>
                     )}
                   </div>
                 </button>
