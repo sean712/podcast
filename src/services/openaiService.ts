@@ -84,39 +84,6 @@ export async function analyzeTranscript(
   }
 }
 
-export async function extractLocations(transcript: string): Promise<ExtractedLocation[]> {
-  try {
-    console.log('📡 Calling extract-locations endpoint...');
-    const { data, error } = await supabase.functions.invoke('extract-locations', {
-      body: {
-        transcript,
-      },
-    });
-
-    console.log('📡 Location extraction response:', { data, error });
-
-    if (error) {
-      console.error('❌ Location extraction error:', error);
-      throw new OpenAIServiceError(error.message || 'Failed to extract locations');
-    }
-
-    if (!data) {
-      console.error('❌ No data returned from location extraction');
-      return [];
-    }
-
-    const locations = Array.isArray(data?.locations) ? data.locations : [];
-    console.log(`✓ Received ${locations.length} locations from API`);
-    return locations;
-  } catch (error) {
-    console.error('❌ Exception in extractLocations:', error);
-    if (error instanceof OpenAIServiceError) {
-      throw error;
-    }
-    throw new OpenAIServiceError('Failed to extract locations');
-  }
-}
-
 export async function chatWithTranscript(
   transcript: string,
   episodeTitle: string,
