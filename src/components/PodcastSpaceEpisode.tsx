@@ -150,7 +150,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Fixed Header with Episode Info */}
-      <header className="sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
@@ -238,27 +238,24 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
       </header>
 
-      <main>
-        <div className="lg:grid lg:grid-cols-[1fr_320px]">
-          <div>
-        {/* Audio Player Bar */}
-        {episode.audio_url && isTabVisible('player') && (
-          <div className="border-b border-slate-200 bg-white/95 backdrop-blur-xl sticky top-[96px] md:top-[62px] z-40 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <AudioPlayer
-                audioUrl={episode.audio_url}
-                episodeTitle={episode.title}
-                episodeId={episode.episode_id}
-                podcastName={podcast.name}
-                episodeImage={episode.image_url}
-                compact={true}
-              />
-            </div>
+      {/* Audio Player Bar - Fixed to viewport */}
+      {episode.audio_url && isTabVisible('player') && (
+        <div className="fixed left-0 right-0 lg:right-[320px] border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40 shadow-sm" style={{ top: '62px' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <AudioPlayer
+              audioUrl={episode.audio_url}
+              episodeTitle={episode.title}
+              episodeId={episode.episode_id}
+              podcastName={podcast.name}
+              episodeImage={episode.image_url}
+              compact={true}
+            />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Tabbed Navigation */}
-        <div className="border-b border-slate-200 bg-white/95 backdrop-blur-xl sticky z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? '154px' : '96px' }}>
+      {/* Tabbed Navigation - Fixed to viewport */}
+      <div className="fixed left-0 right-0 lg:right-[320px] border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? '120px' : '62px' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
@@ -360,6 +357,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
+      <main style={{ paddingTop: episode.audio_url && isTabVisible('player') ? '158px' : '100px' }}>
+        <div className="lg:grid lg:grid-cols-[1fr_320px]">
+          <div>
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* No Transcript Message */}
@@ -522,8 +522,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           <aside
             className="hidden lg:block bg-slate-50 border-l border-slate-200 sticky overflow-y-auto"
             style={{
-              top: episode.audio_url && isTabVisible('player') ? '195px' : '137px',
-              height: episode.audio_url && isTabVisible('player') ? 'calc(100vh - 195px)' : 'calc(100vh - 137px)'
+              top: episode.audio_url && isTabVisible('player') ? '158px' : '100px',
+              height: episode.audio_url && isTabVisible('player') ? 'calc(100vh - 158px)' : 'calc(100vh - 100px)'
             }}
           >
             <div className="p-4">
