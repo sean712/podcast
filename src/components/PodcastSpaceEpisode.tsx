@@ -240,7 +240,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white z-40" style={{ top: 'clamp(90px, 15vh, 110px)' }}>
+        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white z-40 top-[106px] md:top-[61px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -255,7 +255,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
       {/* Tabbed Navigation - Fixed to viewport */}
-      <div className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? 'clamp(160px, 25vh, 180px)' : 'clamp(90px, 15vh, 110px)' }}>
+      <div className={`fixed left-0 right-0 border-b border-slate-200 bg-white z-40 shadow-sm ${episode.audio_url && isTabVisible('player') ? 'top-[174px] md:top-[118px]' : 'top-[106px] md:top-[61px]'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
@@ -357,7 +357,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-      <main style={{ paddingTop: episode.audio_url && isTabVisible('player') ? 'clamp(200px, 30vh, 220px)' : 'clamp(130px, 20vh, 150px)' }}>
+      <main className={episode.audio_url && isTabVisible('player') ? 'pt-[222px] md:pt-[158px]' : 'pt-[154px] md:pt-[100px]'}>
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* No Transcript Message */}
