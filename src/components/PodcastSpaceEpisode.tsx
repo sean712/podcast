@@ -113,34 +113,59 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         return;
       }
 
-      const transcriptAnalysis = await analyzeTranscript(episode.transcript, episode.episode_id);
-      setAnalysis(transcriptAnalysis);
-      setIsLoadingAnalysis(false);
+      console.log('🌍 Starting analysis and location extraction in parallel...');
 
-      console.log('🌍 Starting dedicated location extraction...');
-      const extractedLocations = await extractLocations(episode.transcript);
-      console.log(`🌍 Extracted ${extractedLocations.length} locations:`, extractedLocations.map(l => l.name));
+      const [transcriptAnalysis, locationResult] = await Promise.all([
+        analyzeTranscript(episode.transcript, episode.episode_id)
+          .then(result => {
+            setAnalysis(result);
+            setIsLoadingAnalysis(false);
+            return result;
+          })
+          .catch(err => {
+            console.error('Analysis failed:', err);
+            setAnalysisError(err.message || 'Failed to analyze transcript');
+            setIsLoadingAnalysis(false);
+            return null;
+          }),
 
-      let geocoded: GeocodedLocation[] = [];
-      if (extractedLocations.length > 0) {
-        geocoded = await geocodeLocations(extractedLocations);
-        setLocations(geocoded);
-        console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
+        (async () => {
+          try {
+            console.log('🌍 Starting dedicated location extraction...');
+            const extractedLocations = await extractLocations(episode.transcript);
+            console.log(`🌍 Extracted ${extractedLocations.length} locations:`, extractedLocations.map(l => l.name));
+
+            let geocoded: GeocodedLocation[] = [];
+            if (extractedLocations.length > 0) {
+              geocoded = await geocodeLocations(extractedLocations);
+              setLocations(geocoded);
+              console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
+            }
+            setIsLoadingLocations(false);
+            return { extractedLocations, geocoded };
+          } catch (err) {
+            console.error('Location extraction failed:', err);
+            setLocationError('Failed to extract locations');
+            setIsLoadingLocations(false);
+            return { extractedLocations: [], geocoded: [] };
+          }
+        })()
+      ]);
+
+      if (transcriptAnalysis && locationResult) {
+        const analysisWithExtractedLocations = {
+          ...transcriptAnalysis,
+          locations: locationResult.extractedLocations,
+        };
+
+        await saveCachedAnalysis(
+          episode.episode_id,
+          episode.title,
+          podcast.name,
+          analysisWithExtractedLocations,
+          locationResult.geocoded
+        );
       }
-      setIsLoadingLocations(false);
-
-      const analysisWithExtractedLocations = {
-        ...transcriptAnalysis,
-        locations: extractedLocations,
-      };
-
-      await saveCachedAnalysis(
-        episode.episode_id,
-        episode.title,
-        podcast.name,
-        analysisWithExtractedLocations,
-        geocoded
-      );
     } catch (err) {
       if (err instanceof OpenAIServiceError) {
         setAnalysisError(err.message);
