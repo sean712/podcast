@@ -86,10 +86,9 @@ export async function analyzeTranscript(
 
 export async function extractLocations(transcript: string): Promise<ExtractedLocation[]> {
   try {
-    console.log('📡 Calling extract_locations endpoint...');
-    const { data, error } = await supabase.functions.invoke('analyze-episode', {
+    console.log('📡 Calling extract-locations endpoint...');
+    const { data, error } = await supabase.functions.invoke('extract-locations', {
       body: {
-        action: 'extract_locations',
         transcript,
       },
     });
