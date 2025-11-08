@@ -115,57 +115,67 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       console.log('🌍 Starting analysis and location extraction in parallel...');
 
-      const [transcriptAnalysis, locationResult] = await Promise.all([
-        analyzeTranscript(episode.transcript, episode.episode_id)
-          .then(result => {
-            setAnalysis(result);
-            setIsLoadingAnalysis(false);
-            return result;
-          })
-          .catch(err => {
-            console.error('Analysis failed:', err);
-            setAnalysisError(err.message || 'Failed to analyze transcript');
-            setIsLoadingAnalysis(false);
-            return null;
-          }),
+      analyzeTranscript(episode.transcript, episode.episode_id)
+        .then(async result => {
+          setAnalysis(result);
+          setIsLoadingAnalysis(false);
 
-        (async () => {
-          try {
-            console.log('🌍 Starting dedicated location extraction...');
-            const extractedLocations = await extractLocations(episode.transcript);
-            console.log(`🌍 Extracted ${extractedLocations.length} locations:`, extractedLocations.map(l => l.name));
-
-            let geocoded: GeocodedLocation[] = [];
-            if (extractedLocations.length > 0) {
-              geocoded = await geocodeLocations(extractedLocations);
-              setLocations(geocoded);
-              console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
-            }
-            setIsLoadingLocations(false);
-            return { extractedLocations, geocoded };
-          } catch (err) {
-            console.error('Location extraction failed:', err);
-            setLocationError('Failed to extract locations');
-            setIsLoadingLocations(false);
-            return { extractedLocations: [], geocoded: [] };
+          const cachedData = await getCachedAnalysis(episode.episode_id);
+          if (cachedData?.locations && cachedData.locations.length > 0) {
+            await saveCachedAnalysis(
+              episode.episode_id,
+              episode.title,
+              podcast.name,
+              result,
+              cachedData.locations
+            );
           }
-        })()
-      ]);
+        })
+        .catch(err => {
+          console.error('Analysis failed:', err);
+          setAnalysisError(err.message || 'Failed to analyze transcript');
+          setIsLoadingAnalysis(false);
+        });
 
-      if (transcriptAnalysis && locationResult) {
-        const analysisWithExtractedLocations = {
-          ...transcriptAnalysis,
-          locations: locationResult.extractedLocations,
-        };
+      (async () => {
+        try {
+          console.log('🌍 Starting dedicated location extraction...');
+          const extractedLocations = await extractLocations(episode.transcript);
+          console.log(`🌍 Extracted ${extractedLocations.length} locations:`, extractedLocations.map(l => l.name));
 
-        await saveCachedAnalysis(
-          episode.episode_id,
-          episode.title,
-          podcast.name,
-          analysisWithExtractedLocations,
-          locationResult.geocoded
-        );
-      }
+          let geocoded: GeocodedLocation[] = [];
+          if (extractedLocations.length > 0) {
+            geocoded = await geocodeLocations(extractedLocations);
+            setLocations(geocoded);
+            console.log(`🗺️ Geocoded ${geocoded.length} locations successfully`);
+          }
+          setIsLoadingLocations(false);
+
+          const cachedAnalysis = await getCachedAnalysis(episode.episode_id);
+          if (cachedAnalysis) {
+            const analysisWithLocations = {
+              summary: cachedAnalysis.summary,
+              keyPersonnel: cachedAnalysis.key_personnel,
+              timeline: cachedAnalysis.timeline_events,
+              locations: extractedLocations,
+              keyMoments: cachedAnalysis.key_moments || [],
+              references: cachedAnalysis.references || [],
+            };
+
+            await saveCachedAnalysis(
+              episode.episode_id,
+              episode.title,
+              podcast.name,
+              analysisWithLocations,
+              geocoded
+            );
+          }
+        } catch (err) {
+          console.error('Location extraction failed:', err);
+          setLocationError('Failed to extract locations');
+          setIsLoadingLocations(false);
+        }
+      })();
     } catch (err) {
       if (err instanceof OpenAIServiceError) {
         setAnalysisError(err.message);
