@@ -15,7 +15,7 @@ export default function KeyMoments({ moments }: KeyMomentsProps) {
         <p className="text-sm text-slate-600">{moments.length} highlights from this episode</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {moments.map((moment, index) => (
           <div
             key={index}
