@@ -240,7 +240,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white z-40 top-[106px] md:top-[61px]">
+        <div className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40 top-[106px] md:top-[61px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -255,7 +255,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
       {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 border-b border-slate-200 bg-white z-40 shadow-sm ${episode.audio_url && isTabVisible('player') ? 'top-[174px] md:top-[118px]' : 'top-[106px] md:top-[61px]'}`}>
+      <div className={`fixed left-0 right-0 bg-white z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[174px] md:top-[118px]' : 'top-[106px] md:top-[61px]'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
