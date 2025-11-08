@@ -150,7 +150,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
@@ -240,7 +240,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40" style={{ top: 'clamp(90px, 15vh, 110px)' }}>
+        <div className="fixed left-0 right-0 border-t border-b border-slate-200 bg-white z-40" style={{ top: 'clamp(90px, 15vh, 110px)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -255,7 +255,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
       {/* Tabbed Navigation - Fixed to viewport */}
-      <div className="fixed left-0 right-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? 'clamp(160px, 25vh, 180px)' : 'clamp(90px, 15vh, 110px)' }}>
+      <div className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40 shadow-sm" style={{ top: episode.audio_url && isTabVisible('player') ? 'clamp(160px, 25vh, 180px)' : 'clamp(90px, 15vh, 110px)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
