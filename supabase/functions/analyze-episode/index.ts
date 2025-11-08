@@ -307,8 +307,7 @@ Deno.serve(async (req: Request) => {
         throw new Error(errorData.error?.message || `OpenAI API request failed with status ${response.status}`);
       }
 
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
+      const data = await response.json();      const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
         throw new Error("No response from OpenAI");
@@ -321,6 +320,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "extract_locations") {
+      console.log("🌍 Starting location extraction for transcript length:", transcript.length);
       const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
@@ -391,6 +391,7 @@ Deno.serve(async (req: Request) => {
 
       const data = await response.json();
       console.log("Location extraction API response status:", data.status);
+      console.log("Location extraction full response:", JSON.stringify(data, null, 2));
 
       if (data.status === "incomplete") {
         console.error("Incomplete location extraction response:", data.incomplete_details);
@@ -429,6 +430,7 @@ Deno.serve(async (req: Request) => {
 
       const parsed = JSON.parse(contentItem.text);
       console.log(`✓ Extracted ${parsed.locations?.length || 0} locations`);
+      console.log("Location details:", JSON.stringify(parsed.locations?.slice(0, 3), null, 2));
 
       return new Response(
         JSON.stringify({ locations: parsed.locations || [] }),
