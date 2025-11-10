@@ -32,6 +32,7 @@ export default function AudioPlayer({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
@@ -248,20 +249,33 @@ export default function AudioPlayer({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {[0.5, 1, 1.5, 2].map((rate) => (
-              <button
-                key={rate}
-                onClick={() => setPlaybackRate(rate)}
-                className={`px-1.5 py-0.5 text-xs font-medium rounded transition-colors ${
-                  playbackRate === rate
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {rate}x
-              </button>
-            ))}
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+              className="px-2 py-1 text-xs font-medium rounded text-slate-700 hover:bg-slate-100 transition-colors border border-slate-300"
+            >
+              {playbackRate}x
+            </button>
+            {showSpeedMenu && (
+              <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1 min-w-[60px]">
+                {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => {
+                      setPlaybackRate(rate);
+                      setShowSpeedMenu(false);
+                    }}
+                    className={`w-full px-3 py-1.5 text-xs font-medium text-left transition-colors ${
+                      playbackRate === rate
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <button
@@ -414,23 +428,33 @@ export default function AudioPlayer({
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-600">Speed:</span>
-              <div className="flex gap-1">
-                {[0.5, 1, 1.5, 2].map((rate) => (
-                  <button
-                    key={rate}
-                    onClick={() => setPlaybackRate(rate)}
-                    className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                      playbackRate === rate
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {rate}x
-                  </button>
-                ))}
-              </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                className="px-3 py-1.5 text-xs font-medium rounded text-slate-700 hover:bg-slate-100 transition-colors border border-slate-300"
+              >
+                {playbackRate}x
+              </button>
+              {showSpeedMenu && (
+                <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1 min-w-[70px]">
+                  {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
+                    <button
+                      key={rate}
+                      onClick={() => {
+                        setPlaybackRate(rate);
+                        setShowSpeedMenu(false);
+                      }}
+                      className={`w-full px-3 py-2 text-xs font-medium text-left transition-colors ${
+                        playbackRate === rate
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {rate}x
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

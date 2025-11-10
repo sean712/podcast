@@ -25,7 +25,7 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type TabType = 'overview' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
+type TabType = 'overview' | 'moments' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
@@ -271,6 +271,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Overview
                 </button>
               )}
+              {isTabVisible('moments') && (
+                <button
+                  onClick={() => setActiveTab('moments')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'moments'
+                      ? 'border-blue-500 text-slate-900'
+                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Key Moments
+                </button>
+              )}
               {isTabVisible('people') && (
                 <button
                   onClick={() => setActiveTab('people')}
@@ -425,12 +438,42 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     </div>
                   )}
                   {analysis && (
-                    <>
-                      <EpisodeSummary summary={analysis.summary} />
-                      {analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                        <KeyMoments moments={analysis.keyMoments} />
-                      )}
-                    </>
+                    <EpisodeSummary summary={analysis.summary} />
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Key Moments Tab */}
+          {episode.transcript && activeTab === 'moments' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {isLoadingAnalysis ? (
+                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="relative">
+                      <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
+                      <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
+                    </div>
+                    <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
+                    <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {analysisError && (
+                    <div className="bg-gradient-to-br from-red-900 to-red-950 border border-red-700 rounded-2xl p-8 shadow-sm">
+                      <div className="flex items-start gap-3 text-red-100">
+                        <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
+                          <p className="text-red-200">{analysisError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
+                    <KeyMoments moments={analysis.keyMoments} />
                   )}
                 </>
               )}

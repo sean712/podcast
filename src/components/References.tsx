@@ -74,15 +74,15 @@ export default function References({ references }: ReferencesProps) {
               </div>
             </div>
             <div className="p-6">
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {refs.map((ref, index) => (
-                  <div key={index} className="border-l-4 border-gray-200 pl-4">
-                    <h4 className="font-semibold text-gray-900 mb-1">{ref.name}</h4>
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all">
+                    <h4 className="font-semibold text-gray-900 mb-2">{ref.name}</h4>
                     {ref.context && (
                       <p className="text-sm text-gray-600 mb-2">{ref.context}</p>
                     )}
                     {ref.quote && (
-                      <blockquote className="text-sm text-gray-500 italic border-l-2 border-gray-200 pl-3 mt-2">
+                      <blockquote className="text-xs text-gray-500 italic border-l-2 border-gray-300 pl-3 mt-2">
                         "{ref.quote}"
                       </blockquote>
                     )}
