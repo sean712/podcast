@@ -11,6 +11,12 @@ interface TranscriptViewerProps {
   onNoteCreated?: () => void;
 }
 
+interface TranscriptSegment {
+  timestamp?: string;
+  speaker?: string;
+  text: string;
+}
+
 export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onNoteCreated }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
@@ -22,39 +28,76 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [showTimestamps, setShowTimestamps] = useState(true);
+  const [showSpeakers, setShowSpeakers] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
-  const paragraphs = useMemo(() => {
+  const segments = useMemo(() => {
     if (!transcript) return [];
 
     const hasTimestamps = /\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]/.test(transcript);
 
     if (hasTimestamps) {
-      const segments = transcript.split(/(?=\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\])/);
-      return segments
+      const segmentList = transcript.split(/(?=\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\])/);
+      return segmentList
         .filter(s => s.trim())
         .map(segment => {
-          const withoutTimestamp = segment.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]\s*/, '');
-          const withFormattedSpeaker = withoutTimestamp.replace(/^\[SPEAKER_(\d+)\]\s*/, (match, num) => `Speaker ${num}: `);
-          return withFormattedSpeaker.trim();
+          const timestampMatch = segment.match(/^\[(\d{2}:\d{2}:\d{2})\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]\s*/);
+          let text = segment;
+          let timestamp: string | undefined;
+          let speaker: string | undefined;
+
+          if (timestampMatch) {
+            timestamp = timestampMatch[1];
+            text = segment.substring(timestampMatch[0].length);
+          }
+
+          const speakerMatch = text.match(/^\[SPEAKER_(\d+)\]\s*/);
+          if (speakerMatch) {
+            speaker = `Speaker ${speakerMatch[1]}`;
+            text = text.substring(speakerMatch[0].length);
+          }
+
+          return {
+            timestamp,
+            speaker,
+            text: text.trim()
+          };
         })
-        .filter(p => p);
+        .filter(s => s.text);
     }
 
-    return transcript.split('\n\n').filter(p => p.trim());
+    const paragraphs = transcript.split('\n\n').filter(p => p.trim());
+    return paragraphs.map(p => {
+      const speakerMatch = p.match(/^(Speaker \d+):\s*/);
+      if (speakerMatch) {
+        return {
+          speaker: speakerMatch[1],
+          text: p.substring(speakerMatch[0].length).trim()
+        };
+      }
+      return { text: p.trim() };
+    });
   }, [transcript]);
 
-  const highlightedParagraphs = useMemo(() => {
-    if (!searchQuery.trim()) return paragraphs;
+  const filteredSegments = useMemo(() => {
+    if (!searchQuery.trim()) return segments;
 
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return paragraphs.map(p => ({
-      text: p,
-      highlighted: p.replace(regex, '<mark class="bg-yellow-200 text-slate-900 px-1 rounded">$1</mark>')
-    }));
-  }, [paragraphs, searchQuery]);
+    const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    return segments
+      .filter(segment => regex.test(segment.text))
+      .map(segment => ({
+        ...segment,
+        highlightedText: segment.text.replace(
+          regex,
+          '<mark class="bg-yellow-300 text-slate-900 px-0.5 rounded">$&</mark>'
+        )
+      }));
+  }, [segments, searchQuery]);
+
+  const displaySegments = searchQuery.trim() ? filteredSegments : segments;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(transcript);
@@ -221,7 +264,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900">Full Transcript</h3>
+              <h3 className="text-2xl font-bold text-slate-900">Transcript</h3>
               <p className="text-sm text-slate-600 mt-1">Select text to add notes</p>
             </div>
             <div className="flex items-center gap-2">
@@ -251,7 +294,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
@@ -259,7 +302,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search transcript..."
-                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400"
+                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400"
               />
               {searchQuery && (
                 <button
@@ -307,6 +350,40 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               </button>
             </div>
           </div>
+
+          <div className="flex items-center justify-end gap-4">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Show speakers</span>
+              <button
+                onClick={() => setShowSpeakers(!showSpeakers)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  showSpeakers ? 'bg-emerald-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    showSpeakers ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Show timestamps</span>
+              <button
+                onClick={() => setShowTimestamps(!showTimestamps)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  showTimestamps ? 'bg-emerald-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    showTimestamps ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </label>
+          </div>
         </div>
 
         <div
@@ -323,34 +400,30 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {searchQuery.trim() ? (
-              highlightedParagraphs.map((p, i) => (
-                <p
-                  key={i}
-                  className="mb-6 text-slate-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: p.highlighted || p.text }}
-                />
-              ))
-            ) : (
-              paragraphs.map((p, i) => {
-                const speakerMatch = p.match(/^(Speaker \d+):\s*/);
-                if (speakerMatch) {
-                  const speaker = speakerMatch[1];
-                  const text = p.substring(speakerMatch[0].length);
-                  return (
-                    <p key={i} className="mb-6 text-slate-700 leading-relaxed">
-                      <span className="font-bold text-emerald-700">{speaker}:</span>{' '}
-                      {text}
-                    </p>
-                  );
-                }
-                return (
-                  <p key={i} className="mb-6 text-slate-700 leading-relaxed">
-                    {p}
-                  </p>
-                );
-              })
-            )}
+            {displaySegments.map((segment, i) => (
+              <div key={i} className="mb-6">
+                <div className="flex items-start gap-3">
+                  {showTimestamps && segment.timestamp && (
+                    <span className="text-slate-500 text-xs font-mono mt-1 flex-shrink-0 w-20">
+                      {segment.timestamp}
+                    </span>
+                  )}
+                  <div className="flex-1">
+                    {showSpeakers && segment.speaker && (
+                      <span className="text-slate-600 font-semibold text-sm bg-slate-200 px-2 py-0.5 rounded mr-2">
+                        {segment.speaker}
+                      </span>
+                    )}
+                    <span
+                      className="text-slate-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: 'highlightedText' in segment ? segment.highlightedText : segment.text
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {showCreateNoteButton && (
