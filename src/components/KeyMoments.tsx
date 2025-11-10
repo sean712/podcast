@@ -10,11 +10,6 @@ export default function KeyMoments({ moments }: KeyMomentsProps) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold text-slate-900 mb-1">Key Moments</h3>
-        <p className="text-sm text-slate-600">{moments.length} highlights from this episode</p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {moments.map((moment, index) => (
           <div

@@ -28,13 +28,6 @@ export default function KeyPersonnel({ personnel }: KeyPersonnelProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-1">Key People</h3>
-        <p className="text-sm text-slate-600">{personnel.length} people mentioned</p>
-      </div>
-
-      {/* Personnel Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {personnel.map((person, index) => {
           const color = getColor(index);

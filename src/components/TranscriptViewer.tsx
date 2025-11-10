@@ -263,10 +263,6 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
       <div className="relative bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-2xl font-bold text-slate-900">Transcript</h3>
-              <p className="text-sm text-slate-600 mt-1">Select text to add notes</p>
-            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}

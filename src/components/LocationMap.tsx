@@ -183,18 +183,8 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   return (
     <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
       <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
-        {/* Header */}
-        <div className="border-b border-slate-200 p-6 bg-white">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-1">Interactive Map</h3>
-                <p className="text-sm text-slate-600">{locations.length} locations discovered</p>
-              </div>
-            </div>
+        <div className="border-b border-slate-200 p-4 bg-white">
+          <div className="flex items-center justify-end">
             <button
               onClick={toggleFullscreen}
               className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors group/btn"

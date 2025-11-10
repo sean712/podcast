@@ -235,11 +235,7 @@ export default function EpisodeNotes({
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-bold text-slate-900">Your Notes</h3>
-          <p className="text-sm text-slate-600 mt-1">{notes.length} notes saved</p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           {!isCreating && (
             <button

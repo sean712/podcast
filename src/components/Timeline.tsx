@@ -17,13 +17,6 @@ export default function Timeline({ events }: TimelineProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-1">Timeline</h3>
-        <p className="text-sm text-slate-600">{events.length} key moments</p>
-      </div>
-
-      {/* Timeline Container */}
       <div className="relative">
         {/* Vertical line */}
         <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-teal-600"></div>
