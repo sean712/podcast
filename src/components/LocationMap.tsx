@@ -305,7 +305,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0">
-                      <div className={`w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
+                      <div className={`w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
                         selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
                       } transition-transform duration-300`}>
                         {index + 1}
