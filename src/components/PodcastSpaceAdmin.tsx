@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroupsForEpisode } from '../services/episodeGroupMembersService';
 import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
+import { refreshPodcastEpisodes } from '../services/episodeSyncService';
 import type { PodcastSpace, StoredEpisode } from '../types/multiTenant';
 
 interface PodcastSpaceAdminProps {
   podcast: PodcastSpace;
   episodes: StoredEpisode[];
   onBack: () => void;
+  onEpisodesRefreshed?: () => void;
 }
 
 type AdminTab = 'groups' | 'episodes';
 
-export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: PodcastSpaceAdminProps) {
+export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisodesRefreshed }: PodcastSpaceAdminProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('groups');
   const [groups, setGroups] = useState<EpisodeGroup[]>([]);
@@ -32,6 +34,8 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
   const [selectedGroupForAdd, setSelectedGroupForAdd] = useState<string | null>(null);
   const [episodesWithAnalysis, setEpisodesWithAnalysis] = useState<Set<string>>(new Set());
   const [isDeletingAnalysis, setIsDeletingAnalysis] = useState<string | null>(null);
+  const [isRefreshingEpisodes, setIsRefreshingEpisodes] = useState(false);
+  const [refreshProgress, setRefreshProgress] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -163,6 +167,37 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
     } catch (err: any) {
       console.error('Error adding episode to group:', err);
       alert(err.message || 'Failed to add episode to group');
+    }
+  };
+
+  const handleRefreshEpisodes = async () => {
+    if (!confirm('Refresh all episodes from Podscan?\n\nThis will update all episode data including transcripts that may have become available. This may take a few minutes.')) {
+      return;
+    }
+
+    setIsRefreshingEpisodes(true);
+    setRefreshProgress('Starting refresh...');
+
+    try {
+      setRefreshProgress('Fetching latest episode data from Podscan...');
+      const result = await refreshPodcastEpisodes(podcast.id, podcast.podscan_podcast_id);
+
+      setRefreshProgress(`Complete! Updated ${result.updated} episodes${result.errors > 0 ? `, ${result.errors} errors` : ''}`);
+
+      setTimeout(() => {
+        setRefreshProgress(null);
+        if (onEpisodesRefreshed) {
+          onEpisodesRefreshed();
+        }
+      }, 3000);
+
+      alert(`Episode refresh complete!\n\nUpdated: ${result.updated}\nErrors: ${result.errors}\nTotal: ${result.total}`);
+    } catch (err) {
+      console.error('Error refreshing episodes:', err);
+      setRefreshProgress(null);
+      alert('Failed to refresh episodes. Please try again.');
+    } finally {
+      setIsRefreshingEpisodes(false);
     }
   };
 
@@ -356,10 +391,29 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
               </div>
             ) : (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">Episode Management</h2>
-                  <p className="text-sm text-gray-600 mt-1">Manage episode analysis and group assignments</p>
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Episode Management</h2>
+                    <p className="text-sm text-gray-600 mt-1">Manage episode analysis and group assignments</p>
+                  </div>
+                  <button
+                    onClick={handleRefreshEpisodes}
+                    disabled={isRefreshingEpisodes}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRefreshingEpisodes ? 'animate-spin' : ''}`} />
+                    {isRefreshingEpisodes ? 'Refreshing...' : 'Refresh Episodes'}
+                  </button>
                 </div>
+
+                {refreshProgress && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                      <p className="text-sm text-blue-900">{refreshProgress}</p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   {episodes.map((episode) => {

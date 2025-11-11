@@ -157,6 +157,12 @@ export default function AppRouter() {
     detectRoute();
   };
 
+  const handleEpisodesRefreshed = async () => {
+    if (!podcast) return;
+    const episodesData = await getPodcastEpisodesFromDB(podcast.id, 100);
+    setEpisodes(episodesData);
+  };
+
   if (isLoadingRoute) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -243,7 +249,7 @@ export default function AppRouter() {
       );
     }
 
-    return <PodcastSpaceAdmin podcast={podcast} episodes={episodes} onBack={handleBackFromAdmin} />;
+    return <PodcastSpaceAdmin podcast={podcast} episodes={episodes} onBack={handleBackFromAdmin} onEpisodesRefreshed={handleEpisodesRefreshed} />;
   }
 
   if (routeType === 'podcast-space' && podcast) {
