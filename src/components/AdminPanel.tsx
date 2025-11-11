@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye, Calendar } from 'lucide-react';
 import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug } from '../services/podcastSpaceService';
-import { syncPodcastEpisodes } from '../services/episodeSyncService';
+import { syncPodcastEpisodes, backfillPodcastEpisodes } from '../services/episodeSyncService';
 import { searchPodcasts } from '../services/podscanApi';
 import { supabase } from '../lib/supabase';
 import type { PodcastSpace } from '../types/multiTenant';
@@ -75,6 +75,14 @@ export default function AdminPanel() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [editingTabs, setEditingTabs] = useState<string | null>(null);
   const [tabSettings, setTabSettings] = useState<Record<string, string[]>>({});
+  const [backfillingPodcast, setBackfillingPodcast] = useState<string | null>(null);
+  const [showBackfillModal, setShowBackfillModal] = useState<string | null>(null);
+  const [backfillDate, setBackfillDate] = useState('');
+  const [backfillProgress, setBackfillProgress] = useState<{
+    current: number;
+    total: number;
+    skipped: number;
+  } | null>(null);
 
   useEffect(() => {
     loadPodcasts();
@@ -294,6 +302,46 @@ export default function AdminPanel() {
     }
   };
 
+  const handleOpenBackfillModal = (podcast: PodcastSpace) => {
+    setShowBackfillModal(podcast.id);
+    const defaultDate = new Date();
+    defaultDate.setFullYear(defaultDate.getFullYear() - 1);
+    setBackfillDate(defaultDate.toISOString().split('T')[0]);
+  };
+
+  const handleBackfillEpisodes = async (podcast: PodcastSpace) => {
+    if (!backfillDate) {
+      setError('Please select a date');
+      return;
+    }
+
+    setBackfillingPodcast(podcast.id);
+    setError(null);
+    setSuccess(null);
+    setBackfillProgress({ current: 0, total: 0, skipped: 0 });
+    setShowBackfillModal(null);
+
+    try {
+      const formattedDate = `${backfillDate} 00:00:00`;
+      const result = await backfillPodcastEpisodes(podcast.id, podcast.podcast_id, formattedDate);
+
+      setSuccess(
+        `Backfill complete for "${podcast.name}": ${result.synced} new episodes synced, ${result.skipped} already existed${
+          result.errors > 0 ? `, ${result.errors} errors` : ''
+        }`
+      );
+      setBackfillProgress(null);
+      await loadPodcasts();
+    } catch (err) {
+      console.error('Error backfilling episodes:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to backfill episodes for "${podcast.name}": ${errorMessage}`);
+      setBackfillProgress(null);
+    } finally {
+      setBackfillingPodcast(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -304,6 +352,61 @@ export default function AdminPanel() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {showBackfillModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Backfill Episodes</h3>
+              </div>
+              <button
+                onClick={() => setShowBackfillModal(null)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Fetch all episodes published since the selected date. Episodes that already exist will be skipped.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Fetch episodes since:
+              </label>
+              <input
+                type="date"
+                value={backfillDate}
+                onChange={(e) => setBackfillDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  const podcast = podcasts.find(p => p.id === showBackfillModal);
+                  if (podcast) handleBackfillEpisodes(podcast);
+                }}
+                disabled={!backfillDate}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                Start Backfill
+              </button>
+              <button
+                onClick={() => setShowBackfillModal(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -520,18 +623,33 @@ export default function AdminPanel() {
                             Last synced: {new Date(podcast.last_synced_at).toLocaleDateString()}
                           </span>
                         )}
+                        {backfillingPodcast === podcast.id && (
+                          <span className="text-xs text-blue-600 font-medium animate-pulse">
+                            Backfilling...
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleSyncEpisodes(podcast)}
-                      disabled={syncingPodcast === podcast.id}
+                      disabled={syncingPodcast === podcast.id || backfillingPodcast === podcast.id}
                       className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Sync episodes"
+                      title="Sync latest episodes"
                     >
                       <RefreshCw
                         className={`w-4 h-4 ${syncingPodcast === podcast.id ? 'animate-spin' : ''}`}
+                      />
+                    </button>
+                    <button
+                      onClick={() => handleOpenBackfillModal(podcast)}
+                      disabled={syncingPodcast === podcast.id || backfillingPodcast === podcast.id}
+                      className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Backfill older episodes"
+                    >
+                      <Calendar
+                        className={`w-4 h-4 ${backfillingPodcast === podcast.id ? 'animate-pulse' : ''}`}
                       />
                     </button>
                     <button

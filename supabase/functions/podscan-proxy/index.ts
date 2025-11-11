@@ -24,6 +24,8 @@ interface PodscanRequest {
   wordLevelTimestamps?: boolean;
   transcriptFormatter?: string;
   page?: number;
+  since?: string;
+  before?: string;
 }
 
 async function getConfig(key: string): Promise<string | null> {
@@ -125,6 +127,8 @@ Deno.serve(async (req: Request) => {
         orderBy = "posted_at",
         orderDir = "desc",
         showOnlyFullyProcessed = false,
+        since,
+        before,
       } = requestData;
 
       if (!podcastId) {
@@ -140,6 +144,14 @@ Deno.serve(async (req: Request) => {
         order_dir: orderDir,
         show_only_fully_processed: showOnlyFullyProcessed.toString(),
       });
+
+      if (since) {
+        params.set("since", since);
+      }
+
+      if (before) {
+        params.set("before", before);
+      }
 
       const response = await fetch(`${podscanApiUrl}/podcasts/${podcastId}/episodes?${params}`, {
         headers: podscanHeaders,

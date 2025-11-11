@@ -117,6 +117,8 @@ export async function getPodcastEpisodes(
     orderBy?: 'posted_at' | 'created_at' | 'title' | 'podcast_rating';
     orderDir?: 'asc' | 'desc';
     showOnlyFullyProcessed?: boolean;
+    since?: string;
+    before?: string;
   } = {}
 ): Promise<EpisodesResponse> {
   try {
@@ -128,6 +130,8 @@ export async function getPodcastEpisodes(
         orderBy: options.orderBy || 'posted_at',
         orderDir: options.orderDir || 'desc',
         showOnlyFullyProcessed: options.showOnlyFullyProcessed ?? false,
+        since: options.since,
+        before: options.before,
       },
     });
 
