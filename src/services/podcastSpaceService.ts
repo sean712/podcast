@@ -39,7 +39,7 @@ export async function getPodcastEpisodesFromDB(
 ): Promise<StoredEpisode[]> {
   const { data, error } = await supabase
     .from('episodes')
-    .select('id, podcast_id, episode_id, episode_guid, title, slug, description, audio_url, image_url, duration, word_count, published_at, synced_at, created_at, updated_at')
+    .select('id, podcast_id, episode_id, episode_guid, title, slug, description, audio_url, image_url, duration, word_count, published_at, synced_at, created_at, updated_at, transcript')
     .eq('podcast_id', podcastId)
     .order('published_at', { ascending: false })
     .limit(limit);
@@ -51,7 +51,6 @@ export async function getPodcastEpisodesFromDB(
 
   return (data || []).map(episode => ({
     ...episode,
-    transcript: null,
     transcript_word_timestamps: null
   }));
 }
