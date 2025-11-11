@@ -62,15 +62,25 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       const cachedAnalysis = await getCachedAnalysis(episode.episode_id);
 
       if (cachedAnalysis) {
+        const validLocations = cachedAnalysis.locations.filter((loc: any) =>
+          loc && typeof loc === 'object' && loc.lat !== undefined && loc.lon !== undefined
+        );
+
+        console.log('📍 Retrieved cached locations:', {
+          total: cachedAnalysis.locations.length,
+          valid: validLocations.length,
+          sample: validLocations[0]
+        });
+
         setAnalysis({
           summary: cachedAnalysis.summary,
           keyPersonnel: cachedAnalysis.key_personnel,
           timeline: cachedAnalysis.timeline_events,
-          locations: cachedAnalysis.locations.map((loc: any) => loc.name || loc),
+          locations: validLocations.map((loc: any) => ({ name: loc.name, context: loc.context })),
           keyMoments: cachedAnalysis.key_moments || [],
           references: cachedAnalysis.references || [],
         });
-        setLocations(cachedAnalysis.locations);
+        setLocations(validLocations);
         setIsLoadingLocations(false);
         setIsLoadingAnalysis(false);
         return;
@@ -81,7 +91,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       let geocoded: GeocodedLocation[] = [];
       if (transcriptAnalysis.locations.length > 0) {
+        console.log('🌍 Starting geocoding:', {
+          extractedLocations: transcriptAnalysis.locations.length,
+          processing: Math.min(transcriptAnalysis.locations.length, 25)
+        });
+
         geocoded = await geocodeLocations(transcriptAnalysis.locations.slice(0, 25));
+
+        console.log('✅ Geocoding complete:', {
+          attempted: Math.min(transcriptAnalysis.locations.length, 25),
+          successful: geocoded.length,
+          failed: Math.min(transcriptAnalysis.locations.length, 25) - geocoded.length,
+          sample: geocoded[0]
+        });
+
         setLocations(geocoded);
       }
       setIsLoadingLocations(false);
