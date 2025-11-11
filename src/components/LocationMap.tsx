@@ -68,19 +68,32 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
     const bounds = L.latLngBounds([]);
 
-    const markerColors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet', 'gold', 'grey'];
-
     locations.forEach((location, index) => {
-      const colorIndex = index % markerColors.length;
-      const color = markerColors[colorIndex];
-
-      const customIcon = L.icon({
-        iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
+      const customIcon = L.divIcon({
+        className: 'custom-marker-icon',
+        html: `
+          <div style="
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 3px solid white;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          " onmouseover="this.style.transform='scale(1.15)'; this.style.boxShadow='0 6px 16px rgba(249, 115, 22, 0.5), 0 3px 6px rgba(0, 0, 0, 0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)';">
+            ${index + 1}
+          </div>
+        `,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+        popupAnchor: [0, -22]
       });
 
       const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
