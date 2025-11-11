@@ -72,6 +72,16 @@
   border: none !important;
 }
 
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker-icon > div {
+  width: 44px !important;
+  height: 44px !important;
+}
+
 .custom-popup .leaflet-popup-content-wrapper {
   background: transparent !important;
   box-shadow: none !important;
