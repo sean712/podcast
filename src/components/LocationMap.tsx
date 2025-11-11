@@ -34,12 +34,32 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }, [isFullscreen]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || locations.length === 0) return;
+    if (!mapContainerRef.current || locations.length === 0) {
+      console.log('🗺️ Map rendering skipped:', {
+        hasContainer: !!mapContainerRef.current,
+        locationCount: locations.length
+      });
+      return;
+    }
 
     const L = (window as any).L;
-    if (!L) return;
+    if (!L) {
+      console.error('❌ Leaflet library not loaded');
+      return;
+    }
+
+    console.log('🗺️ Starting map rendering:', {
+      locationCount: locations.length,
+      locations: locations.map((loc, idx) => ({
+        index: idx + 1,
+        name: loc.name,
+        lat: loc.lat,
+        lon: loc.lon
+      }))
+    });
 
     if (!mapInstanceRef.current) {
+      console.log('📍 Creating new map instance');
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         zoomAnimation: true,
         fadeAnimation: true,
@@ -60,85 +80,109 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
     const map = mapInstanceRef.current;
 
+    let markerCount = 0;
     map.eachLayer((layer: any) => {
       if (layer instanceof L.Marker) {
         map.removeLayer(layer);
+        markerCount++;
+      }
+    });
+    console.log(`🧹 Removed ${markerCount} existing markers`);
+
+    const bounds = L.latLngBounds([]);
+    const markersAdded: any[] = [];
+
+    locations.forEach((location, index) => {
+      try {
+        console.log(`📌 Creating marker ${index + 1}/${locations.length}:`, {
+          name: location.name,
+          lat: location.lat,
+          lon: location.lon,
+          hasContext: !!location.context
+        });
+
+        const customIcon = L.divIcon({
+          className: 'custom-marker-icon',
+          html: `
+            <div style="
+              width: 44px;
+              height: 44px;
+              background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 16px;
+              box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+              border: 3px solid white;
+              cursor: pointer;
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+            " onmouseover="this.style.transform='scale(1.15)'; this.style.boxShadow='0 6px 16px rgba(249, 115, 22, 0.5), 0 3px 6px rgba(0, 0, 0, 0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)';">
+              ${index + 1}
+            </div>
+          `,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+          popupAnchor: [0, -22]
+        });
+
+        const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
+        markersAdded.push(marker);
+
+        bounds.extend([location.lat, location.lon]);
+
+        const escapedName = location.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedContext = location.context ? location.context.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+
+        marker.bindPopup(`
+          <div style="
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            min-width: 200px;
+            max-width: 300px;
+          ">
+            <div style="
+              font-weight: bold;
+              color: white;
+              margin-bottom: 4px;
+              font-size: 14px;
+            ">
+              ${escapedName}
+            </div>
+            ${location.context ? `
+              <div style="
+                color: #cbd5e1;
+                font-size: 12px;
+                margin-top: 4px;
+                line-height: 1.4;
+              ">
+                ${escapedContext}
+              </div>
+            ` : ''}
+          </div>
+        `, {
+          maxWidth: 300,
+          className: 'custom-popup'
+        });
+
+        marker.on('click', () => {
+          setSelectedLocation(location);
+        });
+
+        console.log(`✅ Marker ${index + 1} added successfully`);
+      } catch (error) {
+        console.error(`❌ Failed to create marker ${index + 1}:`, error);
       }
     });
 
-    const bounds = L.latLngBounds([]);
+    console.log(`🎯 Total markers added to map: ${markersAdded.length}/${locations.length}`);
 
-    locations.forEach((location, index) => {
-      const customIcon = L.divIcon({
-        className: 'custom-marker-icon',
-        html: `
-          <div style="
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 3px solid white;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-          " onmouseover="this.style.transform='scale(1.15)'; this.style.boxShadow='0 6px 16px rgba(249, 115, 22, 0.5), 0 3px 6px rgba(0, 0, 0, 0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)';">
-            ${index + 1}
-          </div>
-        `,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -22]
-      });
-
-      const marker = L.marker([location.lat, location.lon], { icon: customIcon }).addTo(map);
-
-      bounds.extend([location.lat, location.lon]);
-
-      marker.bindPopup(`
-        <div style="
-          padding: 12px;
-          background: #0f172a;
-          border-radius: 8px;
-          border: 1px solid #334155;
-          min-width: 200px;
-          max-width: 300px;
-        ">
-          <div style="
-            font-weight: bold;
-            color: white;
-            margin-bottom: 4px;
-            font-size: 14px;
-          ">
-            ${location.name}
-          </div>
-          ${location.context ? `
-            <div style="
-              color: #cbd5e1;
-              font-size: 12px;
-              margin-top: 4px;
-              line-height: 1.4;
-            ">
-              ${location.context}
-            </div>
-          ` : ''}
-        </div>
-      `, {
-        maxWidth: 300,
-        className: 'custom-popup'
-      });
-
-      marker.on('click', () => {
-        setSelectedLocation(location);
-      });
-    });
-
-    if (locations.length > 0) {
+    if (locations.length > 0 && bounds.isValid()) {
+      console.log('🗺️ Fitting map bounds to show all markers');
       map.fitBounds(bounds, {
         padding: [50, 50],
         maxZoom: 6,
@@ -150,6 +194,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
+        console.log('📐 Map size invalidated and refreshed');
       }
     }, 100);
   }, [locations]);
@@ -197,7 +242,15 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
     <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
       <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
         <div className="border-b border-slate-200 p-4 bg-white">
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+                <MapPin className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-semibold text-orange-900">
+                  {locations.length} {locations.length === 1 ? 'Location' : 'Locations'}
+                </span>
+              </div>
+            </div>
             <button
               onClick={toggleFullscreen}
               className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors group/btn"
