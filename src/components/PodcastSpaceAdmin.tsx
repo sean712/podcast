@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroupsForEpisode } from '../services/episodeGroupMembersService';
-import { deleteAnalysis } from '../services/episodeAnalysisCache';
+import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
 import type { PodcastSpace, StoredEpisode } from '../types/multiTenant';
 
 interface PodcastSpaceAdminProps {
@@ -30,13 +30,29 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
   const [editDescription, setEditDescription] = useState('');
   const [episodeGroups, setEpisodeGroups] = useState<Map<string, string[]>>(new Map());
   const [selectedGroupForAdd, setSelectedGroupForAdd] = useState<string | null>(null);
+  const [episodesWithAnalysis, setEpisodesWithAnalysis] = useState<Set<string>>(new Set());
+  const [isDeletingAnalysis, setIsDeletingAnalysis] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
       return;
     }
     loadGroups();
+    loadEpisodesWithAnalysis();
   }, [user]);
+
+  const loadEpisodesWithAnalysis = async () => {
+    const episodesWithCache = new Set<string>();
+    for (const episode of episodes) {
+      if (episode.transcript) {
+        const cached = await getCachedAnalysis(episode.episode_id);
+        if (cached) {
+          episodesWithCache.add(episode.episode_id);
+        }
+      }
+    }
+    setEpisodesWithAnalysis(episodesWithCache);
+  };
 
   const loadGroups = async () => {
     setIsLoading(true);
@@ -123,12 +139,20 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
       return;
     }
 
+    setIsDeletingAnalysis(episodeId);
     try {
       await deleteAnalysis(episodeId);
-      alert('Analysis deleted successfully. The episode will be re-analyzed on next view.');
+      setEpisodesWithAnalysis(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(episodeId);
+        return newSet;
+      });
+      alert('Analysis deleted successfully. Navigate to the episode to trigger a fresh analysis.');
     } catch (err) {
       console.error('Error deleting analysis:', err);
       alert('Failed to delete analysis');
+    } finally {
+      setIsDeletingAnalysis(null);
     }
   };
 
@@ -347,7 +371,16 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
                       <div key={episode.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 line-clamp-2">{episode.title}</h3>
+                            <div className="flex items-start gap-2">
+                              <h3 className="font-medium text-gray-900 line-clamp-2 flex-1">{episode.title}</h3>
+                              {!episode.transcript ? (
+                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full whitespace-nowrap">No transcript</span>
+                              ) : episodesWithAnalysis.has(episode.episode_id) ? (
+                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full whitespace-nowrap">Analyzed</span>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full whitespace-nowrap">Not analyzed</span>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-500 mt-1">
                               {episode.published_at && new Date(episode.published_at).toLocaleDateString()}
                             </p>
@@ -390,14 +423,26 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack }: Podcast
                                   ))}
                               </select>
                             )}
-                            <button
-                              onClick={() => handleDeleteAnalysis(episode.episode_id, episode.title)}
-                              className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
-                              title="Delete analysis"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete Analysis
-                            </button>
+                            {episode.transcript && episodesWithAnalysis.has(episode.episode_id) && (
+                              <button
+                                onClick={() => handleDeleteAnalysis(episode.episode_id, episode.title)}
+                                disabled={isDeletingAnalysis === episode.episode_id}
+                                className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Delete cached analysis"
+                              >
+                                {isDeletingAnalysis === episode.episode_id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete Analysis
+                                  </>
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
