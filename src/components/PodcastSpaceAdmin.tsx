@@ -45,6 +45,12 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
     loadEpisodesWithAnalysis();
   }, [user]);
 
+  useEffect(() => {
+    if (episodes.length > 0) {
+      loadEpisodesWithAnalysis();
+    }
+  }, [episodes]);
+
   const loadEpisodesWithAnalysis = async () => {
     const episodesWithCache = new Set<string>();
     for (const episode of episodes) {
@@ -182,14 +188,17 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
       setRefreshProgress('Fetching latest episode data from Podscan...');
       const result = await refreshPodcastEpisodes(podcast.id, podcast.podscan_podcast_id);
 
+      setRefreshProgress('Reloading episode list...');
+
+      if (onEpisodesRefreshed) {
+        await onEpisodesRefreshed();
+      }
+
       setRefreshProgress(`Complete! Updated ${result.updated} episodes${result.errors > 0 ? `, ${result.errors} errors` : ''}`);
 
       setTimeout(() => {
         setRefreshProgress(null);
-        if (onEpisodesRefreshed) {
-          onEpisodesRefreshed();
-        }
-      }, 3000);
+      }, 2000);
 
       alert(`Episode refresh complete!\n\nUpdated: ${result.updated}\nErrors: ${result.errors}\nTotal: ${result.total}`);
     } catch (err) {
