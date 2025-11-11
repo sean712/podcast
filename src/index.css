@@ -75,11 +75,14 @@
 .custom-marker-icon {
   background: transparent !important;
   border: none !important;
+  max-width: none !important;
 }
 
 .custom-marker-icon > div {
   width: 44px !important;
   height: 44px !important;
+  max-width: 44px !important;
+  min-width: 44px !important;
 }
 
 .custom-popup .leaflet-popup-content-wrapper {
