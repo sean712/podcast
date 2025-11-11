@@ -22,6 +22,7 @@ export async function syncPodcastEpisodes(
   const { maxEpisodes = 250, batchSize = 50 } = options;
   let synced = 0;
   let errors = 0;
+  let totalEpisodes = 0;
 
   try {
     let allEpisodes = [];
@@ -49,7 +50,7 @@ export async function syncPodcastEpisodes(
     }
 
     const episodes = allEpisodes.slice(0, maxEpisodes);
-    const totalEpisodes = episodes.length;
+    totalEpisodes = episodes.length;
 
     if (episodes.length === 0) {
       console.log('No episodes found');
@@ -267,6 +268,7 @@ export async function backfillPodcastEpisodes(
   let synced = 0;
   let errors = 0;
   let skipped = 0;
+  let totalEpisodes = 0;
 
   try {
     console.log(`Starting backfill for episodes since ${sinceDate}`);
@@ -297,7 +299,7 @@ export async function backfillPodcastEpisodes(
     }
 
     const episodes = allEpisodes.slice(0, maxEpisodes);
-    const totalEpisodes = episodes.length;
+    totalEpisodes = episodes.length;
 
     if (episodes.length === 0) {
       console.log('No episodes found in specified date range');
