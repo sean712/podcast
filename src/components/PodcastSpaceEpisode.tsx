@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
@@ -35,42 +35,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-
-  type TabVisibilityTarget = TabType | 'player';
-
-  const tabIsVisible = useMemo(() => {
-    const visibleTabs = settings?.visible_tabs ?? null;
-
-    if (!visibleTabs || visibleTabs.length === 0) {
-      return (_tabName: TabVisibilityTarget) => true;
-    }
-
-    const visibleSet = new Set(visibleTabs);
-    return (tabName: TabVisibilityTarget) => visibleSet.has(tabName);
-  }, [settings?.visible_tabs]);
-
-  const computeDefaultTab = useCallback((): TabType => {
-    const fallbackTabs: TabType[] = ['timeline', 'moments', 'people', 'references', 'transcript', 'notes'];
-
-    if (episode.transcript && tabIsVisible('map')) {
-      return 'map';
-    }
-
-    if (tabIsVisible('overview')) {
-      return 'overview';
-    }
-
-    return fallbackTabs.find(tab => tabIsVisible(tab)) ?? 'overview';
-  }, [episode.transcript, tabIsVisible]);
-
-  const [activeTab, setActiveTab] = useState<TabType>(() => computeDefaultTab());
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const headerRef = useRef<HTMLElement | null>(null);
   const playerRef = useRef<HTMLDivElement | null>(null);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const [layoutHeights, setLayoutHeights] = useState({ header: 0, player: 0, tabs: 0 });
-  const [viewportHeight, setViewportHeight] = useState(() =>
-    typeof window !== 'undefined' ? window.innerHeight : 0
-  );
 
   useEffect(() => {
     if (episode.transcript) {
@@ -86,9 +55,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   }, [episode.title, podcast.name]);
 
   useEffect(() => {
-    const defaultTab = computeDefaultTab();
+    const fallbackTabs: TabType[] = ['timeline', 'moments', 'people', 'references', 'transcript', 'notes'];
+    const defaultTab: TabType = episode.transcript && isTabVisible('map')
+      ? 'map'
+      : isTabVisible('overview')
+        ? 'overview'
+        : fallbackTabs.find(tab => isTabVisible(tab)) ?? 'overview';
+
     setActiveTab(prev => (prev === defaultTab ? prev : defaultTab));
-  }, [computeDefaultTab, episode.episode_id]);
+  }, [episode.episode_id, episode.transcript, settings]);
 
   const analyzeAndProcessTranscript = async () => {
     if (!episode.transcript) return;
@@ -191,11 +166,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     ? `${window.location.origin}/${podcast.slug}/${episode.slug}`
     : '';
 
-  const shouldShowPlayer = useMemo(
-    () => Boolean(episode.audio_url && tabIsVisible('player')),
-    [episode.audio_url, tabIsVisible]
-  );
-  const layoutOffset = layoutHeights.header + layoutHeights.tabs + (shouldShowPlayer ? layoutHeights.player : 0);
+  const isPlayerVisible = Boolean(episode.audio_url && tabIsVisible('player'));
+  const layoutOffset = layoutHeights.header + layoutHeights.tabs + (isPlayerVisible ? layoutHeights.player : 0);
   const mapPanelHeight = Math.max(viewportHeight - layoutOffset, 360);
 
   useEffect(() => {
@@ -205,7 +177,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
     const updateHeights = () => {
       const headerHeight = headerRef.current?.offsetHeight ?? 0;
-      const playerHeight = shouldShowPlayer ? playerRef.current?.offsetHeight ?? 0 : 0;
+      const playerHeight = isPlayerVisible ? playerRef.current?.offsetHeight ?? 0 : 0;
       const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
       const viewport = window.innerHeight;
 
@@ -229,7 +201,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
     if ('ResizeObserver' in window) {
       resizeObserver = new ResizeObserver(() => updateHeights());
-      const elements: (Element | null)[] = [headerRef.current, shouldShowPlayer ? playerRef.current : null, tabsRef.current];
+      const elements: (Element | null)[] = [headerRef.current, isPlayerVisible ? playerRef.current : null, tabsRef.current];
       elements.forEach(element => {
         if (element) {
           resizeObserver?.observe(element);
@@ -243,7 +215,53 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       window.removeEventListener('resize', updateHeights);
       resizeObserver?.disconnect();
     };
-  }, [shouldShowPlayer, episode.episode_id]);
+  }, [isPlayerVisible, episode.episode_id]);
+
+  const isPlayerVisible = Boolean(episode.audio_url && isTabVisible('player'));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const updateHeights = () => {
+      const headerHeight = headerRef.current?.offsetHeight ?? 0;
+      const playerHeight = isPlayerVisible ? playerRef.current?.offsetHeight ?? 0 : 0;
+      const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
+
+      setLayoutHeights(prev => {
+        if (
+          prev.header !== headerHeight ||
+          prev.player !== playerHeight ||
+          prev.tabs !== tabsHeight
+        ) {
+          return { header: headerHeight, player: playerHeight, tabs: tabsHeight };
+        }
+        return prev;
+      });
+    };
+
+    updateHeights();
+
+    let resizeObserver: ResizeObserver | null = null;
+
+    if ('ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(() => updateHeights());
+      const elements: (Element | null)[] = [headerRef.current, isPlayerVisible ? playerRef.current : null, tabsRef.current];
+      elements.forEach(element => {
+        if (element) {
+          resizeObserver?.observe(element);
+        }
+      });
+    }
+
+    window.addEventListener('resize', updateHeights);
+
+    return () => {
+      window.removeEventListener('resize', updateHeights);
+      resizeObserver?.disconnect();
+    };
+  }, [isPlayerVisible, episode.episode_id]);
 
   const handleCopyUrl = async () => {
     try {
@@ -350,7 +368,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       </header>
 
       {/* Audio Player Bar - Fixed to viewport */}
-      {shouldShowPlayer && (
+      {isPlayerVisible && (
         <div
           ref={playerRef}
           className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40"
@@ -373,7 +391,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       <div
         ref={tabsRef}
         className="fixed left-0 right-0 bg-white z-40"
-        style={{ top: layoutHeights.header + (shouldShowPlayer ? layoutHeights.player : 0) }}
+        style={{ top: layoutHeights.header + (isPlayerVisible ? layoutHeights.player : 0) }}
       >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
@@ -491,7 +509,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       <main
         className={`${episode.transcript ? 'h-screen overflow-hidden' : ''}`}
-        style={{ paddingTop: layoutHeights.header + layoutHeights.tabs + (shouldShowPlayer ? layoutHeights.player : 0) }}
+        style={{ paddingTop: layoutHeights.header + layoutHeights.tabs + (isPlayerVisible ? layoutHeights.player : 0) }}
       >
         {/* Tab Content */}
         <div className={`${episode.transcript ? 'h-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
