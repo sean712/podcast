@@ -239,9 +239,9 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }
 
   return (
-    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
-      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
-        <div className="border-b border-slate-200 p-4 bg-white">
+    <div className={`relative h-full ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
+      <div className="relative h-full flex flex-col bg-white overflow-hidden">
+        <div className="border-b border-slate-200 p-4 bg-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
@@ -265,19 +265,18 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
           </div>
         </div>
 
-        <div className="flex flex-col">
-          {/* Map Container - Full Width */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Map Container - Takes up remaining space */}
           <div
-            className="relative"
-            style={{ height: isFullscreen ? 'calc(100vh - 300px)' : '500px' }}
+            className="flex-1"
             ref={mapContainerRef}
           >
             {/* Map loads here */}
           </div>
 
           {/* Location List Below Map */}
-          <div className="border-t border-slate-200 bg-slate-50 p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="border-t border-slate-200 bg-slate-50 p-4 max-h-64 overflow-y-auto flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {locations.map((location, index) => (
                 <button
                   key={index}
