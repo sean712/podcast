@@ -438,21 +438,32 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {/* Split Screen Layout for Transcript Episodes */}
           {episode.transcript && (
             <div className="h-full flex">
-              {/* Map - Always visible as background or split */}
-              <div className={`transition-all duration-500 ease-in-out ${
-                activeTab === 'map' ? 'w-full' : 'w-1/2 hidden lg:block'
-              }`}>
-                <LocationMap
-                  locations={locations}
-                  isLoading={isLoadingLocations}
-                  error={locationError}
-                />
-              </div>
+              {/* Map Tab - Full Width */}
+              {activeTab === 'map' && (
+                <div className="w-full h-full">
+                  <LocationMap
+                    locations={locations}
+                    isLoading={isLoadingLocations}
+                    error={locationError}
+                  />
+                </div>
+              )}
 
-              {/* Content Panel - Shows when not on map tab */}
+              {/* Split View - Map + Content for other tabs */}
               {activeTab !== 'map' && (
-                <div className="w-full lg:w-1/2 h-full overflow-y-auto bg-white">
-                  <div className="p-6 lg:p-8">
+                <>
+                  {/* Map - Left Half (hidden on mobile) */}
+                  <div className="hidden lg:block lg:w-1/2 h-full">
+                    <LocationMap
+                      locations={locations}
+                      isLoading={isLoadingLocations}
+                      error={locationError}
+                    />
+                  </div>
+
+                  {/* Content Panel - Right Half (full width on mobile) */}
+                  <div className="w-full lg:w-1/2 h-full overflow-y-auto bg-white">
+                    <div className="p-6 lg:p-8">
                     {/* Overview Tab */}
                     {activeTab === 'overview' && (
                       <div className="space-y-8">
@@ -585,8 +596,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                         />
                       </div>
                     )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           )}
