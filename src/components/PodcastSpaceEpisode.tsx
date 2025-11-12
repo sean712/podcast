@@ -35,34 +35,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-
-  const isTabVisible = (tabName: string): boolean => {
-    const visibleTabs = settings?.visible_tabs;
-    if (!visibleTabs || visibleTabs.length === 0) {
-      return true;
-    }
-    return visibleTabs.includes(tabName);
-  };
-
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    if (episode.transcript && isTabVisible('map')) {
-      return 'map';
-    }
-
-    if (isTabVisible('overview')) {
-      return 'overview';
-    }
-
-    const fallbackTabs: TabType[] = ['timeline', 'moments', 'people', 'references', 'transcript', 'notes'];
-    return fallbackTabs.find(tab => isTabVisible(tab)) ?? 'overview';
-  });
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const headerRef = useRef<HTMLElement | null>(null);
   const playerRef = useRef<HTMLDivElement | null>(null);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const [layoutHeights, setLayoutHeights] = useState({ header: 0, player: 0, tabs: 0 });
-  const [viewportHeight, setViewportHeight] = useState(() =>
-    typeof window !== 'undefined' ? window.innerHeight : 0
-  );
 
   useEffect(() => {
     if (episode.transcript) {
@@ -188,8 +165,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const shareUrl = `${window.location.origin}/${podcast.slug}/${episode.slug}`;
 
   const isPlayerVisible = Boolean(episode.audio_url && isTabVisible('player'));
-  const layoutOffset = layoutHeights.header + layoutHeights.tabs + (isPlayerVisible ? layoutHeights.player : 0);
-  const mapPanelHeight = Math.max(viewportHeight - layoutOffset, 360);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -200,7 +175,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       const headerHeight = headerRef.current?.offsetHeight ?? 0;
       const playerHeight = isPlayerVisible ? playerRef.current?.offsetHeight ?? 0 : 0;
       const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
-      const viewport = window.innerHeight;
 
       setLayoutHeights(prev => {
         if (
@@ -212,8 +186,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         }
         return prev;
       });
-
-      setViewportHeight(prev => (prev !== viewport ? viewport : prev));
     };
 
     updateHeights();
