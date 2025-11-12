@@ -11,12 +11,12 @@ You need to configure the following secrets in your Supabase project:
 ### 1. OPENAI_API_KEY
 Your OpenAI API key for transcript analysis and chat functionality.
 
-**Value:** ``
+**Value:** `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`
 
 ### 2. PODSCAN_API_KEY
 Your Podscan API key for podcast search and episode fetching.
 
-**Value:** ``
+**Value:** `kuld4p4F4k9X9nLsDAXDw7XriH6SpOHMr8UIrhsW873759db`
 
 ### 3. PODSCAN_API_URL (Optional)
 The Podscan API base URL. Defaults to `https://podscan.fm/api/v1` if not set.
@@ -41,10 +41,10 @@ If you have the Supabase CLI installed:
 
 ```bash
 # Set OPENAI_API_KEY
-supabase secrets set OPENAI_API_KEY=
+supabase secrets set OPENAI_API_KEY=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
 
 # Set PODSCAN_API_KEY
-supabase secrets set PODSCAN_API_KEY=
+supabase secrets set PODSCAN_API_KEY=kuld4p4F4k9X9nLsDAXDw7XriH6SpOHMr8UIrhsW873759db
 
 # Set PODSCAN_API_URL
 supabase secrets set PODSCAN_API_URL=https://podscan.fm/api/v1

@@ -50,7 +50,11 @@ Your B2B podcast platform has been successfully migrated from client-side API ca
 #### `.env` file
 **Before:**
 ```
-
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_PODSCAN_API_KEY=kuld4p4F4k9X9nLsDAXDw7XriH6SpOHMr8UIrhsW873759db
+VITE_PODSCAN_API_URL=https://podscan.fm/api/v1
+VITE_OPENAI_API_KEY=sk-proj-...
 ```
 
 **After:**
@@ -116,7 +120,11 @@ The `analyze-episode` Edge Function implements smart caching:
 You must configure these secrets in your Supabase project:
 
 ```
+OPENAI_API_KEY=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
 
+PODSCAN_API_KEY=kuld4p4F4k9X9nLsDAXDw7XriH6SpOHMr8UIrhsW873759db
+
+PODSCAN_API_URL=https://podscan.fm/api/v1
 ```
 
 **See SECURITY_SETUP.md for detailed instructions.**
