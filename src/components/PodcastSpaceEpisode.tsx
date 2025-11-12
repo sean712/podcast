@@ -35,7 +35,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('map');
 
   useEffect(() => {
     if (episode.transcript) {
@@ -277,10 +277,23 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
       )}
 
-      {/* Tabbed Navigation - Fixed to viewport */}
+     {/* Tabbed Navigation - Fixed to viewport */}
       <div className={`fixed left-0 right-0 bg-white z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
+              {isTabVisible('map') && (
+                <button
+                  onClick={() => setActiveTab('map')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'map'
+                      ? 'border-blue-500 text-slate-900'
+                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Map className="w-3.5 h-3.5" />
+                  Locations {locations.length > 0 && `(${locations.length})`}
+                </button>
+              )}
               {isTabVisible('overview') && (
                 <button
                   onClick={() => setActiveTab('overview')}
@@ -333,19 +346,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Timeline
                 </button>
               )}
-              {isTabVisible('map') && (
-                <button
-                  onClick={() => setActiveTab('map')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'map'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Map className="w-3.5 h-3.5" />
-                  Locations {locations.length > 0 && `(${locations.length})`}
-                </button>
-              )}
               {isTabVisible('references') && (
                 <button
                   onClick={() => setActiveTab('references')}
@@ -393,9 +393,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-      <main className={`${episode.audio_url && isTabVisible('player') ? 'pt-[146px] md:pt-[118px]' : 'pt-[90px] md:pt-[61px]'} ${episode.transcript ? 'h-screen overflow-hidden' : ''}`}>
+      <main className={episode.audio_url && isTabVisible('player') ? 'pt-[222px] md:pt-[158px]' : 'pt-[154px] md:pt-[100px]'}>
         {/* Tab Content */}
-        <div className={`${episode.transcript ? 'h-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* No Transcript Message */}
           {!episode.transcript && (
             <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-blue-100 rounded-2xl p-12 text-center shadow-sm">
@@ -435,166 +435,158 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           )}
 
-          {/* Split Screen Layout for Transcript Episodes */}
-          {episode.transcript && (
-            <div className="h-full flex">
-              {/* Map - Always visible as background or split */}
-              <div className={`transition-all duration-500 ease-in-out ${
-                activeTab === 'map' ? 'w-full' : 'w-1/2 hidden lg:block'
-              }`}>
-                <LocationMap
-                  locations={locations}
-                  isLoading={isLoadingLocations}
-                  error={locationError}
-                />
-              </div>
 
-              {/* Content Panel - Shows when not on map tab */}
-              {activeTab !== 'map' && (
-                <div className="w-full lg:w-1/2 h-full overflow-y-auto bg-white">
-                  <div className="p-6 lg:p-8">
-                    {/* Overview Tab */}
-                    {activeTab === 'overview' && (
-                      <div className="space-y-8">
-                        {isLoadingAnalysis ? (
-                          <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                            <div className="flex flex-col items-center justify-center gap-4">
-                              <div className="relative">
-                                <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
-                                <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
-                              </div>
-                              <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
-                              <p className="text-slate-500 text-sm">Please wait a moment</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            {analysisError && (
-                              <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 flex items-start gap-3 backdrop-blur-sm">
-                                <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
-                                  <p className="text-red-200">{analysisError}</p>
-                                </div>
-                              </div>
-                            )}
-                            {analysis && (
-                              <EpisodeSummary summary={analysis.summary} />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Key Moments Tab */}
-                    {activeTab === 'moments' && (
-                      <div>
-                        {isLoadingAnalysis ? (
-                          <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                            <div className="flex flex-col items-center justify-center gap-4">
-                              <div className="relative">
-                                <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
-                                <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
-                              </div>
-                              <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
-                              <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            {analysisError && (
-                              <div className="bg-gradient-to-br from-red-900 to-red-950 border border-red-700 rounded-2xl p-8 shadow-sm">
-                                <div className="flex items-start gap-3 text-red-100">
-                                  <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
-                                  <div>
-                                    <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
-                                    <p className="text-red-200">{analysisError}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                              <KeyMoments moments={analysis.keyMoments} />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {/* People Tab */}
-                    {activeTab === 'people' && (
-                      <div>
-                        {analysis ? (
-                          <KeyPersonnel personnel={analysis.keyPersonnel} />
-                        ) : (
-                          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                            <p className="text-slate-600">No personnel data available yet</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Timeline Tab */}
-                    {activeTab === 'timeline' && (
-                      <div>
-                        {analysis ? (
-                          <Timeline events={analysis.timeline} />
-                        ) : (
-                          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                            <p className="text-slate-600">No timeline data available yet</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* References Tab */}
-                    {activeTab === 'references' && (
-                      <div>
-                        {analysis ? (
-                          <References references={analysis.references} />
-                        ) : (
-                          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                            <p className="text-slate-600">No references data available yet</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Transcript Tab */}
-                    {activeTab === 'transcript' && (
-                      <div>
-                        <TranscriptViewer
-                          transcript={episode.transcript}
-                          episodeTitle={episode.title}
-                          episodeId={episode.episode_id}
-                          podcastName={podcast.name}
-                          onTextSelected={handleTextSelected}
-                        />
-                      </div>
-                    )}
-
-                    {/* Notes Tab */}
-                    {activeTab === 'notes' && (
-                      <div>
-                        <EpisodeNotes
-                          episodeId={episode.episode_id}
-                          episodeTitle={episode.title}
-                          podcastName={podcast.name}
-                          highlightedText={highlightedTextForNote}
-                          onHighlightUsed={handleHighlightUsed}
-                        />
-                      </div>
-                    )}
-                  </div>
+{/* Timeline Tab */}
+          {episode.transcript && activeTab === 'timeline' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {analysis ? (
+                <Timeline events={analysis.timeline} />
+              ) : (
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No timeline data available yet</p>
                 </div>
               )}
             </div>
           )}
+
+          
+          {/* Overview Tab */}
+          {episode.transcript && activeTab === 'overview' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {isLoadingAnalysis ? (
+                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="relative">
+                      <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
+                      <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
+                    </div>
+                    <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
+                    <p className="text-slate-500 text-sm">Please wait a moment</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {analysisError && (
+                    <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 flex items-start gap-3 backdrop-blur-sm">
+                      <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
+                        <p className="text-red-200">{analysisError}</p>
+                      </div>
+                    </div>
+                  )}
+                  {analysis && (
+                    <EpisodeSummary summary={analysis.summary} />
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Key Moments Tab */}
+          {episode.transcript && activeTab === 'moments' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {isLoadingAnalysis ? (
+                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="relative">
+                      <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
+                      <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
+                    </div>
+                    <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
+                    <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {analysisError && (
+                    <div className="bg-gradient-to-br from-red-900 to-red-950 border border-red-700 rounded-2xl p-8 shadow-sm">
+                      <div className="flex items-start gap-3 text-red-100">
+                        <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
+                          <p className="text-red-200">{analysisError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
+                    <KeyMoments moments={analysis.keyMoments} />
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* People Tab */}
+          {episode.transcript && activeTab === 'people' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {analysis ? (
+                <KeyPersonnel personnel={analysis.keyPersonnel} />
+              ) : (
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No personnel data available yet</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          
+
+          {/* Map Tab - Full width */}
+          {episode.transcript && activeTab === 'map' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <LocationMap
+                locations={locations}
+                isLoading={isLoadingLocations}
+                error={locationError}
+              />
+            </div>
+          )}
+
+          {/* References Tab */}
+          {episode.transcript && activeTab === 'references' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {analysis ? (
+                <References references={analysis.references} />
+              ) : (
+                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                  <p className="text-slate-600">No references data available yet</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Transcript Tab */}
+          {activeTab === 'transcript' && episode.transcript && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <TranscriptViewer
+                transcript={episode.transcript}
+                episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
+                onTextSelected={handleTextSelected}
+              />
+            </div>
+          )}
+
+          {/* Notes Tab */}
+          {activeTab === 'notes' && episode.transcript && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <EpisodeNotes
+                episodeId={episode.episode_id}
+                episodeTitle={episode.title}
+                podcastName={podcast.name}
+                highlightedText={highlightedTextForNote}
+                onHighlightUsed={handleHighlightUsed}
+              />
+            </div>
+          )}
+
         </div>
 
-        {/* Recent Episodes - Below Main Content - Only show when no transcript */}
-        {!episode.transcript && (
-          <div className="bg-slate-50 border-t border-slate-200">
+        {/* Recent Episodes - Below Main Content */}
+        <div className="bg-slate-50 border-t border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">More Episodes</h3>
@@ -640,7 +632,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           </div>
         </div>
-        )}
       </main>
 
       <PodcastFooter />
