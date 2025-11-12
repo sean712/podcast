@@ -17,21 +17,16 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+  };
 
+  // When fullscreen or locations change, invalidate map size
+  useEffect(() => {
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
-    }, 100);
-  };
-
-  useEffect(() => {
-    if (mapInstanceRef.current) {
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
-      }, 150);
-    }
-  }, [isFullscreen]);
+    }, 150);
+  }, [isFullscreen, locations]);
 
   useEffect(() => {
     if (!mapContainerRef.current || locations.length === 0) {
@@ -239,9 +234,9 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
   }
 
   return (
-    <div className={`relative h-full ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
-      <div className="relative h-full flex flex-col bg-white overflow-hidden">
-        <div className="border-b border-slate-200 p-4 bg-white flex-shrink-0">
+    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
+      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
+        <div className="border-b border-slate-200 p-4 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
@@ -265,66 +260,74 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Map Container - Takes up remaining space */}
+        {/* Use lg breakpoint to switch between mobile and desktop layouts */}
+        <div className="flex flex-col lg:flex-row">
+          {/* Map Container */}
           <div
-            className="flex-1"
+            className="relative w-full lg:w-2/3"
+            // Use a fixed height for mobile and a calculated full height for desktop
+            style={{ height: isFullscreen ? 'calc(100vh - 70px)' : 'calc(100vh - 250px)', minHeight: '400px' }}
             ref={mapContainerRef}
           >
             {/* Map loads here */}
           </div>
 
-          {/* Location List Below Map */}
-          <div className="border-t border-slate-200 bg-slate-50 p-4 max-h-64 overflow-y-auto flex-shrink-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {locations.map((location, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setSelectedLocation(location);
-                    if (mapInstanceRef.current) {
-                      const L = (window as any).L;
-                      const map = mapInstanceRef.current;
-                      const currentZoom = map.getZoom();
+          {/* Location List - Sidebar on Desktop, Below on Mobile */}
+          <div className="w-full lg:w-1/3 border-t lg:border-t-0 lg:border-l border-slate-200 bg-slate-50">
+             <div 
+                className="p-4 overflow-y-auto"
+                style={{ height: isFullscreen ? 'calc(100vh - 70px)' : 'calc(100vh - 250px)', minHeight: '400px' }}
+              >
+              <div className="grid grid-cols-1 gap-3">
+                {locations.map((location, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setSelectedLocation(location);
+                      if (mapInstanceRef.current) {
+                        const L = (window as any).L;
+                        const map = mapInstanceRef.current;
+                        const currentZoom = map.getZoom();
 
-                      const targetZoom = Math.min(8, Math.max(currentZoom, 6));
+                        const targetZoom = Math.min(8, Math.max(currentZoom, 6));
 
-                      map.flyTo([location.lat, location.lon], targetZoom, {
-                        duration: 1.2,
-                        easeLinearity: 0.25,
-                        animate: true
-                      });
-                    }
-                  }}
-                  className={`w-full text-left p-3 rounded-lg transition-all duration-300 group/location ${
-                    selectedLocation === location
-                      ? 'bg-orange-100 border-2 border-orange-500 shadow-sm'
-                      : 'bg-white border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0">
-                      <div className={`w-4 h-4 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                        selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
-                      } transition-transform duration-300`}>
-                        {index + 1}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className={`font-semibold text-sm mb-1 ${
-                        selectedLocation === location ? 'text-orange-700' : 'text-slate-900'
-                      }`}>
-                        {location.name}
-                      </div>
-                      {location.context && (
-                        <div className="text-xs text-slate-600 line-clamp-2">
-                          {location.context}
+                        map.flyTo([location.lat, location.lon], targetZoom, {
+                          duration: 1.2,
+                          easeLinearity: 0.25,
+                          animate: true
+                        });
+                      }
+                    }}
+                    className={`w-full text-left p-3 rounded-lg transition-all duration-300 group/location ${
+                      selectedLocation === location
+                        ? 'bg-orange-100 border-2 border-orange-500 shadow-sm'
+                        : 'bg-white border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 pt-1">
+                        <div className={`w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
+                          selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
+                        } transition-transform duration-300`}>
+                          {index + 1}
                         </div>
-                      )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-semibold text-sm mb-1 ${
+                          selectedLocation === location ? 'text-orange-700' : 'text-slate-900'
+                        }`}>
+                          {location.name}
+                        </div>
+                        {location.context && (
+                          <div className="text-xs text-slate-600 line-clamp-3">
+                            {location.context}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
