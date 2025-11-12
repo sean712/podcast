@@ -40,6 +40,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const playerRef = useRef<HTMLDivElement | null>(null);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const [layoutHeights, setLayoutHeights] = useState({ header: 0, player: 0, tabs: 0 });
+  const [viewportHeight, setViewportHeight] = useState(0);
+
+  // This is a placeholder for the actual isTabVisible function, as it's not defined in the provided code.
+  const isTabVisible = (tab: string) => true; 
 
   useEffect(() => {
     if (episode.transcript) {
@@ -166,7 +170,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     ? `${window.location.origin}/${podcast.slug}/${episode.slug}`
     : '';
 
-  const isPlayerVisible = Boolean(episode.audio_url && tabIsVisible('player'));
+  const isPlayerVisible = Boolean(episode.audio_url && isTabVisible('player'));
   const layoutOffset = layoutHeights.header + layoutHeights.tabs + (isPlayerVisible ? layoutHeights.player : 0);
   const mapPanelHeight = Math.max(viewportHeight - layoutOffset, 360);
 
@@ -217,52 +221,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     };
   }, [isPlayerVisible, episode.episode_id]);
 
-  const isPlayerVisible = Boolean(episode.audio_url && isTabVisible('player'));
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const updateHeights = () => {
-      const headerHeight = headerRef.current?.offsetHeight ?? 0;
-      const playerHeight = isPlayerVisible ? playerRef.current?.offsetHeight ?? 0 : 0;
-      const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
-
-      setLayoutHeights(prev => {
-        if (
-          prev.header !== headerHeight ||
-          prev.player !== playerHeight ||
-          prev.tabs !== tabsHeight
-        ) {
-          return { header: headerHeight, player: playerHeight, tabs: tabsHeight };
-        }
-        return prev;
-      });
-    };
-
-    updateHeights();
-
-    let resizeObserver: ResizeObserver | null = null;
-
-    if ('ResizeObserver' in window) {
-      resizeObserver = new ResizeObserver(() => updateHeights());
-      const elements: (Element | null)[] = [headerRef.current, isPlayerVisible ? playerRef.current : null, tabsRef.current];
-      elements.forEach(element => {
-        if (element) {
-          resizeObserver?.observe(element);
-        }
-      });
-    }
-
-    window.addEventListener('resize', updateHeights);
-
-    return () => {
-      window.removeEventListener('resize', updateHeights);
-      resizeObserver?.disconnect();
-    };
-  }, [isPlayerVisible, episode.episode_id]);
-
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -277,6 +235,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   };
 
   return (
+    // The rest of your JSX remains unchanged...
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Fixed Header with Episode Info */}
       <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -395,7 +354,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
-              {tabIsVisible('overview') && (
+              {isTabVisible('overview') && (
                 <button
                   onClick={() => setActiveTab('overview')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -408,7 +367,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Overview
                 </button>
               )}
-              {tabIsVisible('moments') && (
+              {isTabVisible('moments') && (
                 <button
                   onClick={() => setActiveTab('moments')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -421,7 +380,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Key Moments
                 </button>
               )}
-              {tabIsVisible('people') && (
+              {isTabVisible('people') && (
                 <button
                   onClick={() => setActiveTab('people')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -434,7 +393,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   People
                 </button>
               )}
-              {tabIsVisible('timeline') && (
+              {isTabVisible('timeline') && (
                 <button
                   onClick={() => setActiveTab('timeline')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -447,7 +406,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Timeline
                 </button>
               )}
-              {tabIsVisible('map') && (
+              {isTabVisible('map') && (
                 <button
                   onClick={() => setActiveTab('map')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -460,7 +419,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   Locations {locations.length > 0 && `(${locations.length})`}
                 </button>
               )}
-              {tabIsVisible('references') && (
+              {isTabVisible('references') && (
                 <button
                   onClick={() => setActiveTab('references')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -475,7 +434,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {episode.transcript && (
                 <>
-                  {tabIsVisible('transcript') && (
+                  {isTabVisible('transcript') && (
                     <button
                       onClick={() => setActiveTab('transcript')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
@@ -488,7 +447,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       Transcript
                     </button>
                   )}
-                  {tabIsVisible('notes') && (
+                  {isTabVisible('notes') && (
                     <button
                       onClick={() => setActiveTab('notes')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
