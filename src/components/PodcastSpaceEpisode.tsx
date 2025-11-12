@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
@@ -36,6 +36,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const headerRef = useRef<HTMLElement | null>(null);
+  const playerRef = useRef<HTMLDivElement | null>(null);
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [layoutHeights, setLayoutHeights] = useState({ header: 0, player: 0, tabs: 0 });
 
   useEffect(() => {
     if (episode.transcript) {
@@ -157,6 +161,52 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
   const shareUrl = `${window.location.origin}/${podcast.slug}/${episode.slug}`;
 
+  const isPlayerVisible = Boolean(episode.audio_url && isTabVisible('player'));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const updateHeights = () => {
+      const headerHeight = headerRef.current?.offsetHeight ?? 0;
+      const playerHeight = isPlayerVisible ? playerRef.current?.offsetHeight ?? 0 : 0;
+      const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
+
+      setLayoutHeights(prev => {
+        if (
+          prev.header !== headerHeight ||
+          prev.player !== playerHeight ||
+          prev.tabs !== tabsHeight
+        ) {
+          return { header: headerHeight, player: playerHeight, tabs: tabsHeight };
+        }
+        return prev;
+      });
+    };
+
+    updateHeights();
+
+    let resizeObserver: ResizeObserver | null = null;
+
+    if ('ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(() => updateHeights());
+      const elements: (Element | null)[] = [headerRef.current, isPlayerVisible ? playerRef.current : null, tabsRef.current];
+      elements.forEach(element => {
+        if (element) {
+          resizeObserver?.observe(element);
+        }
+      });
+    }
+
+    window.addEventListener('resize', updateHeights);
+
+    return () => {
+      window.removeEventListener('resize', updateHeights);
+      resizeObserver?.disconnect();
+    };
+  }, [isPlayerVisible, episode.episode_id]);
+
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -173,7 +223,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
@@ -262,8 +312,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       </header>
 
       {/* Audio Player Bar - Fixed to viewport */}
-      {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40 top-[90px] md:top-[61px]">
+      {isPlayerVisible && (
+        <div
+          ref={playerRef}
+          className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40"
+          style={{ top: layoutHeights.header }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -278,7 +332,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
       {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 bg-white z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'}`}>
+      <div
+        ref={tabsRef}
+        className="fixed left-0 right-0 bg-white z-40"
+        style={{ top: layoutHeights.header + (isPlayerVisible ? layoutHeights.player : 0) }}
+      >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('overview') && (
@@ -393,7 +451,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-      <main className={`${episode.audio_url && isTabVisible('player') ? 'pt-[146px] md:pt-[118px]' : 'pt-[90px] md:pt-[61px]'} ${episode.transcript ? 'h-screen overflow-hidden' : ''}`}>
+      <main
+        className={`${episode.transcript ? 'h-screen overflow-hidden' : ''}`}
+        style={{ paddingTop: layoutHeights.header + layoutHeights.tabs + (isPlayerVisible ? layoutHeights.player : 0) }}
+      >
         {/* Tab Content */}
         <div className={`${episode.transcript ? 'h-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
           {/* No Transcript Message */}
