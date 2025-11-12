@@ -1,0 +1,400 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
+interface PodscanRequest {
+  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes" | "getPodcastByItunesId" | "getPodcastByRssFeed" | "batchProbeLatestEpisodes";
+  query?: string;
+  podcastId?: string;
+  podcastIds?: string[];
+  episodeId?: string;
+  episodeIds?: string[];
+  itunesId?: string;
+  rssFeedUrl?: string;
+  perPage?: number;
+  orderBy?: string;
+  orderDir?: string;
+  showOnlyFullyProcessed?: boolean;
+  showFullPodcast?: boolean;
+  wordLevelTimestamps?: boolean;
+  transcriptFormatter?: string;
+  page?: number;
+  since?: string;
+  before?: string;
+}
+
+async function getConfig(key: string): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data, error } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Error fetching config for ${key}:`, error);
+      return null;
+    }
+
+    return data?.value || null;
+  } catch (error) {
+    console.error(`Failed to get config ${key}:`, error);
+    return null;
+  }
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
+
+  try {
+    const podscanApiKey = await getConfig("PODSCAN_API_KEY");
+    const podscanApiUrl = await getConfig("PODSCAN_API_URL") || "https://podscan.fm/api/v1";
+
+    if (!podscanApiKey) {
+      throw new Error("PODSCAN_API_KEY not configured in app_config table");
+    }
+
+    const requestData: PodscanRequest = await req.json();
+    const { action } = requestData;
+
+    const podscanHeaders = {
+      "Authorization": `Bearer ${podscanApiKey}`,
+      "Content-Type": "application/json",
+    };
+
+    if (action === "search") {
+      const { query, perPage = 20, orderBy = "best_match", orderDir = "desc" } = requestData;
+
+      if (!query) {
+        return new Response(
+          JSON.stringify({ error: "Query parameter required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const params = new URLSearchParams({
+        query,
+        per_page: perPage.toString(),
+        order_by: orderBy,
+        order_dir: orderDir,
+      });
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/search?${params}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = response.headers.get("Retry-After");
+          const retryMessage = retryAfter
+            ? `Rate limit exceeded. Please try again in ${retryAfter} seconds.`
+            : "Rate limit exceeded. Please wait a few minutes before trying again.";
+          return new Response(
+            JSON.stringify({ error: retryMessage }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getEpisodes") {
+      const {
+        podcastId,
+        perPage = 50,
+        orderBy = "posted_at",
+        orderDir = "desc",
+        showOnlyFullyProcessed = false,
+        since,
+        before,
+      } = requestData;
+
+      if (!podcastId) {
+        return new Response(
+          JSON.stringify({ error: "Podcast ID required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const params = new URLSearchParams({
+        per_page: perPage.toString(),
+        order_by: orderBy,
+        order_dir: orderDir,
+        show_only_fully_processed: showOnlyFullyProcessed.toString(),
+      });
+
+      if (since) {
+        params.set("since", since);
+      }
+
+      if (before) {
+        params.set("before", before);
+      }
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/${podcastId}/episodes?${params}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getEpisode") {
+      const {
+        episodeId,
+        showFullPodcast = false,
+        wordLevelTimestamps = false,
+        transcriptFormatter,
+      } = requestData;
+
+      if (!episodeId) {
+        return new Response(
+          JSON.stringify({ error: "Episode ID required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const params = new URLSearchParams({
+        show_full_podcast: showFullPodcast.toString(),
+        word_level_timestamps: wordLevelTimestamps.toString(),
+      });
+
+      if (transcriptFormatter) {
+        params.set("transcript_formatter", transcriptFormatter);
+      }
+
+      const response = await fetch(`${podscanApiUrl}/episodes/${episodeId}?${params}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "bulkDownloadEpisodes") {
+      const {
+        episodeIds,
+        showFullPodcast = false,
+        wordLevelTimestamps = false,
+        transcriptFormatter,
+      } = requestData;
+
+      if (!episodeIds || !Array.isArray(episodeIds) || episodeIds.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Episode IDs array required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (episodeIds.length > 250) {
+        return new Response(
+          JSON.stringify({ error: "Maximum 250 episode IDs allowed" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const bodyData: Record<string, unknown> = {
+        episode_ids: episodeIds.join(","),
+        show_full_podcast: showFullPodcast,
+        word_level_timestamps: wordLevelTimestamps,
+      };
+
+      if (transcriptFormatter) {
+        bodyData.transcript_formatter = transcriptFormatter;
+      }
+
+      const response = await fetch(`${podscanApiUrl}/episodes/bulk`, {
+        method: "POST",
+        headers: podscanHeaders,
+        body: JSON.stringify(bodyData),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getPodcastByItunesId") {
+      const { itunesId } = requestData;
+
+      if (!itunesId) {
+        return new Response(
+          JSON.stringify({ error: "iTunes ID required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/itunes/${itunesId}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "getPodcastByRssFeed") {
+      const { rssFeedUrl } = requestData;
+
+      if (!rssFeedUrl) {
+        return new Response(
+          JSON.stringify({ error: "RSS feed URL required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const params = new URLSearchParams({
+        rss_feed_url: rssFeedUrl,
+      });
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/rss?${params}`, {
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "batchProbeLatestEpisodes") {
+      const { podcastIds } = requestData;
+
+      if (!podcastIds || !Array.isArray(podcastIds) || podcastIds.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Podcast IDs array required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const bodyData = {
+        podcast_ids: podcastIds.join(","),
+      };
+
+      const response = await fetch(`${podscanApiUrl}/podcasts/batch_probe_for_latest_episodes`, {
+        method: "POST",
+        headers: podscanHeaders,
+        body: JSON.stringify(bodyData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ error: "Invalid action" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error in podscan-proxy function:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

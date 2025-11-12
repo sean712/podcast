@@ -113,3 +113,24 @@ export async function isEpisodeSaved(episodeId: string): Promise<boolean> {
 
   return !!data;
 }
+
+export async function getBatchSavedStatus(episodeIds: string[]): Promise<Set<string>> {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || episodeIds.length === 0) {
+    return new Set();
+  }
+
+  const { data, error } = await supabase
+    .from('saved_episodes')
+    .select('episode_id')
+    .eq('user_id', user.id)
+    .in('episode_id', episodeIds);
+
+  if (error) {
+    console.error('Error checking batch saved status:', error);
+    return new Set();
+  }
+
+  return new Set((data || []).map(item => item.episode_id));
+}

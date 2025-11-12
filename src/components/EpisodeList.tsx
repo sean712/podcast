@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Clock, Calendar, Bookmark } from 'lucide-react';
+import { Clock, Calendar, Bookmark, Play } from 'lucide-react';
 import type { Episode } from '../types/podcast';
-import { saveEpisode, unsaveEpisode, isEpisodeSaved } from '../services/savedEpisodesService';
+import { saveEpisode, unsaveEpisode, getBatchSavedStatus } from '../services/savedEpisodesService';
 import { useAuth } from '../contexts/AuthContext';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 interface EpisodeListProps {
   episodes: Episode[];
@@ -30,16 +31,14 @@ function formatDate(dateString: string): string {
   });
 }
 
-function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episode; onEpisodeClick: (episode: Episode) => void; onSaveChange?: () => void }) {
+function EpisodeItem({ episode, isSaved, onEpisodeClick, onSaveChange }: { episode: Episode; isSaved: boolean; onEpisodeClick: (episode: Episode) => void; onSaveChange?: () => void }) {
   const { user } = useAuth();
-  const [isSaved, setIsSaved] = useState(false);
+  const [localIsSaved, setLocalIsSaved] = useState(isSaved);
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      isEpisodeSaved(episode.episode_id).then(setIsSaved);
-    }
-  }, [user, episode.episode_id]);
+    setLocalIsSaved(isSaved);
+  }, [isSaved]);
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,12 +46,12 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
 
     setIsTogglingBookmark(true);
     try {
-      if (isSaved) {
+      if (localIsSaved) {
         await unsaveEpisode(episode.episode_id);
-        setIsSaved(false);
+        setLocalIsSaved(false);
       } else {
         await saveEpisode(episode);
-        setIsSaved(true);
+        setLocalIsSaved(true);
       }
       onSaveChange?.();
     } catch (error) {
@@ -60,6 +59,11 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
     } finally {
       setIsTogglingBookmark(false);
     }
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEpisodeClick(episode);
   };
 
   return (
@@ -70,29 +74,42 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
         aria-label="View episode"
       />
       <div className="flex gap-4">
-        {episode.episode_image_url && (
-          <img
-            src={episode.episode_image_url}
-            alt={episode.episode_title}
-            className="w-16 h-16 rounded object-cover flex-shrink-0"
-            loading="lazy"
-          />
-        )}
+        <div className="relative flex-shrink-0">
+          {episode.episode_image_url && (
+            <img
+              src={episode.episode_image_url}
+              alt={episode.episode_title}
+              className="w-16 h-16 rounded object-cover"
+              loading="lazy"
+            />
+          )}
+          {episode.episode_audio_url && (
+            <button
+              onClick={handlePlayClick}
+              className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              aria-label="Play episode"
+            >
+              <div className="p-2 bg-emerald-500 hover:bg-emerald-600 rounded-full shadow-lg transition-colors">
+                <Play className="w-4 h-4 text-white fill-white" />
+              </div>
+            </button>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:bg-gradient-to-r group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:bg-clip-text group-hover:text-transparent transition-all flex-1">
-              {episode.episode_title}
+              {decodeHtmlEntities(episode.episode_title)}
             </h3>
             {user && (
               <button
                 onClick={handleBookmarkClick}
                 disabled={isTogglingBookmark}
                 className="relative z-10 p-2 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-                aria-label={isSaved ? 'Unsave episode' : 'Save episode'}
+                aria-label={localIsSaved ? 'Unsave episode' : 'Save episode'}
               >
                 <Bookmark
                   className={`w-4 h-4 ${
-                    isSaved ? 'fill-emerald-500 text-emerald-500' : 'text-gray-400'
+                    localIsSaved ? 'fill-emerald-500 text-emerald-500' : 'text-gray-400'
                   }`}
                 />
               </button>
@@ -122,6 +139,30 @@ function EpisodeItem({ episode, onEpisodeClick, onSaveChange }: { episode: Episo
 }
 
 export default function EpisodeList({ episodes, onEpisodeClick, isLoading, onSaveChange }: EpisodeListProps) {
+  const { user } = useAuth();
+  const [savedEpisodeIds, setSavedEpisodeIds] = useState<Set<string>>(new Set());
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+
+  useEffect(() => {
+    if (user && episodes.length > 0) {
+      setIsLoadingSaved(true);
+      const episodeIds = episodes.map(ep => ep.episode_id);
+      getBatchSavedStatus(episodeIds)
+        .then(setSavedEpisodeIds)
+        .finally(() => setIsLoadingSaved(false));
+    } else {
+      setSavedEpisodeIds(new Set());
+    }
+  }, [user, episodes]);
+
+  const handleSaveChange = () => {
+    if (user && episodes.length > 0) {
+      const episodeIds = episodes.map(ep => ep.episode_id);
+      getBatchSavedStatus(episodeIds).then(setSavedEpisodeIds);
+    }
+    onSaveChange?.();
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -149,8 +190,9 @@ export default function EpisodeList({ episodes, onEpisodeClick, isLoading, onSav
         <EpisodeItem
           key={episode.episode_id}
           episode={episode}
+          isSaved={savedEpisodeIds.has(episode.episode_id)}
           onEpisodeClick={onEpisodeClick}
-          onSaveChange={onSaveChange}
+          onSaveChange={handleSaveChange}
         />
       ))}
     </div>

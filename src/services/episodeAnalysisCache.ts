@@ -11,6 +11,8 @@ export interface CachedAnalysis {
   key_personnel: any[];
   timeline_events: any[];
   locations: GeocodedLocation[];
+  key_moments: any[];
+  references: any[];
   analysis_version: string;
   created_at: string;
   updated_at: string;
@@ -28,6 +30,12 @@ export async function getCachedAnalysis(episodeId: string): Promise<CachedAnalys
     return null;
   }
 
+  if (data) {
+    console.log('✓ Cache hit: Loaded analysis from database', { episodeId, version: data.analysis_version });
+  } else {
+    console.log('✗ Cache miss: No cached analysis found, will analyze transcript', { episodeId });
+  }
+
   return data;
 }
 
@@ -40,23 +48,43 @@ export async function saveCachedAnalysis(
 ): Promise<void> {
   const { error } = await supabase
     .from('episode_analyses')
-    .insert({
-      episode_id: episodeId,
-      episode_title: episodeTitle,
-      podcast_name: podcastName,
-      summary: analysis.summary,
-      key_personnel: analysis.keyPersonnel,
-      timeline_events: analysis.timeline,
-      locations: locations,
-      analysis_version: 'v1',
-    });
+    .upsert(
+      {
+        episode_id: episodeId,
+        episode_title: episodeTitle,
+        podcast_name: podcastName,
+        summary: analysis.summary,
+        key_personnel: analysis.keyPersonnel,
+        timeline_events: analysis.timeline,
+        locations: locations,
+        key_moments: analysis.keyMoments,
+        references: analysis.references,
+        analysis_version: 'v4',
+      },
+      {
+        onConflict: 'episode_id',
+        ignoreDuplicates: false,
+      }
+    );
 
   if (error) {
-    if (error.code === '23505') {
-      console.log('Analysis already cached for this episode');
-      return;
-    }
-    console.error('Error saving cached analysis:', error);
+    console.error('✗ Error saving cached analysis:', error);
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
+
+  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v4' });
+}
+
+export async function deleteAnalysis(episodeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('episode_analyses')
+    .delete()
+    .eq('episode_id', episodeId);
+
+  if (error) {
+    console.error('✗ Error deleting cached analysis:', error);
+    throw new Error(`Failed to delete analysis: ${error.message}`);
+  }
+
+  console.log('✓ Successfully deleted cached analysis', { episodeId });
 }

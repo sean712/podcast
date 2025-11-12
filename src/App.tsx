@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, Loader2, Radio, AlertCircle, LogOut, Search as SearchIcon, Bookmark, Compass, TrendingUp, MapPin, MessageCircle, BookOpen, Sparkles, Zap, Users, Clock, BarChart3, FileText, Users as UsersIcon, Map, StickyNote, ChevronDown } from 'lucide-react';
+import LandingPage from './components/LandingPage';
 import SearchBar from './components/SearchBar';
 import PodcastCard from './components/PodcastCard';
 import EpisodeList from './components/EpisodeList';
@@ -10,18 +11,21 @@ import KeyPersonnel from './components/KeyPersonnel';
 import Timeline from './components/Timeline';
 import ChatWidget from './components/ChatWidget';
 import AuthModal from './components/AuthModal';
+import CreatorContactModal from './components/CreatorContactModal';
 import SavedPodcastsList from './components/SavedPodcastsList';
 import SavedEpisodesList from './components/SavedEpisodesList';
 import EpisodeNotes from './components/EpisodeNotes';
-import { searchPodcasts, getPodcastEpisodes, getEpisode, PodscanApiError } from './services/podscanApi';
+import { searchPodcasts, getPodcastEpisodes, getEpisode, getPodcastByItunesId, getPodcastByRssFeed, PodscanApiError } from './services/podscanApi';
 import { analyzeTranscript, chatWithTranscript, OpenAIServiceError, type TranscriptAnalysis } from './services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from './services/geocodingService';
 import { getCachedAnalysis, saveCachedAnalysis } from './services/episodeAnalysisCache';
 import { saveEpisode, unsaveEpisode, isEpisodeSaved } from './services/savedEpisodesService';
+import { stripHtml } from './utils/textUtils';
 import { useAuth } from './contexts/AuthContext';
 import type { Podcast, Episode } from './types/podcast';
 
 type View = 'saved' | 'search' | 'episodes' | 'transcript';
+type EpisodeTab = 'overview' | 'insights' | 'map' | 'transcript' | 'notes' | 'chat';
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -39,17 +43,56 @@ function App() {
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
   const [savedPodcastsRefresh, setSavedPodcastsRefresh] = useState(0);
   const [isEpisodeBookmarked, setIsEpisodeBookmarked] = useState(false);
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
+  const [activeEpisodeTab, setActiveEpisodeTab] = useState<EpisodeTab>('overview');
+  const [showTabMenu, setShowTabMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showTabMenu && !target.closest('.tab-menu-container')) {
+        setShowTabMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTabMenu]);
 
   const handleSearch = async (query: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await searchPodcasts(query, { perPage: 20 });
-      setPodcasts(response.podcasts || []);
+      const itunesMatch = query.match(/(?:podcasts\.apple\.com\/[^\/]+\/podcast\/[^\/]+\/id(\d+)|^(\d{8,})$)/);
+      const isRssFeed = query.match(/^https?:\/\/.+\.(xml|rss)(\?.*)?$/i) || query.includes('feed');
+
+      if (itunesMatch) {
+        const itunesId = itunesMatch[1] || itunesMatch[2];
+        console.log('Detected iTunes ID:', itunesId);
+        const podcastData = await getPodcastByItunesId(itunesId);
+        setPodcasts(podcastData.podcast ? [podcastData.podcast] : []);
+      } else if (isRssFeed && (query.startsWith('http://') || query.startsWith('https://'))) {
+        console.log('Detected RSS feed URL:', query);
+        const podcastData = await getPodcastByRssFeed(query);
+        setPodcasts(podcastData.podcast ? [podcastData.podcast] : []);
+      } else {
+        const response = await searchPodcasts(query, { perPage: 20 });
+        setPodcasts(response.podcasts || []);
+      }
     } catch (err) {
       if (err instanceof PodscanApiError) {
         setError(err.message);
@@ -69,8 +112,8 @@ function App() {
     setError(null);
     try {
       const response = await getPodcastEpisodes(podcast.podcast_id, {
-        perPage: 50,
-        showOnlyFullyProcessed: true
+        perPage: 100,
+        showOnlyFullyProcessed: false
       });
       setEpisodes(response.episodes || []);
     } catch (err) {
@@ -97,7 +140,7 @@ function App() {
     try {
       const response = await getEpisode(episode.episode_id, {
         showFullPodcast: true,
-        transcriptFormatter: 'paragraph'
+        wordLevelTimestamps: true
       });
       setSelectedEpisode(response.episode);
 
@@ -239,6 +282,19 @@ function App() {
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
+    // Switch to notes tab so user can see and save the note
+    setActiveEpisodeTab('notes');
+  };
+
+  const handleAskAI = (text: string) => {
+    // Switch to chat tab and populate the input with the quoted text
+    setActiveEpisodeTab('chat');
+    // Set the highlighted text with quotes for the AI chat
+    setHighlightedTextForNote(`"${text}"`);
+    // Clear it after a brief moment so it doesn't persist
+    setTimeout(() => {
+      setHighlightedTextForNote(undefined);
+    }, 100);
   };
 
   const handleHighlightUsed = () => {
@@ -255,193 +311,22 @@ function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iIzEwYjk4MSIgc3Ryb2tlLW9wYWNpdHk9Ii4wNSIvPjwvZz48L3N2Zz4=')] opacity-20" />
-
-          <div className="relative">
-            <header className="border-b border-emerald-500/10 bg-slate-900/50 backdrop-blur-xl">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Radio className="w-8 h-8 text-emerald-500" />
-                    <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Podista</span>
-                  </div>
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-                  >
-                    Sign In
-                  </button>
-                </div>
-              </div>
-            </header>
-
-            <main>
-              <section className="pt-20 pb-24 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                  <div className="text-center max-w-3xl mx-auto mb-16">
-                    <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                      <Compass className="w-4 h-4" />
-                      For Podcast Enthusiasts
-                    </div>
-                    <h1 className="text-5xl sm:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-                      Experience Podcasts
-                      <span className="block bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                        Like Never Before
-                      </span>
-                    </h1>
-                    <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-                      Explore your favorite shows with interactive maps, timelines, and transcripts.
-                      Save episodes, discover hidden details, and get more from every listen.
-                    </p>
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:-translate-y-0.5"
-                    >
-                      Start Exploring Free
-                    </button>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-emerald-500/10 hover:border-emerald-500/30 transition-all group">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <MapPin className="w-6 h-6 text-emerald-400" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white mb-3">
-                        Visualize The Journey
-                      </h3>
-                      <p className="text-slate-300 leading-relaxed">
-                        See where stories take place with interactive maps and follow episode timelines to navigate through topics and key moments.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-cyan-500/10 hover:border-cyan-500/30 transition-all group">
-                      <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white mb-3">
-                        Find What Matters
-                      </h3>
-                      <p className="text-slate-300 leading-relaxed">
-                        Search millions of episodes and jump straight to the topics and moments you care about. Never miss an important detail again.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-teal-500/10 hover:border-teal-500/30 transition-all group">
-                      <div className="w-12 h-12 bg-gradient-to-br from-teal-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Bookmark className="w-6 h-6 text-teal-400" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white mb-3">
-                        Build Your Library
-                      </h3>
-                      <p className="text-slate-300 leading-relaxed">
-                        Save your favorite podcasts and episodes in one place. Revisit memorable moments and build your personal collection.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
-                <div className="max-w-7xl mx-auto">
-                  <div className="text-center max-w-3xl mx-auto mb-12">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                      Discover More In Every Episode
-                    </h2>
-                    <p className="text-lg text-slate-300">
-                      Tools designed to enhance how you explore and enjoy your favorite shows
-                    </p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-emerald-500/10 hover:border-emerald-500/30 transition-colors">
-                      <div className="flex items-center gap-3 mb-2">
-                        <MapPin className="w-5 h-5 text-emerald-400" />
-                        <h4 className="font-semibold text-white">Follow The Story</h4>
-                      </div>
-                      <p className="text-slate-300 text-sm">
-                        Discover where stories unfold with interactive maps showing every location mentioned in the episode.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-cyan-500/10 hover:border-cyan-500/30 transition-colors">
-                      <div className="flex items-center gap-3 mb-2">
-                        <TrendingUp className="w-5 h-5 text-cyan-400" />
-                        <h4 className="font-semibold text-white">Navigate Episodes</h4>
-                      </div>
-                      <p className="text-slate-300 text-sm">
-                        Jump to the topics that interest you most with episode timelines showing key moments and discussions.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-teal-500/10 hover:border-teal-500/30 transition-colors">
-                      <div className="flex items-center gap-3 mb-2">
-                        <MessageCircle className="w-5 h-5 text-teal-400" />
-                        <h4 className="font-semibold text-white">Ask Questions</h4>
-                      </div>
-                      <p className="text-slate-300 text-sm">
-                        Curious about something mentioned? Chat with episodes to explore topics deeper and learn more.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-emerald-500/10 hover:border-emerald-500/30 transition-colors">
-                      <div className="flex items-center gap-3 mb-2">
-                        <BookOpen className="w-5 h-5 text-emerald-400" />
-                        <h4 className="font-semibold text-white">Read Along</h4>
-                      </div>
-                      <p className="text-slate-300 text-sm">
-                        Search full transcripts to find memorable quotes, specific moments, or topics you want to revisit.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section className="py-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl mx-auto text-center">
-                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                    Ready to Explore Your Favorite Podcasts?
-                  </h2>
-                  <p className="text-xl text-slate-300 mb-8">
-                    Join thousands of podcast fans getting more from every episode with Podista.
-                  </p>
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:-translate-y-0.5"
-                  >
-                    Start Exploring Free
-                  </button>
-                </div>
-              </section>
-            </main>
-
-            <footer className="border-t border-emerald-500/10 bg-slate-900/50 backdrop-blur-xl">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Radio className="w-6 h-6 text-emerald-500" />
-                    <span className="font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Podista</span>
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    © 2025 Podista. All rights reserved.
-                  </p>
-                </div>
-              </div>
-            </footer>
-          </div>
-        </div>
+      <>
+        <LandingPage
+          onGetStarted={() => setShowCreatorModal(true)}
+          onSignIn={() => setShowAuthModal(true)}
+        />
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      </div>
+        <CreatorContactModal isOpen={showCreatorModal} onClose={() => setShowCreatorModal(false)} />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               {view !== 'saved' && (
                 <button
@@ -451,32 +336,36 @@ function App() {
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
               )}
-              <Radio className="w-8 h-8 text-emerald-500" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Podista</h1>
+              <button
+                onClick={() => setView('saved')}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
+              >
+                <Radio className="w-8 h-8 text-emerald-500 flex-shrink-0" />
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent truncate">Augmented Pods</h1>
+              </button>
             </div>
-            <div className="flex items-center gap-3">
-              {view === 'saved' && (
-                <button
-                  onClick={() => setView('search')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
-                >
-                  <SearchIcon className="w-4 h-4" />
-                  Search Podcasts
-                </button>
-              )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => setView('search')}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-500/20"
+              >
+                <SearchIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Search Podcasts</span>
+                <span className="sm:hidden">Search</span>
+              </button>
               <button
                 onClick={signOut}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {view === 'saved' && (
           <div className="space-y-8">
             <SavedPodcastsList
@@ -500,7 +389,7 @@ function App() {
                   Search thousands of podcasts and read their transcripts
                 </p>
               </div>
-              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="Search by name, iTunes URL, or RSS feed..." />
             </div>
 
             {error && (
@@ -556,8 +445,8 @@ function App() {
                   <p className="text-gray-600 mb-3">
                     {selectedPodcast.publisher_name}
                   </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    {selectedPodcast.podcast_description}
+                  <p className="text-gray-700 leading-relaxed break-words">
+                    {stripHtml(selectedPodcast.podcast_description)}
                   </p>
                 </div>
               </div>
@@ -585,19 +474,19 @@ function App() {
         )}
 
         {view === 'transcript' && selectedEpisode && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <div className="flex gap-6">
+          <div className="space-y-0 w-full max-w-full overflow-x-hidden">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 mb-6">
+              <div className="flex gap-4 sm:gap-6">
                 {selectedEpisode.episode_image_url && (
                   <img
                     src={selectedEpisode.episode_image_url}
                     alt={selectedEpisode.episode_title}
-                    className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover flex-shrink-0"
                   />
                 )}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900 flex-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4 mb-2">
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 flex-1 break-words">
                       {selectedEpisode.episode_title}
                     </h2>
                     {user && (
@@ -620,15 +509,15 @@ function App() {
                       {selectedEpisode.podcast.podcast_name}
                     </p>
                   )}
-                  <p className="text-gray-700 leading-relaxed line-clamp-3">
-                    {selectedEpisode.episode_description}
+                  <p className="text-gray-700 leading-relaxed line-clamp-3 break-words overflow-hidden">
+                    {stripHtml(selectedEpisode.episode_description)}
                   </p>
                 </div>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 mb-6">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-red-800 font-medium">Error</p>
@@ -637,67 +526,316 @@ function App() {
               </div>
             )}
 
+            {/* Tabbed Navigation */}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              {/* Desktop Tabs */}
+              {!isMobile && (
+              <nav className="flex gap-2 px-4">
+                <button
+                  onClick={() => setActiveEpisodeTab('overview')}
+                  className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeEpisodeTab === 'overview'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveEpisodeTab('insights')}
+                  className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeEpisodeTab === 'insights'
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <UsersIcon className="w-4 h-4" />
+                  People & Timeline
+                </button>
+                {locations.length > 0 && (
+                  <button
+                    onClick={() => setActiveEpisodeTab('map')}
+                    className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                      activeEpisodeTab === 'map'
+                        ? 'border-orange-500 text-orange-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Map className="w-4 h-4" />
+                    Locations ({locations.length})
+                  </button>
+                )}
+                {selectedEpisode.episode_transcript && (
+                  <>
+                    <button
+                      onClick={() => setActiveEpisodeTab('transcript')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'transcript'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Transcript
+                    </button>
+                    <button
+                      onClick={() => setActiveEpisodeTab('notes')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'notes'
+                          ? 'border-yellow-500 text-yellow-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <StickyNote className="w-4 h-4" />
+                      Notes
+                    </button>
+                    <button
+                      onClick={() => setActiveEpisodeTab('chat')}
+                      className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
+                        activeEpisodeTab === 'chat'
+                          ? 'border-green-500 text-green-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Chat
+                    </button>
+                  </>
+                )}
+              </nav>
+              )}
+
+              {/* Mobile Dropdown Menu */}
+              {isMobile && (
+              <div className="relative px-4 py-3 tab-menu-container">
+                <button
+                  onClick={() => setShowTabMenu(!showTabMenu)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2 font-semibold text-sm text-gray-700">
+                    {activeEpisodeTab === 'overview' && <><FileText className="w-4 h-4" /> Overview</>}
+                    {activeEpisodeTab === 'insights' && <><UsersIcon className="w-4 h-4" /> People & Timeline</>}
+                    {activeEpisodeTab === 'map' && <><Map className="w-4 h-4" /> Locations</>}
+                    {activeEpisodeTab === 'transcript' && <><BookOpen className="w-4 h-4" /> Transcript</>}
+                    {activeEpisodeTab === 'notes' && <><StickyNote className="w-4 h-4" /> Notes</>}
+                    {activeEpisodeTab === 'chat' && <><MessageCircle className="w-4 h-4" /> Chat</>}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showTabMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showTabMenu && (
+                  <div className="absolute left-4 right-4 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-20 overflow-hidden max-w-full">
+                    <button
+                      onClick={() => {
+                        setActiveEpisodeTab('overview');
+                        setShowTabMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                        activeEpisodeTab === 'overview'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Overview
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveEpisodeTab('insights');
+                        setShowTabMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                        activeEpisodeTab === 'insights'
+                          ? 'bg-purple-50 text-purple-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <UsersIcon className="w-4 h-4" />
+                      People & Timeline
+                    </button>
+                    {locations.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setActiveEpisodeTab('map');
+                          setShowTabMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                          activeEpisodeTab === 'map'
+                            ? 'bg-orange-50 text-orange-700'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Map className="w-4 h-4" />
+                        Locations ({locations.length})
+                      </button>
+                    )}
+                    {selectedEpisode.episode_transcript && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('transcript');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'transcript'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          Transcript
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('notes');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'notes'
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <StickyNote className="w-4 h-4" />
+                          Notes
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveEpisodeTab('chat');
+                            setShowTabMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeEpisodeTab === 'chat'
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Chat
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              )}
+            </div>
+
+            {/* Tab Content */}
             {isLoading ? (
-              <div className="bg-white rounded-xl p-12 flex justify-center">
+              <div className="bg-white rounded-xl p-12 flex justify-center mt-6">
                 <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
               </div>
             ) : (
-              <>
-                {isLoadingAnalysis ? (
-                  <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                    <p className="text-gray-600">Analyzing transcript with AI...</p>
-                  </div>
-                ) : (
-                  <>
-                    {analysisError && (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-red-800 font-medium">Analysis Error</p>
-                          <p className="text-red-700 text-sm">{analysisError}</p>
-                        </div>
+              <div className="mt-6">
+                {/* Overview Tab */}
+                {activeEpisodeTab === 'overview' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {isLoadingAnalysis ? (
+                      <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                        <p className="text-gray-600">Analyzing transcript with AI...</p>
                       </div>
-                    )}
-                    {analysis && (
+                    ) : (
                       <>
-                        <EpisodeSummary summary={analysis.summary} />
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <KeyPersonnel personnel={analysis.keyPersonnel} />
-                          <Timeline events={analysis.timeline} />
-                        </div>
+                        {analysisError && (
+                          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-red-800 font-medium">Analysis Error</p>
+                              <p className="text-red-700 text-sm">{analysisError}</p>
+                            </div>
+                          </div>
+                        )}
+                        {analysis && <EpisodeSummary summary={analysis.summary} />}
                       </>
                     )}
-                  </>
+                  </div>
                 )}
-                <LocationMap
-                  locations={locations}
-                  isLoading={isLoadingLocations}
-                  error={locationError}
-                />
-                <TranscriptViewer
-                  transcript={selectedEpisode.episode_transcript || ''}
-                  episodeTitle={selectedEpisode.episode_title}
-                  onTextSelected={handleTextSelected}
-                />
-                <EpisodeNotes
-                  episodeId={selectedEpisode.episode_id}
-                  episodeTitle={selectedEpisode.episode_title}
-                  podcastName={selectedEpisode.podcast?.podcast_name || 'Unknown Podcast'}
-                  highlightedText={highlightedTextForNote}
-                  onHighlightUsed={handleHighlightUsed}
-                />
-              </>
+
+                {/* Insights Tab */}
+                {activeEpisodeTab === 'insights' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {analysis ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <KeyPersonnel personnel={analysis.keyPersonnel} />
+                        <Timeline events={analysis.timeline} />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-12 text-center">
+                        <p className="text-gray-600">No insights available yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Map Tab */}
+                {activeEpisodeTab === 'map' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <LocationMap
+                      locations={locations}
+                      isLoading={isLoadingLocations}
+                      error={locationError}
+                    />
+                  </div>
+                )}
+
+                {/* Transcript Tab */}
+                {activeEpisodeTab === 'transcript' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <TranscriptViewer
+                      transcript={selectedEpisode.episode_transcript || ''}
+                      episodeTitle={selectedEpisode.episode_title}
+                      onTextSelected={handleTextSelected}
+                      onAskAI={handleAskAI}
+                    />
+                  </div>
+                )}
+
+                {/* Notes Tab */}
+                {activeEpisodeTab === 'notes' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <EpisodeNotes
+                      episodeId={selectedEpisode.episode_id}
+                      episodeTitle={selectedEpisode.episode_title}
+                      podcastName={selectedEpisode.podcast?.podcast_name || 'Unknown Podcast'}
+                      highlightedText={highlightedTextForNote}
+                      onHighlightUsed={handleHighlightUsed}
+                    />
+                  </div>
+                )}
+
+                {/* Chat Tab */}
+                {activeEpisodeTab === 'chat' && selectedEpisode.episode_transcript && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <MessageCircle className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-base">AI Assistant</h3>
+                            <p className="text-xs text-green-100">Ask me anything about this episode</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-[600px]">
+                        <ChatWidget
+                          transcript={selectedEpisode.episode_transcript}
+                          episodeTitle={selectedEpisode.episode_title}
+                          onSendMessage={handleChatMessage}
+                          embedded={true}
+                          initialInput={activeEpisodeTab === 'chat' ? highlightedTextForNote : undefined}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-        )}
-
-        {view === 'transcript' && selectedEpisode && selectedEpisode.episode_transcript && (
-          <ChatWidget
-            transcript={selectedEpisode.episode_transcript}
-            episodeTitle={selectedEpisode.episode_title}
-            onSendMessage={handleChatMessage}
-          />
         )}
       </main>
     </div>

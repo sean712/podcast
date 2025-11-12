@@ -7,5 +7,95 @@
 @layer base {
   body {
     font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
   }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  * {
+    max-width: 100%;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+  }
+
+  .scrollbar-thumb-emerald-500\/30::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.3);
+  }
+
+  .scrollbar-thumb-purple-500\/30::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+  }
+
+  .scrollbar-track-slate-800\/30::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.3);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Leaflet map marker styles */
+.svg-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+  max-width: none !important;
+}
+
+.custom-marker-icon > div {
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  min-width: 44px !important;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
 }

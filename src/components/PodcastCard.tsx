@@ -3,6 +3,7 @@ import { Bookmark } from 'lucide-react';
 import type { Podcast } from '../types/podcast';
 import { savePodcast, unsavePodcast, isPodcastSaved } from '../services/savedPodcastsService';
 import { useAuth } from '../contexts/AuthContext';
+import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 
 interface PodcastCardProps {
   podcast: Podcast;
@@ -59,7 +60,7 @@ export default function PodcastCard({ podcast, onClick, onSaveChange }: PodcastC
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="font-semibold text-lg bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent line-clamp-1 flex-1 group-hover:from-emerald-700 group-hover:to-teal-700 transition-all">
-            {podcast.podcast_name}
+            {decodeHtmlEntities(podcast.podcast_name)}
           </h3>
           {user && (
             <button
@@ -80,8 +81,8 @@ export default function PodcastCard({ podcast, onClick, onSaveChange }: PodcastC
           {podcast.publisher_name}
         </p>
         {podcast.podcast_description && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-2">
-            {podcast.podcast_description}
+          <p className="text-sm text-gray-500 line-clamp-2 mb-2 break-words">
+            {stripHtml(podcast.podcast_description)}
           </p>
         )}
         {podcast.podcast_categories && podcast.podcast_categories.length > 0 && (
