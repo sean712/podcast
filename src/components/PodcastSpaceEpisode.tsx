@@ -594,54 +594,54 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         )}
 
-       {/* Recent Episodes - Below Main Content - Redesigned for Dark Theme */}
-      <div className="bg-slate-900 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-slate-100">More Episodes</h3>
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-            >
-              <List className="w-4 h-4" />
-              View All Episodes
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {episodes.slice(0, 12).map((ep) => (
+        {/* Recent Episodes - Below Main Content */}
+        <div className="bg-slate-50 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">More Episodes</h3>
               <button
-                key={ep.id}
-                onClick={() => onEpisodeClick(ep)}
-                className={`text-left p-2 rounded-lg transition-all group ${
-                  ep.id === episode.id
-                    ? 'bg-cyan-900/40 border border-cyan-500/60'
-                    : 'bg-slate-800/50 border border-slate-800 hover:bg-slate-800 hover:border-slate-700'
-                }`}
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
               >
-                {ep.image_url && (
-                  <img
-                    src={ep.image_url}
-                    alt={ep.title}
-                    className="w-full aspect-square rounded object-cover mb-2"
-                  />
-                )}
-                <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
-                  ep.id === episode.id ? 'text-cyan-300' : 'text-slate-200'
-                }`}>
-                  {decodeHtmlEntities(ep.title)}
-                </h4>
-                <div className="text-[10px] text-slate-400">
-                  {ep.duration > 0 && (
-                    <span>{Math.floor(ep.duration / 60)}m</span>
-                  )}
-                </div>
+                <List className="w-4 h-4" />
+                View All Episodes
               </button>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {episodes.slice(0, 12).map((ep) => (
+                <button
+                  key={ep.id}
+                  onClick={() => onEpisodeClick(ep)}
+                  className={`text-left p-2 rounded-lg transition-all group ${
+                    ep.id === episode.id
+                      ? 'bg-blue-100 border border-blue-300'
+                      : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                  }`}
+                >
+                  {ep.image_url && (
+                    <img
+                      src={ep.image_url}
+                      alt={ep.title}
+                      className="w-full aspect-square rounded object-cover mb-2"
+                    />
+                  )}
+                  <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
+                    ep.id === episode.id ? 'text-blue-700' : 'text-slate-900'
+                  }`}>
+                    {decodeHtmlEntities(ep.title)}
+                  </h4>
+                  <div className="text-[10px] text-slate-500">
+                    {ep.duration > 0 && (
+                      <span>{Math.floor(ep.duration / 60)}m</span>
+                    )}
+                  </div> 
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
 
       <PodcastFooter />
 
