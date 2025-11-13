@@ -12,6 +12,7 @@ interface AudioPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   initialTime?: number;
   compact?: boolean;
+  theme?: 'light' | 'dark';
 }
 
 export default function AudioPlayer({
@@ -23,6 +24,7 @@ export default function AudioPlayer({
   onTimeUpdate,
   initialTime = 0,
   compact = false,
+  theme = 'light',
 }: AudioPlayerProps) {
   const { user } = useAuth();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -205,6 +207,7 @@ export default function AudioPlayer({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (compact) {
+    const isDark = theme === 'dark';
     return (
       <div className="flex items-center gap-4">
         <audio ref={audioRef} src={audioUrl} preload="metadata" />
@@ -212,7 +215,9 @@ export default function AudioPlayer({
         <button
           onClick={togglePlayPause}
           disabled={isLoading || !!error}
-          className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0"
+          className={`p-2.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0 ${
+            isDark ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950' : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isLoading ? (
@@ -225,13 +230,17 @@ export default function AudioPlayer({
         </button>
 
         <div className="flex-1 min-w-0 flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-600 whitespace-nowrap">
+          <div className={`flex items-center gap-2 text-xs font-medium whitespace-nowrap ${
+            isDark ? 'text-slate-300' : 'text-slate-600'
+          }`}>
             <span>{formatTime(currentTime)}</span>
             <span className="text-slate-400">/</span>
             <span>{formatTime(duration)}</span>
           </div>
 
-          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden cursor-pointer group relative">
+          <div className={`flex-1 h-1.5 rounded-full overflow-hidden cursor-pointer group relative ${
+            isDark ? 'bg-slate-700' : 'bg-slate-200'
+          }`}>
             <input
               type="range"
               min="0"
@@ -242,22 +251,28 @@ export default function AudioPlayer({
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
             />
             <div
-              className="h-full bg-blue-600 transition-all relative"
+              className={`h-full transition-all relative ${isDark ? 'bg-cyan-400' : 'bg-blue-600'}`}
               style={{ width: `${progressPercentage}%` }}
             >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
+              <div className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md ${
+                isDark ? 'bg-cyan-400' : 'bg-blue-600'
+              }`} />
             </div>
           </div>
 
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-              className="px-2 py-1 text-xs font-medium rounded text-slate-700 hover:bg-slate-100 transition-colors border border-slate-300"
+              className={`px-2 py-1 text-xs font-medium rounded transition-colors border ${
+                isDark ? 'text-slate-300 hover:bg-slate-800 border-slate-600' : 'text-slate-700 hover:bg-slate-100 border-slate-300'
+              }`}
             >
               {playbackRate}x
             </button>
             {showSpeedMenu && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1 min-w-[60px]">
+              <div className={`absolute bottom-full mb-2 right-0 rounded-lg shadow-xl z-50 py-1 min-w-[60px] border ${
+                isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'
+              }`}>
                 {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
                   <button
                     key={rate}
@@ -267,8 +282,8 @@ export default function AudioPlayer({
                     }}
                     className={`w-full px-3 py-1.5 text-xs font-medium text-left transition-colors ${
                       playbackRate === rate
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-700 hover:bg-slate-50'
+                        ? (isDark ? 'bg-cyan-500/10 text-cyan-300' : 'bg-blue-50 text-blue-700')
+                        : (isDark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50')
                     }`}
                   >
                     {rate}x
@@ -281,7 +296,9 @@ export default function AudioPlayer({
           <button
             onClick={() => skip(-15)}
             disabled={isLoading || !!error}
-            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            className={`p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${
+              isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
             aria-label="Skip back 15 seconds"
             title="Skip back 15s"
           >
@@ -291,7 +308,9 @@ export default function AudioPlayer({
           <button
             onClick={() => skip(15)}
             disabled={isLoading || !!error}
-            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            className={`p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${
+              isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
             aria-label="Skip forward 15 seconds"
             title="Skip forward 15s"
           >
@@ -300,7 +319,9 @@ export default function AudioPlayer({
 
           <button
             onClick={toggleMute}
-            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+            className={`p-1.5 rounded transition-colors flex-shrink-0 ${
+              isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
           >
             {isMuted ? (
