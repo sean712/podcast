@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
@@ -14,7 +14,7 @@ import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalys
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
-import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant'; 
+import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
 
 interface PodcastSpaceEpisodeProps {
   episode: StoredEpisode;
@@ -37,6 +37,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<TabType>('map');
 
+  // State and refs to dynamically calculate fixed element heights
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [tabNavHeight, setTabNavHeight] = useState(0);
+  const headerRef = useRef<HTMLElement>(null);
+  const tabNavRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (episode.transcript) {
       analyzeAndProcessTranscript();
@@ -49,6 +55,26 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       document.title = 'Augmented Pods';
     };
   }, [episode.title, podcast.name]);
+  
+  // Effect to measure and update heights of fixed header and tab bar
+  useEffect(() => {
+    const headerEl = headerRef.current;
+    const tabNavEl = tabNavRef.current;
+
+    if (!headerEl || !tabNavEl) return;
+    
+    // Use ResizeObserver to handle changes in element size (e.g., on window resize)
+    const resizeObserver = new ResizeObserver(() => {
+      setHeaderHeight(headerEl.offsetHeight);
+      setTabNavHeight(tabNavEl.offsetHeight);
+    });
+
+    resizeObserver.observe(headerEl);
+    resizeObserver.observe(tabNavEl);
+
+    // Clean up the observer when the component unmounts
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const analyzeAndProcessTranscript = async () => {
     if (!episode.transcript) return;
@@ -173,7 +199,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
       {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800/70 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
+      <header
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800/70 shadow-[0_2px_0_rgba(0,0,0,0.3)]"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
@@ -287,10 +316,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
       </header>
 
-      {/* Integrated compact player in header replaces separate bar */}
-
      {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 top-[146px] md:top-[118px] border-b border-slate-800/60`}>
+      <div
+        ref={tabNavRef}
+        className="fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 border-b border-slate-800/60"
+        style={{ top: headerHeight > 0 ? headerHeight : undefined }}
+      >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('map') && (
@@ -405,7 +436,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-      <main className={'pt-[222px] md:pt-[158px]'}>
+      <main style={{ paddingTop: headerHeight + tabNavHeight > 0 ? headerHeight + tabNavHeight : undefined }}>
         {/* Map Tab - Renders outside the container for full width */}
         {episode.transcript && activeTab === 'map' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -594,54 +625,54 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         )}
 
-       {/* Recent Episodes - Below Main Content - Redesigned for Dark Theme */}
-      <div className="bg-slate-900 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-slate-100">More Episodes</h3>
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-            >
-              <List className="w-4 h-4" />
-              View All Episodes
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {episodes.slice(0, 12).map((ep) => (
+        {/* Recent Episodes - Below Main Content */}
+        <div className="bg-slate-900 border-t border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-100">More Episodes</h3>
               <button
-                key={ep.id}
-                onClick={() => onEpisodeClick(ep)}
-                className={`text-left p-2 rounded-lg transition-all group ${
-                  ep.id === episode.id
-                    ? 'bg-cyan-900/40 border border-cyan-500/60'
-                    : 'bg-slate-800/50 border border-slate-800 hover:bg-slate-800 hover:border-slate-700'
-                }`}
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
               >
-                {ep.image_url && (
-                  <img
-                    src={ep.image_url}
-                    alt={ep.title}
-                    className="w-full aspect-square rounded object-cover mb-2"
-                  />
-                )}
-                <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
-                  ep.id === episode.id ? 'text-cyan-300' : 'text-slate-200'
-                }`}>
-                  {decodeHtmlEntities(ep.title)}
-                </h4>
-                <div className="text-[10px] text-slate-400">
-                  {ep.duration > 0 && (
-                    <span>{Math.floor(ep.duration / 60)}m</span>
-                  )}
-                </div>
+                <List className="w-4 h-4" />
+                View All Episodes
               </button>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {episodes.slice(0, 12).map((ep) => (
+                <button
+                  key={ep.id}
+                  onClick={() => onEpisodeClick(ep)}
+                  className={`text-left p-2 rounded-lg transition-all group ${
+                    ep.id === episode.id
+                      ? 'bg-cyan-900/40 border border-cyan-500/60'
+                      : 'bg-slate-800/50 border border-slate-800 hover:bg-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {ep.image_url && (
+                    <img
+                      src={ep.image_url}
+                      alt={ep.title}
+                      className="w-full aspect-square rounded object-cover mb-2"
+                    />
+                  )}
+                  <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
+                    ep.id === episode.id ? 'text-cyan-300' : 'text-slate-200'
+                  }`}>
+                    {decodeHtmlEntities(ep.title)}
+                  </h4>
+                  <div className="text-[10px] text-slate-400">
+                    {ep.duration > 0 && (
+                      <span>{Math.floor(ep.duration / 60)}m</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
 
       <PodcastFooter />
 
@@ -690,4 +721,4 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
     </div>
   );
-} 
+}
