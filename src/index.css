@@ -99,3 +99,8 @@
   background: #0f172a !important;
   border: 1px solid #334155 !important;
 }
+
+/* Hide default Leaflet zoom controls when present (we use custom buttons) */
+.leaflet-control-zoom {
+  display: none !important;
+}
