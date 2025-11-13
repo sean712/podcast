@@ -642,3 +642,52 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
       </main>
+
+      <PodcastFooter />
+
+      {showShareModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowShareModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-blue-400" />
+                Share Episode
+              </h3>
+            </div>
+
+            <p className="text-slate-600 text-sm mb-4">
+              Copy the link below to share this episode with others:
+            </p>
+
+            <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 mb-4">
+              <p className="text-slate-700 text-sm break-all font-mono">
+                {shareUrl}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCopyUrl}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors"
+              >
+                {copySuccess ? 'Copied!' : 'Copy Link'}
+              </button>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
