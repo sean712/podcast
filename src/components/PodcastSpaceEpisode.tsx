@@ -287,30 +287,30 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
       {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800/70 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
             <div className="flex items-center justify-between">
               <button
                 onClick={onBack}
-                className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition-colors group"
+                className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors group"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm font-medium">Back</span>
               </button>
               <div className="flex items-center gap-2">
                 {episode.duration && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-700">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
                     <Clock className="w-3 h-3" />
                     {Math.floor(episode.duration / 60)}m
                   </span>
                 )}
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs text-white font-medium transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
                   aria-label="Share episode"
                 >
                   <Share2 className="w-3 h-3" />
@@ -327,8 +327,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-sm font-bold text-slate-900 line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
-                <p className="text-xs text-slate-600 truncate">{podcast.name}</p>
+                <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
+                <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
               </div>
             </div>
           </div>
@@ -337,7 +337,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           <div className="hidden md:flex items-center justify-between gap-4">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors group flex-shrink-0"
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors group flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               <span className="text-sm font-medium">Back</span>
@@ -352,21 +352,21 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-base font-bold text-slate-900 truncate">{decodeHtmlEntities(episode.title)}</h1>
-                <p className="text-xs text-slate-600 truncate">{podcast.name}</p>
+                <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
+                <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
               {episode.duration && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
                   <Clock className="w-3 h-3" />
                   {Math.floor(episode.duration / 60)}m
                 </span>
               )}
               <button
                 onClick={() => setShowShareModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg text-xs text-white font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
                 aria-label="Share episode"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -379,7 +379,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-b border-slate-200 bg-white z-40 top-[90px] md:top-[61px]">
+        <div className="fixed left-0 right-0 border-b border-slate-800/60 bg-slate-900 z-40 top-[90px] md:top-[61px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -388,13 +388,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               podcastName={podcast.name}
               episodeImage={episode.image_url}
               compact={true}
+              // dark header bar context
+              // theme handled internally via colors; compact variant blends well on dark
             />
           </div>
         </div>
       )}
 
      {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 bg-white z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'}`}>
+      <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'} border-b border-slate-800/60`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
               {isTabVisible('map') && (
@@ -402,8 +404,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('map')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'map'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Map className="w-3.5 h-3.5" />
@@ -415,8 +417,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('overview')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'overview'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <FileText className="w-3.5 h-3.5" /> 
@@ -428,8 +430,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('moments')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'moments'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -441,8 +443,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('people')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'people'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <UsersIcon className="w-3.5 h-3.5" />
@@ -454,8 +456,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('timeline')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'timeline'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
@@ -467,8 +469,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => setActiveTab('references')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                     activeTab === 'references'
-                      ? 'border-blue-500 text-slate-900'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Tag className="w-3.5 h-3.5" />
@@ -482,8 +484,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       onClick={() => setActiveTab('transcript')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                         activeTab === 'transcript'
-                          ? 'border-blue-500 text-slate-900'
-                          : 'border-transparent text-slate-600 hover:text-slate-900'
+                          ? 'border-cyan-400 text-white'
+                          : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
@@ -495,8 +497,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       onClick={() => setActiveTab('notes')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
                         activeTab === 'notes'
-                          ? 'border-blue-500 text-slate-900'
-                          : 'border-transparent text-slate-600 hover:text-slate-900'
+                          ? 'border-cyan-400 text-white'
+                          : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <StickyNote className="w-3.5 h-3.5" />
@@ -728,13 +730,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
 
         {/* Recent Episodes - Below Main Content */}
-        <div className="bg-slate-50 border-t border-slate-200">
+        <div className="bg-slate-950 border-t border-slate-800/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">More Episodes</h3>
+              <h3 className="text-lg font-semibold text-white">More Episodes</h3>
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
               >
                 <List className="w-4 h-4" />
                 View All Episodes
@@ -746,10 +748,10 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <button
                   key={ep.id}
                   onClick={() => onEpisodeClick(ep)}
-                  className={`text-left p-2 rounded-lg transition-all group ${
+                  className={`text-left p-2 rounded-lg transition-all group border ${
                     ep.id === episode.id
-                      ? 'bg-blue-100 border border-blue-300'
-                      : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                      ? 'bg-slate-800 border-cyan-400/60'
+                      : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
                   }`}
                 >
                   {ep.image_url && (
@@ -760,11 +762,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     />
                   )}
                   <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
-                    ep.id === episode.id ? 'text-blue-700' : 'text-slate-900'
+                    ep.id === episode.id ? 'text-cyan-300' : 'text-slate-100'
                   }`}>
                     {decodeHtmlEntities(ep.title)}
                   </h4>
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-slate-400">
                     {ep.duration > 0 && (
                       <span>{Math.floor(ep.duration / 60)}m</span>
                     )}
