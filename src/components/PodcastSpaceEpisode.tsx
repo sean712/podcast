@@ -517,17 +517,17 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               locations={locations}
               isLoading={isLoadingLocations}
               error={locationError}
-              showSidePanel={false}
+              showSidePanel={activeTab === 'map'}
               mapHeight="calc(100vh - 190px)"
             />
             {activeTab !== 'map' && (
               <div className="absolute inset-0 z-[1000] pointer-events-none">
-                <div className="hidden lg:block pointer-events-auto absolute right-6 top-6 w-[560px] rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl overflow-hidden">
+                <div className="hidden lg:block pointer-events-auto absolute right-6 top-6 w-[560px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
                   <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
                     {renderOverlayContent()}
                   </div>
                 </div>
-                <div className="lg:hidden pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl overflow-hidden">
+                <div className="lg:hidden pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/90 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
                   <div className="p-4 overflow-y-auto max-h-[65vh]">
                     {renderOverlayContent()}
                   </div>

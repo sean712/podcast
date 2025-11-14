@@ -251,13 +251,13 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Fullscreen toggle - top-left */}
         <button
           onClick={toggleFullscreen}
-          className="absolute top-6 left-6 p-2 bg-white/90 hover:bg-white border border-slate-300 rounded-lg transition-colors z-[1001]"
+          className="absolute top-6 left-6 p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors z-[1001]"
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
           {isFullscreen ? (
-            <Minimize2 className="w-5 h-5 text-slate-700" />
+            <Minimize2 className="w-5 h-5 text-slate-200" />
           ) : (
-            <Maximize2 className="w-5 h-5 text-slate-700" />
+            <Maximize2 className="w-5 h-5 text-slate-200" />
           )}
         </button>
 
@@ -265,14 +265,14 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         <div className="absolute left-6 bottom-6 flex gap-2 z-[1001]">
           <button
             onClick={() => mapInstanceRef.current?.zoomIn()}
-            className="w-10 h-10 rounded-full bg-white/90 text-slate-800 border border-slate-300 hover:bg-white transition-colors"
+            className="w-10 h-10 rounded-full bg-slate-900/80 text-slate-200 border border-slate-700 hover:bg-slate-800 transition-colors"
             aria-label="Zoom in"
           >
             +
           </button>
           <button
             onClick={() => mapInstanceRef.current?.zoomOut()}
-            className="w-10 h-10 rounded-full bg-white/90 text-slate-800 border border-slate-300 hover:bg-white transition-colors"
+            className="w-10 h-10 rounded-full bg-slate-900/80 text-slate-200 border border-slate-700 hover:bg-slate-800 transition-colors"
             aria-label="Zoom out"
           >
             –
@@ -282,13 +282,13 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Optional built-in side panel/list */}
         {showSidePanel && (
           <div
-            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-white/90 backdrop-blur border border-slate-300 shadow-2xl"
+            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
             style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
           >
-            <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg">
-                <MapPin className="w-4 h-4 text-orange-600" />
-                <span className="text-sm font-semibold text-orange-900">
+            <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
+                <MapPin className="w-4 h-4 text-orange-400" />
+                <span className="text-sm font-semibold text-slate-100">
                   {locations.length} {locations.length === 1 ? 'Location' : 'Locations'}
                 </span>
               </div>
@@ -313,8 +313,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                     }}
                     className={`w-full text-left p-3 rounded-xl transition-all duration-300 group/location ${
                       selectedLocation === location
-                        ? 'bg-orange-100 border-2 border-orange-500 shadow-sm'
-                        : 'bg-white border-2 border-slate-200 hover:bg-slate-50'
+                        ? 'bg-slate-800 border-2 border-cyan-400/60 shadow-sm'
+                        : 'bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800'
                     }`}
                   >
                     <div className="flex gap-3">
@@ -327,12 +327,12 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className={`font-semibold text-sm mb-1 ${
-                          selectedLocation === location ? 'text-orange-700' : 'text-slate-900'
+                          selectedLocation === location ? 'text-white' : 'text-slate-100'
                         }`}>
                           {location.name}
                         </div>
                         {location.context && (
-                          <div className="text-xs text-slate-600 line-clamp-3">
+                          <div className="text-xs text-slate-300/90 line-clamp-3">
                             {location.context}
                           </div>
                         )}
