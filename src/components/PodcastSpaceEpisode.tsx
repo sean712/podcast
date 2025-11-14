@@ -142,6 +142,122 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     setHighlightedTextForNote(undefined);
   };
 
+  const renderOverlayContent = () => {
+    if (!episode.transcript) return null;
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 bg-blue-500/15 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
+                  <p className="text-slate-500 text-sm">Please wait a moment</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {analysisError && (
+                  <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-700 font-semibold mb-1">Analysis Error</p>
+                      <p className="text-red-600">{analysisError}</p>
+                    </div>
+                  </div>
+                )}
+                {analysis && <EpisodeSummary summary={analysis.summary} />}
+              </>
+            )}
+          </div>
+        );
+      case 'moments':
+        return (
+          <>
+            {isLoadingAnalysis ? (
+              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 bg-orange-500/15 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
+                  <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {analysisError && (
+                  <div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-start gap-3 text-red-700">
+                      <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-1">Analysis Error</p>
+                        <p>{analysisError}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
+                  <KeyMoments moments={analysis.keyMoments} />
+                )}
+              </>
+            )}
+          </>
+        );
+      case 'people':
+        return analysis ? (
+          <KeyPersonnel personnel={analysis.keyPersonnel} />
+        ) : (
+          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-slate-600">No personnel data available yet</p>
+          </div>
+        );
+      case 'timeline':
+        return analysis ? (
+          <Timeline events={analysis.timeline} />
+        ) : (
+          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-slate-600">No timeline data available yet</p>
+          </div>
+        );
+      case 'references':
+        return analysis ? (
+          <References references={analysis.references} />
+        ) : (
+          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-slate-600">No references data available yet</p>
+          </div>
+        );
+      case 'transcript':
+        return (
+          <TranscriptViewer
+            transcript={episode.transcript}
+            episodeTitle={episode.title}
+            episodeId={episode.episode_id}
+            podcastName={podcast.name}
+            onTextSelected={handleTextSelected}
+          />
+        );
+      case 'notes':
+        return (
+          <EpisodeNotes
+            episodeId={episode.episode_id}
+            episodeTitle={episode.title}
+            podcastName={podcast.name}
+            highlightedText={highlightedTextForNote}
+            onHighlightUsed={handleHighlightUsed}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   const isTabVisible = (tabName: string): boolean => {
     const visibleTabs = settings?.visible_tabs;
     if (!visibleTabs || visibleTabs.length === 0) {
@@ -394,8 +510,34 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
 
       <main className={episode.audio_url && isTabVisible('player') ? 'pt-[222px] md:pt-[158px]' : 'pt-[154px] md:pt-[100px]'}>
-        {/* Tab Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Overlay Map + Panel */}
+        {episode.transcript && (
+          <section className="relative">
+            <LocationMap
+              locations={locations}
+              isLoading={isLoadingLocations}
+              error={locationError}
+              showSidePanel={false}
+              mapHeight="calc(100vh - 190px)"
+            />
+            {activeTab !== 'map' && (
+              <div className="absolute inset-0 z-[1000] pointer-events-none">
+                <div className="hidden lg:block pointer-events-auto absolute right-6 top-6 w-[560px] rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl overflow-hidden">
+                  <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+                    {renderOverlayContent()}
+                  </div>
+                </div>
+                <div className="lg:hidden pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl overflow-hidden">
+                  <div className="p-4 overflow-y-auto max-h-[65vh]">
+                    {renderOverlayContent()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+        {/* Old Tab Content (hidden) */}
+        <div className="hidden">
           {/* No Transcript Message */}
           {!episode.transcript && (
             <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-blue-100 rounded-2xl p-12 text-center shadow-sm">
