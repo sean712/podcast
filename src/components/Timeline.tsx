@@ -28,34 +28,6 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
             const isExpanded = expandedEvent === index;
             const hasDetails = !!(event.significance || event.details || (event.quotes && event.quotes.length > 0));
             const isLeft = index % 2 === 0;
-            const detailsInner = (
-              <>
-                {event.details && (
-                  <div className="flex gap-2">
-                    <Info className={`w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5`} />
-                    <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      {event.details}
-                    </p>
-                  </div>
-                )}
-
-                {event.quotes && event.quotes.length > 0 && (
-                  <div className="space-y-2">
-                    <div className={`flex items-center gap-1.5 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      <Quote className="w-3.5 h-3.5" />
-                      <span>Related quotes</span>
-                    </div>
-                    {event.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'}`}>
-                        <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                          "{quote}"
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            );
 
             return (
               <div
@@ -107,8 +79,31 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                     </div>
 
                     {isExpanded && hasDetails && (
-                      <div className={`mt-4 pt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 md:hidden ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
-                        {detailsInner}
+                      <div className={`mt-4 pt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
+                        {event.details && (
+                          <div className="flex gap-2">
+                            <Info className={`w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5`} />
+                            <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                              {event.details}
+                            </p>
+                          </div>
+                        )}
+
+                        {event.quotes && event.quotes.length > 0 && (
+                          <div className="space-y-2">
+                            <div className={`flex items-center gap-1.5 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <Quote className="w-3.5 h-3.5" />
+                              <span>Related quotes</span>
+                            </div>
+                            {event.quotes.map((quote, qIndex) => (
+                              <div key={qIndex} className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'}`}>
+                                <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                  "{quote}"
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </button>
@@ -123,22 +118,6 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                     isLeft ? 'left-1/2 ml-5' : 'right-1/2 mr-5'
                   }`}
                 ></div>
-
-                {isExpanded && hasDetails && (
-                  <div
-                    className={`hidden md:block absolute top-0 z-20 ${
-                      isLeft ? 'left-1/2 ml-8' : 'right-1/2 mr-8'
-                    }`}
-                  >
-                    <div
-                      className={`w-[min(32rem,calc(50%-3rem))] rounded-xl p-5 border-2 shadow-xl ${
-                        isDark ? 'bg-slate-900/80 border-slate-700/70' : 'bg-white/95 border-slate-200'
-                      }`}
-                    >
-                      {detailsInner}
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
