@@ -131,7 +131,7 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                     }`}
                   >
                     <div
-                      className={`w-[360px] lg:w-[460px] rounded-xl p-5 border-2 shadow-xl ${
+                      className={`w-[min(32rem,calc(50%-3rem))] rounded-xl p-5 border-2 shadow-xl ${
                         isDark ? 'bg-slate-900/80 border-slate-700/70' : 'bg-white/95 border-slate-200'
                       }`}
                     >
