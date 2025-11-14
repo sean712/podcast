@@ -6,9 +6,13 @@ interface LocationMapProps {
   locations: GeocodedLocation[];
   isLoading?: boolean;
   error?: string | null;
+  /** When false, hide the built-in side panel/list so the page can render its own overlay */
+  showSidePanel?: boolean;
+  /** Custom non-fullscreen height for the map container (e.g., 'calc(100vh - 158px)') */
+  mapHeight?: string;
 }
 
-export default function LocationMap({ locations, isLoading, error }: LocationMapProps) {
+export default function LocationMap({ locations, isLoading, error, showSidePanel = true, mapHeight }: LocationMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
@@ -240,7 +244,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
         {/* Map Container */}
         <div
           className="relative w-full"
-          style={{ height: isFullscreen ? 'calc(100vh - 70px)' : 'calc(100vh - 250px)', minHeight: '400px' }}
+          style={{ height: isFullscreen ? 'calc(100vh - 70px)' : (mapHeight || 'calc(100vh - 250px)'), minHeight: '400px' }}
           ref={mapContainerRef}
         />
 
@@ -276,73 +280,12 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
         </div>
 
         {/* Desktop overlay panel */}
-        <div
-          className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
-          style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
-        >
-          <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
-              <MapPin className="w-4 h-4 text-orange-400" />
-              <span className="text-sm font-semibold text-slate-100">
-                {locations.length} {locations.length === 1 ? 'Location' : 'Locations'}
-              </span>
-            </div>
-          </div>
-          <div className="p-4 overflow-y-auto" style={{ maxHeight: 'inherit' }}>
-            <div className="grid grid-cols-1 gap-3">
-              {locations.map((location, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setSelectedLocation(location);
-                    if (mapInstanceRef.current) {
-                      const map = mapInstanceRef.current;
-                      const currentZoom = map.getZoom();
-                      const targetZoom = Math.min(8, Math.max(currentZoom, 6));
-                      map.flyTo([location.lat, location.lon], targetZoom, {
-                        duration: 1.2,
-                        easeLinearity: 0.25,
-                        animate: true
-                      });
-                    }
-                  }}
-                  className={`w-full text-left p-3 rounded-xl transition-all duration-300 group/location ${
-                    selectedLocation === location
-                      ? 'bg-slate-800 border-2 border-cyan-400/60 shadow-sm'
-                      : 'bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 pt-1">
-                      <div className={`w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                        selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
-                      } transition-transform duration-300`}>
-                        {index + 1}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className={`font-semibold text-sm mb-1 ${
-                        selectedLocation === location ? 'text-white' : 'text-slate-100'
-                      }`}>
-                        {location.name}
-                      </div>
-                      {location.context && (
-                        <div className="text-xs text-slate-300/90 line-clamp-3">
-                          {location.context}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile list below map */}
-        <div className="lg:hidden">
-          <div className="mt-3 rounded-2xl bg-slate-900 border border-slate-800">
-            <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+        {showSidePanel && (
+          <div
+            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
+            style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
+          >
+            <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
                 <MapPin className="w-4 h-4 text-orange-400" />
                 <span className="text-sm font-semibold text-slate-100">
@@ -350,7 +293,7 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
                 </span>
               </div>
             </div>
-            <div className="p-4 overflow-y-auto" style={{ maxHeight: isFullscreen ? 'calc(100vh - 150px)' : 'calc(100vh - 320px)' }}>
+            <div className="p-4 overflow-y-auto" style={{ maxHeight: 'inherit' }}>
               <div className="grid grid-cols-1 gap-3">
                 {locations.map((location, index) => (
                   <button
@@ -400,7 +343,72 @@ export default function LocationMap({ locations, isLoading, error }: LocationMap
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Mobile list below map */}
+        {showSidePanel && (
+          <div className="lg:hidden">
+            <div className="mt-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
+                  <MapPin className="w-4 h-4 text-orange-400" />
+                  <span className="text-sm font-semibold text-slate-100">
+                    {locations.length} {locations.length === 1 ? 'Location' : 'Locations'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 overflow-y-auto" style={{ maxHeight: isFullscreen ? 'calc(100vh - 150px)' : 'calc(100vh - 320px)' }}>
+                <div className="grid grid-cols-1 gap-3">
+                  {locations.map((location, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSelectedLocation(location);
+                        if (mapInstanceRef.current) {
+                          const map = mapInstanceRef.current;
+                          const currentZoom = map.getZoom();
+                          const targetZoom = Math.min(8, Math.max(currentZoom, 6));
+                          map.flyTo([location.lat, location.lon], targetZoom, {
+                            duration: 1.2,
+                            easeLinearity: 0.25,
+                            animate: true
+                          });
+                        }
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition-all duration-300 group/location ${
+                        selectedLocation === location
+                          ? 'bg-slate-800 border-2 border-cyan-400/60 shadow-sm'
+                          : 'bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 pt-1">
+                          <div className={`w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
+                            selectedLocation === location ? 'scale-110' : 'group-hover/location:scale-110'
+                          } transition-transform duration-300`}>
+                            {index + 1}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={`font-semibold text-sm mb-1 ${
+                            selectedLocation === location ? 'text-white' : 'text-slate-100'
+                          }`}>
+                            {location.name}
+                          </div>
+                          {location.context && (
+                            <div className="text-xs text-slate-300/90 line-clamp-3">
+                              {location.context}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
