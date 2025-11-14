@@ -9,6 +9,7 @@ interface TranscriptViewerProps {
   podcastName: string;
   onTextSelected?: (text: string) => void;
   onNoteCreated?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 interface TranscriptSegment {
@@ -17,7 +18,7 @@ interface TranscriptSegment {
   text: string;
 }
 
-export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onNoteCreated }: TranscriptViewerProps) {
+export default function TranscriptViewer({ transcript, episodeTitle, episodeId, podcastName, onTextSelected, onNoteCreated, theme = 'light' }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedText, setSelectedText] = useState('');
   const [showCreateNoteButton, setShowCreateNoteButton] = useState(false);
@@ -234,31 +235,37 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
 
   if (!transcript) {
     return (
-      <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-        <p className="text-slate-700 font-medium">No transcript available</p>
-        <p className="text-slate-500 text-sm mt-1">This episode doesn't have a transcript yet</p>
+      <div className={`${theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-12 text-center shadow-sm`}>
+        <p className={`${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'} font-medium`}>No transcript available</p>
+        <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1`}>This episode doesn't have a transcript yet</p>
       </div>
     );
   }
 
   return (
     <div className="relative">
-      <div className="relative bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-slate-200">
+      <div className={`relative overflow-hidden shadow-sm rounded-xl ${theme === 'dark' ? 'bg-slate-900/60 border border-slate-700' : 'bg-white border border-slate-200'}`}>
+        <div className={`p-6 ${theme === 'dark' ? 'border-b border-slate-700' : 'border-b border-slate-200'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-400'}`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search transcript..."
-                className="w-full pl-10 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400"
+                className={`w-full pl-10 pr-10 py-2 rounded-lg text-sm focus:outline-none ${
+                  theme === 'dark'
+                    ? 'bg-slate-800 border border-slate-700 text-slate-200 placeholder-slate-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400'
+                    : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                }`}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-900"
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                    theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-900'
+                  }`}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -268,15 +275,15 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
 
           <div className="flex items-center justify-end gap-4">
             <label className="flex items-center gap-2 cursor-pointer group">
-              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Show speakers</span>
+              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>Show speakers</span>
               <button
                 onClick={() => setShowSpeakers(!showSpeakers)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showSpeakers ? 'bg-emerald-500' : 'bg-slate-300'
+                  showSpeakers ? 'bg-emerald-500' : (theme === 'dark' ? 'bg-slate-700' : 'bg-slate-300')
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-white'} transition-transform ${
                     showSpeakers ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -284,15 +291,15 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer group">
-              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Show timestamps</span>
+              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>Show timestamps</span>
               <button
                 onClick={() => setShowTimestamps(!showTimestamps)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showTimestamps ? 'bg-emerald-500' : 'bg-slate-300'
+                  showTimestamps ? 'bg-emerald-500' : (theme === 'dark' ? 'bg-slate-700' : 'bg-slate-300')
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-white'} transition-transform ${
                     showTimestamps ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -303,11 +310,11 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
 
         <div
           ref={containerRef}
-          className="p-8 overflow-y-auto bg-slate-50 max-h-[600px] relative"
+          className={`p-8 overflow-y-auto max-h-[600px] relative ${theme === 'dark' ? 'bg-slate-900/40' : 'bg-slate-50'}`}
           style={{ scrollBehavior: 'smooth' }}
         >
           <div
-            className="max-w-4xl mx-auto text-base"
+            className={`max-w-4xl mx-auto text-base`}
             onMouseUp={handleTextSelection}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -317,18 +324,18 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               <div key={i} className="mb-6">
                 <div className="flex items-start gap-3">
                   {showTimestamps && segment.timestamp && (
-                    <span className="text-slate-500 text-xs font-mono mt-1 flex-shrink-0 w-20">
+                    <span className={`text-xs font-mono mt-1 flex-shrink-0 w-20 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                       {segment.timestamp}
                     </span>
                   )}
                   <div className="flex-1">
                     {showSpeakers && segment.speaker && (
-                      <span className="text-slate-600 font-semibold text-sm bg-slate-200 px-2 py-0.5 rounded mr-2">
+                      <span className={`${theme === 'dark' ? 'text-slate-100 bg-slate-800' : 'text-slate-600 bg-slate-200'} font-semibold text-sm px-2 py-0.5 rounded mr-2`}>
                         {segment.speaker}
                       </span>
                     )}
                     <span
-                      className="text-slate-700 leading-relaxed"
+                      className={`${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'} leading-relaxed`}
                       dangerouslySetInnerHTML={{
                         __html: 'highlightedText' in segment ? segment.highlightedText : segment.text
                       }}
@@ -361,24 +368,24 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
 
       {showNoteModal && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={handleCancelNote}
         >
           <div
-            className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6"
+            className={`${theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border shadow-2xl max-w-2xl w-full p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <StickyNote className="w-5 h-5 text-amber-600" />
+              <div className={`${theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-100'} p-2 rounded-lg`}>
+                <StickyNote className={`w-5 h-5 ${theme === 'dark' ? 'text-amber-300' : 'text-amber-600'}`} />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Create Note</h3>
+              <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Create Note</h3>
             </div>
 
             {selectedText && (
-              <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
-                <p className="text-sm text-amber-800 mb-2 font-semibold">Highlighted text:</p>
-                <p className="text-sm text-slate-700 italic">"{selectedText}"</p>
+              <div className={`mb-4 p-4 border-l-4 border-amber-400 rounded-lg ${theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50'}`}>
+                <p className={`text-sm mb-2 font-semibold ${theme === 'dark' ? 'text-amber-300' : 'text-amber-800'}`}>Highlighted text:</p>
+                <p className={`text-sm italic ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>"{selectedText}"</p>
               </div>
             )}
 
@@ -386,7 +393,11 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Write your note here..."
-              className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 placeholder-slate-400 resize-none mb-4"
+              className={`w-full px-4 py-3 rounded-lg text-sm resize-none mb-4 ${
+                theme === 'dark'
+                  ? 'bg-slate-800 border border-slate-700 text-slate-200 placeholder-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none'
+                  : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none'
+              }`}
               rows={6}
               autoFocus
             />
@@ -394,14 +405,16 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleCancelNote}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveNote}
                 disabled={!noteText.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-slate-600 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
               >
                 <Save className="w-4 h-4" />
                 Save Note

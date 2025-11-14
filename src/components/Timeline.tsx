@@ -26,7 +26,7 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
         <div className="space-y-12">
           {events.map((event, index) => {
             const isExpanded = expandedEvent === index;
-            const hasDetails = event.details || (event.quotes && event.quotes.length > 0);
+            const hasDetails = !!(event.significance || event.details || (event.quotes && event.quotes.length > 0));
             const isLeft = index % 2 === 0;
 
             return (
@@ -60,9 +60,11 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                           {event.event}
                         </h4>
 
-                        <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                          {event.significance}
-                        </p>
+                        {isExpanded && event.significance && (
+                          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {event.significance}
+                          </p>
+                        )}
                       </div>
 
                       {hasDetails && (

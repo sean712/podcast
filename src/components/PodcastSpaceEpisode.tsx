@@ -241,6 +241,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             episodeId={episode.episode_id}
             podcastName={podcast.name}
             onTextSelected={handleTextSelected}
+            theme="dark"
           />
         );
       case 'notes':
@@ -251,6 +252,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             podcastName={podcast.name}
             highlightedText={highlightedTextForNote}
             onHighlightUsed={handleHighlightUsed}
+            theme="dark"
           />
         );
       default:

@@ -239,8 +239,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   }
 
   return (
-    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`} ref={containerRef}>
-      <div className={`relative bg-white backdrop-blur-xl border border-slate-200 overflow-hidden shadow-sm ${isFullscreen ? 'h-screen w-screen' : 'rounded-2xl'}`}>
+    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900' : ''}`} ref={containerRef}>
+      <div className={`relative bg-slate-900 overflow-hidden ${isFullscreen ? 'h-screen w-screen' : ''}`}>
         {/* Map Container - full width when side panel hidden */}
         <div
           className="relative w-full"

@@ -8,6 +8,7 @@ interface EpisodeNotesProps {
   podcastName: string;
   highlightedText?: string;
   onHighlightUsed?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 const noteColors = [
@@ -24,7 +25,8 @@ export default function EpisodeNotes({
   episodeTitle,
   podcastName,
   highlightedText,
-  onHighlightUsed
+  onHighlightUsed,
+  theme = 'light'
 }: EpisodeNotesProps) {
   const [notes, setNotes] = useState<LocalNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -227,11 +229,11 @@ export default function EpisodeNotes({
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+      <div className={`${theme === 'dark' ? 'bg-slate-800/60 border-slate-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4 flex items-start gap-3`}>
+        <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${theme === 'dark' ? 'text-slate-300' : 'text-blue-600'}`} />
         <div className="text-sm">
-          <p className="text-blue-900 font-medium mb-1">Notes are stored locally in your browser</p>
-          <p className="text-blue-700 text-xs">Your notes won't sync across devices. Use export to back them up.</p>
+          <p className={`${theme === 'dark' ? 'text-slate-200' : 'text-blue-900'} font-medium mb-1`}>Notes are stored locally in your browser</p>
+          <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-blue-700'} text-xs`}>Your notes won't sync across devices. Use export to back them up.</p>
         </div>
       </div>
 
@@ -249,38 +251,38 @@ export default function EpisodeNotes({
           <div className="relative">
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
               title="Export & Import"
             >
               <Download className="w-5 h-5" />
             </button>
             {showExportMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-10">
+              <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-xl z-10 ${theme === 'dark' ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}>
                 <button
                   onClick={handleExportJSON}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 rounded-t-lg"
+                  className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 rounded-t-lg ${theme === 'dark' ? 'text-slate-200 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50'}`}
                 >
                   <Download className="w-4 h-4" />
                   Export as JSON
                 </button>
                 <button
                   onClick={handleExportText}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                  className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${theme === 'dark' ? 'text-slate-200 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50'}`}
                 >
                   <Download className="w-4 h-4" />
                   Export as Text
                 </button>
                 <button
                   onClick={handleImport}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                  className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${theme === 'dark' ? 'text-slate-200 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50'}`}
                 >
                   <Upload className="w-4 h-4" />
                   Import Notes
                 </button>
-                <div className="border-t border-slate-200" />
+                <div className={`border-t ${theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}`} />
                 <button
                   onClick={handleClearAll}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 rounded-b-lg"
+                  className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 rounded-b-lg ${theme === 'dark' ? 'text-red-400 hover:bg-red-900/20' : 'text-red-600 hover:bg-red-50'}`}
                 >
                   <Trash2 className="w-4 h-4" />
                   Clear All Notes
@@ -299,12 +301,14 @@ export default function EpisodeNotes({
       )}
 
       {isCreating && (
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <div className={`${theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-5 shadow-sm`}>
           <textarea
             value={newNoteText}
             onChange={(e) => setNewNoteText(e.target.value)}
             placeholder="Write your note here..."
-            className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 placeholder-slate-400 resize-none"
+            className={`w-full px-4 py-3 rounded-lg focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm placeholder-slate-400 resize-none ${
+              theme === 'dark' ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-slate-50 border border-slate-200 text-slate-900'
+            }`}
             rows={4}
             autoFocus
           />
@@ -325,7 +329,9 @@ export default function EpisodeNotes({
                   onHighlightUsed();
                 }
               }}
-              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+              className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                theme === 'dark' ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
             >
               Cancel
             </button>
@@ -334,30 +340,32 @@ export default function EpisodeNotes({
       )}
 
       {isLoading ? (
-        <div className="text-center py-12 text-slate-600">Loading notes...</div>
+        <div className={`text-center py-12 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>Loading notes...</div>
       ) : notes.length === 0 ? (
-        <div className="text-center py-12 bg-white border border-slate-200 rounded-xl">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <StickyNote className="w-8 h-8 text-slate-400" />
+        <div className={`text-center py-12 border rounded-xl ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'}`}>
+            <StickyNote className={`w-8 h-8 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-400'}`} />
           </div>
-          <p className="text-slate-700 font-medium mb-1">No notes yet</p>
-          <p className="text-slate-500 text-sm">Create your first note to remember important details!</p>
+          <p className={`${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'} font-medium mb-1`}>No notes yet</p>
+          <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} text-sm`}>Create your first note to remember important details!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {notes.map((note, index) => {
             const color = getNoteColor(index);
             return (
               <div
                 key={note.id}
-                className={`bg-white border ${color.border} rounded-xl p-5 ${color.hover} transition-all shadow-sm hover:shadow-md`}
+                className={`${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : `bg-white ${color.border} ${color.hover}`} border rounded-xl p-5 transition-all shadow-sm hover:shadow-md`}
               >
               {editingNoteId === note.id ? (
                 <>
                   <textarea
                     value={editingText}
                     onChange={(e) => setEditingText(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm text-slate-900 resize-none mb-3"
+                    className={`w-full px-4 py-3 rounded-lg focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:outline-none text-sm resize-none mb-3 ${
+                      theme === 'dark' ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-slate-50 border border-slate-200 text-slate-900'
+                    }`}
                     rows={4}
                   />
                   <div className="flex gap-2">
@@ -371,7 +379,9 @@ export default function EpisodeNotes({
                     </button>
                     <button
                       onClick={cancelEditing}
-                      className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                      className={`px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+                        theme === 'dark' ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
                     >
                       Cancel
                     </button>
@@ -380,13 +390,13 @@ export default function EpisodeNotes({
               ) : (
                 <>
                   {note.highlightedText && (
-                    <div className={`mb-3 p-3 ${color.bg} border-l-4 ${color.accent} rounded`}>
-                      <p className="text-xs text-slate-700 italic">"{note.highlightedText}"</p>
+                    <div className={`mb-3 p-3 border-l-4 ${color.accent} rounded ${theme === 'dark' ? 'bg-slate-800' : color.bg}`}>
+                      <p className={`text-xs italic ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>"{note.highlightedText}"</p>
                     </div>
                   )}
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap mb-4 leading-relaxed">{note.noteText}</p>
+                  <p className={`text-sm whitespace-pre-wrap mb-4 leading-relaxed ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{note.noteText}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">
+                    <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                     {new Date(note.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -398,26 +408,26 @@ export default function EpisodeNotes({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleShareNote(note)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className={`p-1.5 rounded transition-colors ${theme === 'dark' ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'}`}
                         aria-label="Share note"
                         title="Share or copy to clipboard"
                       >
                         {copiedNoteId === note.id ? (
-                          <Check className="w-4 h-4 text-emerald-600" />
+                          <Check className="w-4 h-4 text-emerald-500" />
                         ) : (
                           <Share2 className="w-4 h-4" />
                         )}
                       </button>
                       <button
                         onClick={() => startEditing(note)}
-                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                        className={`p-1.5 rounded transition-colors ${theme === 'dark' ? 'text-slate-400 hover:text-amber-300 hover:bg-slate-800' : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'}`}
                         aria-label="Edit note"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteNote(note.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className={`p-1.5 rounded transition-colors ${theme === 'dark' ? 'text-slate-400 hover:text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:text-red-600 hover:bg-red-50'}`}
                         aria-label="Delete note"
                       >
                         <Trash2 className="w-4 h-4" />
