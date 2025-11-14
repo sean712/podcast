@@ -11,7 +11,7 @@ export default function KeyMoments({ moments, theme = 'light' }: KeyMomentsProps
 
   return (
     <div className={`${theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6 shadow-sm`}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {moments.map((moment, index) => (
           <div
             key={index}

@@ -212,7 +212,7 @@ export default function AudioPlayer({
         <button
           onClick={togglePlayPause}
           disabled={isLoading || !!error}
-          className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0"
+          className="p-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0"
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isLoading ? (
@@ -231,7 +231,7 @@ export default function AudioPlayer({
             <span>{formatTime(duration)}</span>
           </div>
 
-          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden cursor-pointer group relative">
+          <div className="flex-1 h-1.5 bg-slate-700/40 rounded-full overflow-hidden cursor-pointer group relative">
             <input
               type="range"
               min="0"
@@ -242,22 +242,22 @@ export default function AudioPlayer({
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
             />
             <div
-              className="h-full bg-blue-600 transition-all relative"
+              className="h-full bg-cyan-400 transition-all relative"
               style={{ width: `${progressPercentage}%` }}
             >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
             </div>
           </div>
 
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-              className="px-2 py-1 text-xs font-medium rounded text-slate-700 hover:bg-slate-100 transition-colors border border-slate-300"
+              className="px-2 py-1 text-xs font-medium rounded text-slate-200 hover:bg-slate-800/60 transition-colors border border-slate-600"
             >
               {playbackRate}x
             </button>
             {showSpeedMenu && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1 min-w-[60px]">
+              <div className="absolute bottom-full mb-2 right-0 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 py-1 min-w-[60px]">
                 {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
                   <button
                     key={rate}
@@ -267,8 +267,8 @@ export default function AudioPlayer({
                     }}
                     className={`w-full px-3 py-1.5 text-xs font-medium text-left transition-colors ${
                       playbackRate === rate
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-700 hover:bg-slate-50'
+                        ? 'bg-cyan-500/10 text-cyan-300'
+                        : 'text-slate-200 hover:bg-slate-800/60'
                     }`}
                   >
                     {rate}x
@@ -315,11 +315,11 @@ export default function AudioPlayer({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
 
       {error && (
-        <div className="px-6 py-3 bg-red-50 border-b border-red-100 text-red-700 text-sm">
+        <div className="px-6 py-3 bg-red-900/20 border-b border-red-700/40 text-red-200 text-sm">
           {error}
         </div>
       )}
@@ -334,10 +334,10 @@ export default function AudioPlayer({
             />
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-slate-900 truncate mb-1">
+            <h3 className="font-semibold text-white truncate mb-1">
               Now Playing
             </h3>
-            <p className="text-sm text-slate-600 truncate">{episodeTitle}</p>
+            <p className="text-sm text-slate-300 truncate">{episodeTitle}</p>
           </div>
         </div>
 
@@ -350,16 +350,16 @@ export default function AudioPlayer({
               value={currentTime}
               onChange={handleSeek}
               disabled={isLoading || !!error}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50
                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
-                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:cursor-pointer
+                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:cursor-pointer
                 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full
-                [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #2563eb 0%, #2563eb ${progressPercentage}%, #e2e8f0 ${progressPercentage}%, #e2e8f0 100%)`
+                background: `linear-gradient(to right, #22d3ee 0%, #22d3ee ${progressPercentage}%, #1f2937 ${progressPercentage}%, #1f2937 100%)`
               }}
             />
-            <div className="flex justify-between text-xs text-slate-600">
+            <div className="flex justify-between text-xs text-slate-300">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -369,7 +369,7 @@ export default function AudioPlayer({
             <button
               onClick={() => skip(-15)}
               disabled={isLoading || !!error}
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Skip back 15 seconds"
             >
               <SkipBack className="w-5 h-5" />
@@ -378,7 +378,7 @@ export default function AudioPlayer({
             <button
               onClick={togglePlayPause}
               disabled={isLoading || !!error}
-              className="p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              className="p-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoading ? (
@@ -393,18 +393,18 @@ export default function AudioPlayer({
             <button
               onClick={() => skip(15)}
               disabled={isLoading || !!error}
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Skip forward 15 seconds"
             >
               <SkipForward className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
             <div className="flex items-center gap-3">
               <button
                 onClick={toggleMute}
-                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors"
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
               >
                 {isMuted ? (
@@ -420,23 +420,23 @@ export default function AudioPlayer({
                 step="0.01"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer
+                className="w-20 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer
                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-slate-600 [&::-webkit-slider-thumb]:cursor-pointer
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-slate-300 [&::-webkit-slider-thumb]:cursor-pointer
                   [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full
-                  [&::-moz-range-thumb]:bg-slate-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                  [&::-moz-range-thumb]:bg-slate-300 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
               />
             </div>
 
             <div className="relative">
               <button
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="px-3 py-1.5 text-xs font-medium rounded text-slate-700 hover:bg-slate-100 transition-colors border border-slate-300"
+                className="px-3 py-1.5 text-xs font-medium rounded text-slate-200 hover:bg-slate-800 transition-colors border border-slate-600"
               >
                 {playbackRate}x
               </button>
               {showSpeedMenu && (
-                <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1 min-w-[70px]">
+                <div className="absolute bottom-full mb-2 right-0 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 py-1 min-w-[70px]">
                   {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
                     <button
                       key={rate}
@@ -446,8 +446,8 @@ export default function AudioPlayer({
                       }}
                       className={`w-full px-3 py-2 text-xs font-medium text-left transition-colors ${
                         playbackRate === rate
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-slate-700 hover:bg-slate-50'
+                          ? 'bg-cyan-500/10 text-cyan-300'
+                          : 'text-slate-200 hover:bg-slate-800'
                       }`}
                     >
                       {rate}x

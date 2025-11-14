@@ -31,7 +31,7 @@ export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonne
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
         {personnel.map((person, index) => {
           const color = getColor(index);
           return (
