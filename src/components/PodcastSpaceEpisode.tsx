@@ -170,7 +170,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     </div>
                   </div>
                 )}
-                {analysis && <EpisodeSummary summary={analysis.summary} />}
+                {analysis && <EpisodeSummary summary={analysis.summary} theme="dark" />}
               </>
             )}
           </div>
@@ -203,7 +203,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   </div>
                 )}
                 {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                  <KeyMoments moments={analysis.keyMoments} />
+                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
                 )}
               </>
             )}
@@ -211,7 +211,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'people':
         return analysis ? (
-          <KeyPersonnel personnel={analysis.keyPersonnel} />
+          <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No personnel data available yet</p>
@@ -219,7 +219,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'timeline':
         return analysis ? (
-          <Timeline events={analysis.timeline} />
+          <Timeline events={analysis.timeline} theme="dark" />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No timeline data available yet</p>
@@ -227,7 +227,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'references':
         return analysis ? (
-          <References references={analysis.references} />
+          <References references={analysis.references} theme="dark" />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No references data available yet</p>
