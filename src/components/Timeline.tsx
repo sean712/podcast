@@ -37,7 +37,7 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                 } justify-start`}
               >
                 <div
-                  className={`w-full md:w-5/12 ${
+                  className={`w-full md:w-6/12 ${
                     isLeft ? 'md:pr-12' : 'md:pl-12 md:ml-auto'
                   } pl-12 md:pl-0`}
                 >

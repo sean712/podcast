@@ -323,7 +323,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <img
                   src={episode.image_url}
                   alt={episode.title}
-                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
                 />
               )}
               <div className="min-w-0 flex-1">
@@ -348,7 +348,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <img
                   src={episode.image_url}
                   alt={episode.title}
-                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
                 />
               )}
               <div className="min-w-0 flex-1">
