@@ -7,10 +7,11 @@ interface MiniPlayerProps {
 }
 
 export default function MiniPlayer({ onExpand }: MiniPlayerProps) {
-  const { currentEpisode, isPlaying, setIsPlaying, currentTime, setCurrentTime } = useAudio();
+  const { currentEpisode, isPlaying, setIsPlaying, currentTime, setCurrentTime, seekTo } = useAudio();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastSeekTime, setLastSeekTime] = useState<number | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -62,6 +63,21 @@ export default function MiniPlayer({ onExpand }: MiniPlayerProps) {
       audio.pause();
     }
   }, [isPlaying, currentEpisode, setIsPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && currentTime !== lastSeekTime && Math.abs(audio.currentTime - currentTime) > 1) {
+      audio.currentTime = currentTime;
+      setLastSeekTime(currentTime);
+      if (!isPlaying) {
+        audio.play().then(() => {
+          setIsPlaying(true);
+        }).catch(err => {
+          console.error('Error playing audio after seek:', err);
+        });
+      }
+    }
+  }, [currentTime]);
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);

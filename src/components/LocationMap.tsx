@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, Loader2, AlertCircle, Quote, Maximize2, Minimize2 } from 'lucide-react';
+import { MapPin, Loader2, AlertCircle, Quote, Maximize2, Minimize2, Play } from 'lucide-react';
 import type { GeocodedLocation } from '../services/geocodingService';
+import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface LocationMapProps {
   locations: GeocodedLocation[];
@@ -10,14 +12,16 @@ interface LocationMapProps {
   showSidePanel?: boolean;
   /** Custom non-fullscreen height for the map container (e.g., 'calc(100vh - 158px)') */
   mapHeight?: string;
+  currentEpisodeId?: string;
 }
 
-export default function LocationMap({ locations, isLoading, error, showSidePanel = true, mapHeight }: LocationMapProps) {
+export default function LocationMap({ locations, isLoading, error, showSidePanel = true, mapHeight, currentEpisodeId }: LocationMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -339,6 +343,45 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                         {location.context && (
                           <div className="text-xs text-slate-300/90 line-clamp-3">
                             {location.context}
+                          </div>
+                        )}
+                        {location.quotes && location.quotes.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {location.quotes.map((quote, qIndex) => {
+                              const timestamp = quote.timestamp ? parseTimestamp(quote.timestamp) : null;
+                              const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                              const handleQuoteClick = (e: React.MouseEvent) => {
+                                e.stopPropagation();
+                                if (isPlayable && timestamp !== null) {
+                                  seekTo(timestamp);
+                                  setIsPlaying(true);
+                                }
+                              };
+
+                              return (
+                                <div
+                                  key={qIndex}
+                                  onClick={handleQuoteClick}
+                                  className={`text-xs italic text-slate-400 border-l-2 border-orange-500 pl-2 py-1 ${
+                                    isPlayable ? 'cursor-pointer hover:text-emerald-400 hover:border-emerald-500' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-1.5">
+                                    <Quote className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                      <div>"{quote.text}"</div>
+                                      {isPlayable && timestamp !== null && (
+                                        <div className="flex items-center gap-1 mt-0.5 text-emerald-400">
+                                          <Play className="w-3 h-3" fill="currentColor" />
+                                          <span>{formatTimestamp(timestamp)}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

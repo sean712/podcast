@@ -1,9 +1,12 @@
-import { Book, Film, Building2, Package, FileText, Globe, Tag } from 'lucide-react';
+import { Book, Film, Building2, Package, FileText, Globe, Tag, Play } from 'lucide-react';
 import type { Reference } from '../services/openaiService';
+import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface ReferencesProps {
   references: Reference[];
   theme?: 'light' | 'dark';
+  currentEpisodeId?: string;
 }
 
 const typeIcons = {
@@ -36,7 +39,8 @@ const typeLabels = {
   other: 'Other',
 };
 
-export default function References({ references, theme = 'light' }: ReferencesProps) {
+export default function References({ references, theme = 'light', currentEpisodeId }: ReferencesProps) {
+  const { currentEpisode, seekTo, setIsPlaying } = useAudio();
   const groupedReferences = references.reduce((acc, ref) => {
     if (!acc[ref.type]) {
       acc[ref.type] = [];
@@ -76,19 +80,49 @@ export default function References({ references, theme = 'light' }: ReferencesPr
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {refs.map((ref, index) => (
-                  <div key={index} className={`rounded-xl p-5 transition-all border ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}>
-                    <h4 className={`font-semibold text-base mb-2.5 leading-snug ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
-                    {ref.context && (
-                      <p className={`text-sm mb-3 leading-relaxed ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
-                    )}
-                    {ref.quote && (
-                      <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
-                        "{ref.quote}"
-                      </blockquote>
-                    )}
-                  </div>
-                ))}
+                {refs.map((ref, index) => {
+                  const timestamp = ref.timestamp ? parseTimestamp(ref.timestamp) : null;
+                  const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                  const handleClick = () => {
+                    if (isPlayable && timestamp !== null) {
+                      seekTo(timestamp);
+                      setIsPlaying(true);
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={handleClick}
+                      className={`rounded-xl p-5 transition-all border ${
+                        isPlayable ? 'cursor-pointer' : ''
+                      } ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className={`font-semibold text-base mb-2.5 leading-snug ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
+                        {isPlayable && (
+                          <div className={`flex-shrink-0 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                            <Play className="w-4 h-4" fill="currentColor" />
+                          </div>
+                        )}
+                      </div>
+                      {ref.context && (
+                        <p className={`text-sm mb-3 leading-relaxed ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
+                      )}
+                      {ref.quote && (
+                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
+                          "{ref.quote}"
+                        </blockquote>
+                      )}
+                      {isPlayable && timestamp !== null && (
+                        <div className={`text-xs font-medium mt-2 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                          {formatTimestamp(timestamp)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

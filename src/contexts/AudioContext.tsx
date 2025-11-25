@@ -19,6 +19,7 @@ interface AudioContextType {
   } | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
+  seekTo: (time: number) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -27,6 +28,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentEpisode, setCurrentEpisode] = useState<AudioContextType['currentEpisode']>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [seekToTime, setSeekToTime] = useState<number | null>(null);
+
+  const seekTo = (time: number) => {
+    setSeekToTime(time);
+    setCurrentTime(time);
+  };
 
   return (
     <AudioContext.Provider
@@ -37,6 +44,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setCurrentEpisode,
         setIsPlaying,
         setCurrentTime,
+        seekTo,
       }}
     >
       {children}

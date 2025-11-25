@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Calendar, Quote, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Calendar, Quote, ChevronDown, ChevronUp, Info, Play } from 'lucide-react';
 import type { TimelineEvent } from '../services/openaiService';
+import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface TimelineProps {
   events: TimelineEvent[];
   theme?: 'light' | 'dark';
+  currentEpisodeId?: string;
 }
 
-export default function Timeline({ events, theme = 'light' }: TimelineProps) {
+export default function Timeline({ events, theme = 'light', currentEpisodeId }: TimelineProps) {
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
+  const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
   if (events.length === 0) return null;
 
@@ -95,13 +99,46 @@ export default function Timeline({ events, theme = 'light' }: TimelineProps) {
                               <Quote className="w-3.5 h-3.5" />
                               <span>Related quotes</span>
                             </div>
-                            {event.quotes.map((quote, qIndex) => (
-                              <div key={qIndex} className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'}`}>
-                                <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                                  "{quote}"
-                                </p>
-                              </div>
-                            ))}
+                            {event.quotes.map((quote, qIndex) => {
+                              const quoteText = typeof quote === 'string' ? quote : quote.text;
+                              const quoteTimestamp = typeof quote === 'object' && quote.timestamp ? quote.timestamp : null;
+                              const timestamp = quoteTimestamp ? parseTimestamp(quoteTimestamp) : null;
+                              const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                              const handleQuoteClick = (e: React.MouseEvent) => {
+                                e.stopPropagation();
+                                if (isPlayable && timestamp !== null) {
+                                  seekTo(timestamp);
+                                  setIsPlaying(true);
+                                }
+                              };
+
+                              return (
+                                <div
+                                  key={qIndex}
+                                  onClick={handleQuoteClick}
+                                  className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'} ${
+                                    isPlayable ? 'cursor-pointer hover:opacity-80' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                      "{quoteText}"
+                                    </p>
+                                    {isPlayable && (
+                                      <div className="flex-shrink-0">
+                                        <Play className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  {isPlayable && timestamp !== null && (
+                                    <div className="text-xs font-medium mt-1.5 text-emerald-500">
+                                      {formatTimestamp(timestamp)}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

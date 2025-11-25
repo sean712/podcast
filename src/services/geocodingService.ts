@@ -1,9 +1,12 @@
+import type { Quote } from './openaiService';
+
 export interface GeocodedLocation {
   name: string;
   context?: string;
   lat: number;
   lon: number;
   displayName: string;
+  quotes?: Quote[];
 }
 
 class GeocodingServiceError extends Error {

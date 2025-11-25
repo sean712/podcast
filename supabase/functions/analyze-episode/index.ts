@@ -143,7 +143,15 @@ Deno.serve(async (req: Request) => {
                         relevance: { type: "string" },
                         quotes: {
                           type: "array",
-                          items: { type: "string" }
+                          items: {
+                            type: "object",
+                            properties: {
+                              text: { type: "string" },
+                              timestamp: { type: "string" }
+                            },
+                            required: ["text", "timestamp"],
+                            additionalProperties: false
+                          }
                         }
                       },
                       required: ["name", "role", "relevance", "quotes"],
@@ -162,7 +170,15 @@ Deno.serve(async (req: Request) => {
                         details: { type: "string" },
                         quotes: {
                           type: "array",
-                          items: { type: "string" }
+                          items: {
+                            type: "object",
+                            properties: {
+                              text: { type: "string" },
+                              timestamp: { type: "string" }
+                            },
+                            required: ["text", "timestamp"],
+                            additionalProperties: false
+                          }
                         }
                       },
                       required: ["date", "event", "significance", "details", "quotes"],
@@ -179,7 +195,15 @@ Deno.serve(async (req: Request) => {
                         context: { type: "string" },
                         quotes: {
                           type: "array",
-                          items: { type: "string" }
+                          items: {
+                            type: "object",
+                            properties: {
+                              text: { type: "string" },
+                              timestamp: { type: "string" }
+                            },
+                            required: ["text", "timestamp"],
+                            additionalProperties: false
+                          }
                         }
                       },
                       required: ["name", "context", "quotes"],
@@ -198,9 +222,10 @@ Deno.serve(async (req: Request) => {
                         },
                         name: { type: "string" },
                         context: { type: "string" },
-                        quote: { type: "string" }
+                        quote: { type: "string" },
+                        timestamp: { type: "string" }
                       },
-                      required: ["type", "name", "context", "quote"],
+                      required: ["type", "name", "context", "quote", "timestamp"],
                       additionalProperties: false
                     }
                   }
@@ -238,7 +263,6 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Find the message output item (skip reasoning items)
       const messageItem = data.output.find((item: any) => item.type === "message");
       if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
         console.error("No message content in output");
@@ -248,7 +272,6 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Find the output_text content item
       const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
 
       if (!contentItem) {

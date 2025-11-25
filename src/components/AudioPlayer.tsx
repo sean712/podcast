@@ -12,6 +12,7 @@ interface AudioPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   initialTime?: number;
   compact?: boolean;
+  seekToTime?: number;
 }
 
 export default function AudioPlayer({
@@ -23,6 +24,7 @@ export default function AudioPlayer({
   onTimeUpdate,
   initialTime = 0,
   compact = false,
+  seekToTime,
 }: AudioPlayerProps) {
   const { user } = useAuth();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -138,6 +140,21 @@ export default function AudioPlayer({
       audio.playbackRate = playbackRate;
     }
   }, [playbackRate]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && seekToTime !== undefined && !isNaN(seekToTime)) {
+      audio.currentTime = seekToTime;
+      setCurrentTime(seekToTime);
+      if (!isPlaying) {
+        audio.play().then(() => {
+          setIsPlaying(true);
+        }).catch(err => {
+          console.error('Error playing audio after seek:', err);
+        });
+      }
+    }
+  }, [seekToTime]);
 
   const togglePlayPause = async () => {
     const audio = audioRef.current;

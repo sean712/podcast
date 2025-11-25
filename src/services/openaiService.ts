@@ -1,16 +1,21 @@
 import { supabase } from '../lib/supabase';
 
+export interface Quote {
+  text: string;
+  timestamp?: string;
+}
+
 export interface ExtractedLocation {
   name: string;
   context?: string;
-  quotes?: string[];
+  quotes?: Quote[];
 }
 
 export interface KeyPerson {
   name: string;
   role: string;
   relevance: string;
-  quotes?: string[];
+  quotes?: Quote[];
 }
 
 export interface TimelineEvent {
@@ -18,7 +23,7 @@ export interface TimelineEvent {
   event: string;
   significance: string;
   details?: string;
-  quotes?: string[];
+  quotes?: Quote[];
 }
 
 export interface KeyMoment {
@@ -33,6 +38,7 @@ export interface Reference {
   name: string;
   context?: string;
   quote?: string;
+  timestamp?: string;
 }
 
 export interface TranscriptAnalysis {

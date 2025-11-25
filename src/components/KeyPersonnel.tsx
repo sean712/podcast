@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Quote, ChevronDown, ChevronUp } from 'lucide-react';
+import { Quote, ChevronDown, ChevronUp, Play } from 'lucide-react';
 import type { KeyPerson } from '../services/openaiService';
+import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface KeyPersonnelProps {
   personnel: KeyPerson[];
   theme?: 'light' | 'dark';
+  currentEpisodeId?: string;
 }
 
-export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonnelProps) {
+export default function KeyPersonnel({ personnel, theme = 'light', currentEpisodeId }: KeyPersonnelProps) {
   const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
+  const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
   if (personnel.length === 0) return null;
 
@@ -73,15 +77,47 @@ export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonne
                   )}
                 </button>
 
-                {expandedPerson === index && (
+                {expandedPerson === index && person.quotes && person.quotes.length > 0 && (
                   <div className="space-y-2.5 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className={`relative pl-4 border-l-2 ${color.quoteBorder} ${isDark ? 'bg-slate-800/60' : color.quoteBg} rounded-r-lg p-3`}>
-                        <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                          "{quote}"
-                        </p>
-                      </div>
-                    ))}
+                    {person.quotes.map((quote, qIndex) => {
+                      const quoteText = typeof quote === 'string' ? quote : quote.text;
+                      const quoteTimestamp = typeof quote === 'object' && quote.timestamp ? quote.timestamp : null;
+                      const timestamp = quoteTimestamp ? parseTimestamp(quoteTimestamp) : null;
+                      const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                      const handleQuoteClick = () => {
+                        if (isPlayable && timestamp !== null) {
+                          seekTo(timestamp);
+                          setIsPlaying(true);
+                        }
+                      };
+
+                      return (
+                        <div
+                          key={qIndex}
+                          onClick={handleQuoteClick}
+                          className={`relative pl-4 border-l-2 ${color.quoteBorder} ${isDark ? 'bg-slate-800/60' : color.quoteBg} rounded-r-lg p-3 ${
+                            isPlayable ? 'cursor-pointer hover:opacity-80' : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                              "{quoteText}"
+                            </p>
+                            {isPlayable && (
+                              <div className="flex-shrink-0">
+                                <Play className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" />
+                              </div>
+                            )}
+                          </div>
+                          {isPlayable && timestamp !== null && (
+                            <div className="text-xs font-medium mt-1.5 text-emerald-500">
+                              {formatTimestamp(timestamp)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

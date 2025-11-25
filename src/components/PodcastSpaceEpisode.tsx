@@ -211,7 +211,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'people':
         return analysis ? (
-          <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" />
+          <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No personnel data available yet</p>
@@ -219,7 +219,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'timeline':
         return analysis ? (
-          <Timeline events={analysis.timeline} theme="dark" />
+          <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No timeline data available yet</p>
@@ -227,7 +227,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         );
       case 'references':
         return analysis ? (
-          <References references={analysis.references} theme="dark" />
+          <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
         ) : (
           <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
             <p className="text-slate-600">No references data available yet</p>
@@ -523,6 +523,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               error={locationError}
               showSidePanel={activeTab === 'map'}
               mapHeight="calc(100vh - 190px)"
+              currentEpisodeId={episode.episode_id}
             />
             {activeTab !== 'map' && (
               <div className="absolute inset-0 z-[1000] pointer-events-none">
@@ -586,7 +587,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {episode.transcript && activeTab === 'timeline' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <Timeline events={analysis.timeline} />
+                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} />
               ) : (
                 <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                   <p className="text-slate-600">No timeline data available yet</p>
@@ -668,7 +669,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {episode.transcript && activeTab === 'people' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <KeyPersonnel personnel={analysis.keyPersonnel} />
+                <KeyPersonnel personnel={analysis.keyPersonnel} currentEpisodeId={episode.episode_id} />
               ) : (
                 <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                   <p className="text-slate-600">No personnel data available yet</p>
@@ -686,6 +687,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 locations={locations}
                 isLoading={isLoadingLocations}
                 error={locationError}
+                currentEpisodeId={episode.episode_id}
               />
             </div>
           )}
@@ -694,7 +696,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {episode.transcript && activeTab === 'references' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <References references={analysis.references} />
+                <References references={analysis.references} currentEpisodeId={episode.episode_id} />
               ) : (
                 <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                   <p className="text-slate-600">No references data available yet</p>
