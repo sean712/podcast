@@ -7,6 +7,7 @@ import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
 import PodcastSpaceAdmin from './components/PodcastSpaceAdmin';
 import AdminPanel from './components/AdminPanel';
 import LandingPage from './components/LandingPage';
+import LandingPageInteractive from './components/LandingPageInteractive';
 import AuthModal from './components/AuthModal';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multiTenant';
 
@@ -284,5 +285,10 @@ export default function AppRouter() {
     );
   }
 
-  return <LandingPage onGetStarted={() => {}} onSignIn={() => {}} />;
+  return (
+    <>
+      <LandingPageInteractive onGetStarted={() => setShowAuthModal(true)} onSignIn={() => setShowAuthModal(true)} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+    </>
+  );
 }
