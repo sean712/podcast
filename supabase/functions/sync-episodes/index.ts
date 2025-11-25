@@ -12,6 +12,7 @@ interface PodcastRecord {
   podcast_id: string;
   name: string;
   is_paused: boolean;
+  consecutive_empty_checks?: number;
 }
 
 interface SyncResult {
@@ -183,9 +184,15 @@ async function syncPodcastEpisodes(
       }
     }
 
+    const updates: any = {
+      last_synced_at: new Date().toISOString(),
+      next_check_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      consecutive_empty_checks: synced > 0 ? 0 : (podcast as any).consecutive_empty_checks || 0,
+    };
+
     await supabase
       .from('podcasts')
-      .update({ last_synced_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', podcast.id);
 
     console.log(`Sync complete for ${podcast.name}: ${synced} synced, ${errors} errors, ${skipped} skipped`);
@@ -216,7 +223,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: podcasts, error: fetchError } = await supabase
       .from('podcasts')
-      .select('id, podcast_id, name, is_paused')
+      .select('id, podcast_id, name, is_paused, consecutive_empty_checks')
       .eq('status', 'active')
       .eq('is_paused', false);
 

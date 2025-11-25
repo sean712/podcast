@@ -9,8 +9,27 @@ export interface PodcastSpace {
   status: 'active' | 'inactive' | 'pending';
   is_paused: boolean;
   last_synced_at: string | null;
+  next_check_at: string | null;
+  check_frequency_hours: number;
+  consecutive_empty_checks: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface EpisodeSyncLog {
+  id: string;
+  job_type: 'daily' | 'manual' | 'backfill';
+  started_at: string;
+  completed_at: string | null;
+  status: 'running' | 'completed' | 'failed' | 'partial';
+  podcasts_checked: number;
+  podcasts_with_new_episodes: number;
+  episodes_synced: number;
+  episodes_failed: number;
+  api_calls_made: number;
+  error_message: string | null;
+  details: Record<string, any>;
+  created_at: string;
 }
 
 export interface PodcastSettings {

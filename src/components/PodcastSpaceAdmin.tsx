@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroupsForEpisode } from '../services/episodeGroupMembersService';
 import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
 import { refreshPodcastEpisodes } from '../services/episodeSyncService';
-import type { PodcastSpace, StoredEpisode } from '../types/multiTenant';
+import type { PodcastSpace, StoredEpisode, EpisodeSyncLog } from '../types/multiTenant';
+import { supabase } from '../lib/supabase';
 
 interface PodcastSpaceAdminProps {
   podcast: PodcastSpace;
@@ -15,11 +16,11 @@ interface PodcastSpaceAdminProps {
   onEpisodesRefreshed?: () => void;
 }
 
-type AdminTab = 'groups' | 'episodes';
+type AdminTab = 'groups' | 'episodes' | 'sync';
 
 export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisodesRefreshed }: PodcastSpaceAdminProps) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminTab>('groups');
+  const [activeTab, setActiveTab] = useState<AdminTab>('sync');
   const [groups, setGroups] = useState<EpisodeGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,8 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const [isDeletingAnalysis, setIsDeletingAnalysis] = useState<string | null>(null);
   const [isRefreshingEpisodes, setIsRefreshingEpisodes] = useState(false);
   const [refreshProgress, setRefreshProgress] = useState<string | null>(null);
+  const [syncLogs, setSyncLogs] = useState<EpisodeSyncLog[]>([]);
+  const [isLoadingSyncLogs, setIsLoadingSyncLogs] = useState(false);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -43,7 +46,10 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
     }
     loadGroups();
     loadEpisodesWithAnalysis();
-  }, [user]);
+    if (activeTab === 'sync') {
+      loadSyncLogs();
+    }
+  }, [user, activeTab]);
 
   useEffect(() => {
     if (episodes.length > 0) {
@@ -82,6 +88,24 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
       setError('Failed to load groups');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSyncLogs = async () => {
+    setIsLoadingSyncLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from('episode_sync_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setSyncLogs(data || []);
+    } catch (err) {
+      console.error('Error loading sync logs:', err);
+    } finally {
+      setIsLoadingSyncLogs(false);
     }
   };
 
@@ -291,6 +315,17 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                 <List className="w-4 h-4" />
                 Episode Management
               </button>
+              <button
+                onClick={() => setActiveTab('sync')}
+                className={`flex items-center gap-2 px-6 py-4 font-medium text-sm border-b-2 transition-all ${
+                  activeTab === 'sync'
+                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                Sync Status
+              </button>
             </nav>
           </div>
 
@@ -398,7 +433,7 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === 'episodes' ? (
               <div>
                 <div className="mb-6 flex items-start justify-between gap-4">
                   <div>
@@ -511,6 +546,152 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Sync Status</h2>
+                  <p className="text-sm text-gray-600 mt-1">Monitor automated episode syncing and scheduling</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-semibold text-blue-900">Last Synced</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {podcast.last_synced_at
+                        ? new Date(podcast.last_synced_at).toLocaleString()
+                        : 'Never'}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity className="w-5 h-5 text-green-600" />
+                      <h3 className="font-semibold text-green-900">Next Check</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-green-700">
+                      {podcast.next_check_at
+                        ? new Date(podcast.next_check_at).toLocaleString()
+                        : 'Not scheduled'}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <RefreshCw className="w-5 h-5 text-amber-600" />
+                      <h3 className="font-semibold text-amber-900">Check Frequency</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-700">
+                      Every {podcast.check_frequency_hours}h
+                    </p>
+                    <p className="text-xs text-amber-600 mt-1">
+                      {podcast.consecutive_empty_checks > 0
+                        ? `${podcast.consecutive_empty_checks} checks with no new episodes`
+                        : 'Active monitoring'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Recent Sync History
+                  </h3>
+
+                  {isLoadingSyncLogs ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                    </div>
+                  ) : syncLogs.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Activity className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>No sync logs available yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {syncLogs.map((log) => (
+                        <div
+                          key={log.id}
+                          className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                {log.status === 'completed' && (
+                                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                )}
+                                {log.status === 'failed' && (
+                                  <XCircle className="w-5 h-5 text-red-600" />
+                                )}
+                                {log.status === 'partial' && (
+                                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                                )}
+                                {log.status === 'running' && (
+                                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                                )}
+                                <span className="font-semibold text-gray-900 capitalize">
+                                  {log.job_type} Sync
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${
+                                    log.status === 'completed'
+                                      ? 'bg-green-100 text-green-700'
+                                      : log.status === 'failed'
+                                      ? 'bg-red-100 text-red-700'
+                                      : log.status === 'partial'
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : 'bg-blue-100 text-blue-700'
+                                  }`}
+                                >
+                                  {log.status}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                <div>
+                                  <span className="text-gray-500">Checked:</span>{' '}
+                                  <span className="font-medium text-gray-900">
+                                    {log.podcasts_checked}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">Synced:</span>{' '}
+                                  <span className="font-medium text-gray-900">
+                                    {log.episodes_synced}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">Errors:</span>{' '}
+                                  <span className="font-medium text-gray-900">
+                                    {log.episodes_failed}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">API Calls:</span>{' '}
+                                  <span className="font-medium text-gray-900">
+                                    {log.api_calls_made}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                {new Date(log.started_at).toLocaleString()}
+                                {log.completed_at &&
+                                  ` - ${new Date(log.completed_at).toLocaleString()}`}
+                              </p>
+                              {log.error_message && (
+                                <p className="text-sm text-red-600 mt-2">
+                                  Error: {log.error_message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
