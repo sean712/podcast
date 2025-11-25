@@ -10,6 +10,7 @@ interface AudioContextType {
   } | null;
   isPlaying: boolean;
   currentTime: number;
+  seekToTime: number | null;
   setCurrentEpisode: (episode: {
     episodeId: string;
     title: string;
@@ -31,8 +32,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [seekToTime, setSeekToTime] = useState<number | null>(null);
 
   const seekTo = (time: number) => {
-    setSeekToTime(time);
-    setCurrentTime(time);
+    setSeekToTime(null);
+    setTimeout(() => {
+      setSeekToTime(time);
+      setCurrentTime(time);
+    }, 0);
   };
 
   return (
@@ -41,6 +45,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         currentEpisode,
         isPlaying,
         currentTime,
+        seekToTime,
         setCurrentEpisode,
         setIsPlaying,
         setCurrentTime,

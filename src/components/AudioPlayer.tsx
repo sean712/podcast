@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, SkipForward, SkipBack, Loader2 } from 'lucide-react';
 import { savePlaybackProgress, getPlaybackProgress } from '../services/playbackProgressService';
 import { useAuth } from '../contexts/AuthContext';
+import { useAudio } from '../contexts/AudioContext';
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -27,6 +28,7 @@ export default function AudioPlayer({
   seekToTime,
 }: AudioPlayerProps) {
   const { user } = useAuth();
+  const { seekToTime: contextSeekToTime, setIsPlaying: setContextIsPlaying, setCurrentTime: setContextCurrentTime } = useAudio();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(initialTime);
@@ -156,6 +158,24 @@ export default function AudioPlayer({
     }
   }, [seekToTime]);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && contextSeekToTime !== null && !isNaN(contextSeekToTime)) {
+      console.log('AudioPlayer: Seeking to time from context:', contextSeekToTime);
+      audio.currentTime = contextSeekToTime;
+      setCurrentTime(contextSeekToTime);
+      setContextCurrentTime(contextSeekToTime);
+
+      audio.play().then(() => {
+        console.log('AudioPlayer: Playing after seek');
+        setIsPlaying(true);
+        setContextIsPlaying(true);
+      }).catch(err => {
+        console.error('Error playing audio after context seek:', err);
+      });
+    }
+  }, [contextSeekToTime]);
+
   const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio || error) return;
@@ -163,6 +183,7 @@ export default function AudioPlayer({
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
+      setContextIsPlaying(false);
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
@@ -170,6 +191,7 @@ export default function AudioPlayer({
       try {
         await audio.play();
         setIsPlaying(true);
+        setContextIsPlaying(true);
       } catch (err) {
         console.error('Error playing audio:', err);
         setError('Failed to play audio. Please try again.');
