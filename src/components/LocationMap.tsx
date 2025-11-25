@@ -33,11 +33,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   }, [isFullscreen, locations]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || locations.length === 0) {
-      console.log('🗺️ Map rendering skipped:', {
-        hasContainer: !!mapContainerRef.current,
-        locationCount: locations.length
-      });
+    if (!mapContainerRef.current) {
+      console.log('🗺️ Map rendering skipped: no container');
       return;
     }
 
@@ -46,16 +43,6 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
       console.error('❌ Leaflet library not loaded');
       return;
     }
-
-    console.log('🗺️ Starting map rendering:', {
-      locationCount: locations.length,
-      locations: locations.map((loc, idx) => ({
-        index: idx + 1,
-        name: loc.name,
-        lat: loc.lat,
-        lon: loc.lon
-      }))
-    });
 
     if (!mapInstanceRef.current) {
       console.log('📍 Creating new map instance');
@@ -77,6 +64,21 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         updateInterval: 200
       }).addTo(mapInstanceRef.current);
     }
+
+    if (locations.length === 0) {
+      console.log('🗺️ No locations to display yet');
+      return;
+    }
+
+    console.log('🗺️ Starting map rendering:', {
+      locationCount: locations.length,
+      locations: locations.map((loc, idx) => ({
+        index: idx + 1,
+        name: loc.name,
+        lat: loc.lat,
+        lon: loc.lon
+      }))
+    });
 
     const map = mapInstanceRef.current;
 
@@ -199,20 +201,20 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
     }, 100);
   }, [locations]);
 
-  if (isLoading) {
-    return (
-      <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12">
+  const renderLoadingOverlay = () => (
+    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+      <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 max-w-md mx-4">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="relative">
             <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
             <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
           </div>
-          <p className="text-slate-700 text-lg font-medium">Discovering locations...</p>
-          <p className="text-slate-500 text-sm">Mapping places mentioned in the episode</p>
+          <p className="text-white text-lg font-medium">Discovering locations...</p>
+          <p className="text-slate-300 text-sm text-center">Mapping places mentioned in the episode</p>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
   if (error) {
     return (
@@ -247,6 +249,9 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
           style={{ height: isFullscreen ? 'calc(100vh - 70px)' : (mapHeight || 'calc(100vh - 250px)'), minHeight: '400px' }}
           ref={mapContainerRef}
         />
+
+        {/* Loading overlay */}
+        {isLoading && renderLoadingOverlay()}
 
         {/* Fullscreen toggle - top-left */}
         <button
