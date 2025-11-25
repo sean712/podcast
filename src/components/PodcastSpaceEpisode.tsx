@@ -76,7 +76,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           summary: cachedAnalysis.summary,
           keyPersonnel: cachedAnalysis.key_personnel,
           timeline: cachedAnalysis.timeline_events,
-          locations: validLocations.map((loc: any) => ({ name: loc.name, context: loc.context })),
+          locations: validLocations.map((loc: any) => ({ name: loc.name, context: loc.context, quotes: loc.quotes })),
           keyMoments: cachedAnalysis.key_moments || [],
           references: cachedAnalysis.references || [],
         });

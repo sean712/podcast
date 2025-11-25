@@ -116,7 +116,7 @@ export async function geocodeLocation(locationName: string): Promise<GeocodedLoc
 }
 
 export async function geocodeLocations(
-  locations: Array<{ name: string; context?: string }>
+  locations: Array<{ name: string; context?: string; quotes?: Quote[] }>
 ): Promise<GeocodedLocation[]> {
   const geocodedLocations: GeocodedLocation[] = [];
   let successCount = 0;
@@ -136,6 +136,7 @@ export async function geocodeLocations(
       geocodedLocations.push({
         ...geocoded,
         context: location.context,
+        quotes: location.quotes,
       });
       successCount++;
     } else {
