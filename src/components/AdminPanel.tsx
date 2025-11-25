@@ -198,7 +198,11 @@ export default function AdminPanel() {
     setSuccess(null);
 
     try {
-      const { data } = await supabase.functions.invoke('sync-episodes');
+      const { data, error: invokeError } = await supabase.functions.invoke('sync-episodes');
+
+      if (invokeError) {
+        throw invokeError;
+      }
 
       if (data?.success) {
         setSuccess(data.message);
@@ -208,7 +212,8 @@ export default function AdminPanel() {
       }
     } catch (err) {
       console.error('Error triggering sync:', err);
-      setError('Failed to trigger episode sync');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to trigger episode sync';
+      setError(`Sync failed: ${errorMessage}`);
     } finally {
       setIsSyncingAll(false);
     }
