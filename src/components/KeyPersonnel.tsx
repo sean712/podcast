@@ -31,7 +31,7 @@ export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonne
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {personnel.map((person, index) => {
           const color = getColor(index);
           return (
@@ -40,12 +40,12 @@ export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonne
               className={`${isDark
                 ? 'bg-slate-900/60 border-slate-700 hover:bg-slate-900/80 hover:border-slate-600'
                 : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-              } border rounded-xl p-5 transition-all shadow-sm`}
+              } border rounded-xl p-6 transition-all shadow-sm`}
             >
               {/* Name and Role */}
-              <div className="mb-3">
-                <h4 className={`font-semibold text-base mb-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
-                <span className={`text-xs font-medium text-white ${color.bg} px-2 py-1 rounded-md inline-block`}>
+              <div className="mb-4">
+                <h4 className={`font-semibold text-lg mb-2.5 leading-snug ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
+                <span className={`text-sm font-medium text-white ${color.bg} px-3 py-1.5 rounded-md inline-block`}>
                   {person.role}
                 </span>
               </div>
@@ -74,10 +74,10 @@ export default function KeyPersonnel({ personnel, theme = 'light' }: KeyPersonne
                 </button>
 
                 {expandedPerson === index && (
-                  <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-2.5 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     {person.quotes.map((quote, qIndex) => (
-                      <div key={qIndex} className={`relative pl-3 border-l-2 ${color.quoteBorder} ${isDark ? 'bg-slate-800/60' : color.quoteBg} rounded-r-lg p-2`}>
-                        <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <div key={qIndex} className={`relative pl-4 border-l-2 ${color.quoteBorder} ${isDark ? 'bg-slate-800/60' : color.quoteBg} rounded-r-lg p-3`}>
+                        <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                           "{quote}"
                         </p>
                       </div>
