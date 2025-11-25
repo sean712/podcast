@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes. IMPORTANT: For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
             },
             {
               role: "user",
@@ -126,7 +126,7 @@ Deno.serve(async (req: Request) => {
                         title: { type: "string" },
                         description: { type: "string" },
                         quote: { type: "string" },
-                        timestamp: { type: "string" }
+                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format (e.g., '01:23:45.678')" }
                       },
                       required: ["title", "description", "quote", "timestamp"],
                       additionalProperties: false
@@ -147,7 +147,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string" }
+                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -174,7 +174,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string" }
+                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -199,7 +199,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string" }
+                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -223,7 +223,7 @@ Deno.serve(async (req: Request) => {
                         name: { type: "string" },
                         context: { type: "string" },
                         quote: { type: "string" },
-                        timestamp: { type: "string" }
+                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
                       },
                       required: ["type", "name", "context", "quote", "timestamp"],
                       additionalProperties: false

@@ -1,7 +1,13 @@
 export function parseTimestamp(timestamp: string): number | null {
   if (!timestamp || typeof timestamp !== 'string') return null;
 
-  const parts = timestamp.trim().split(':');
+  let cleanTimestamp = timestamp.trim();
+
+  if (cleanTimestamp.includes('-->')) {
+    cleanTimestamp = cleanTimestamp.split('-->')[0].trim();
+  }
+
+  const parts = cleanTimestamp.split(':');
 
   if (parts.length === 2) {
     const [minutes, seconds] = parts;
