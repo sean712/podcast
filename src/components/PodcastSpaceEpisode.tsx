@@ -15,6 +15,7 @@ import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
+import { useAudio } from '../contexts/AudioContext';
 
 interface PodcastSpaceEpisodeProps {
   episode: StoredEpisode;
@@ -28,6 +29,7 @@ interface PodcastSpaceEpisodeProps {
 type TabType = 'overview' | 'moments' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
+  const { setCurrentEpisode } = useAudio();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -36,6 +38,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<TabType>('map');
+
+  useEffect(() => {
+    setCurrentEpisode({
+      episodeId: episode.episode_id,
+      title: episode.title,
+      audioUrl: episode.audio_url,
+      imageUrl: episode.image_url,
+      podcastName: podcast.name,
+    });
+
+    return () => {
+      setCurrentEpisode(null);
+    };
+  }, [episode.episode_id, episode.title, episode.audio_url, episode.image_url, podcast.name, setCurrentEpisode]);
 
   useEffect(() => {
     if (episode.transcript) {

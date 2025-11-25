@@ -84,20 +84,8 @@ export default function References({ references, theme = 'light', currentEpisode
                   const timestamp = ref.timestamp ? parseTimestamp(ref.timestamp) : null;
                   const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
 
-                  console.log('Reference item:', {
-                    name: ref.name,
-                    hasTimestamp: !!ref.timestamp,
-                    rawTimestamp: ref.timestamp,
-                    parsedTimestamp: timestamp,
-                    currentEpisodeId,
-                    audioEpisodeId: currentEpisode?.episodeId,
-                    isPlayable
-                  });
-
                   const handleClick = () => {
-                    console.log('Reference clicked:', { ref, timestamp, isPlayable });
                     if (isPlayable && timestamp !== null) {
-                      console.log('Seeking to:', timestamp);
                       seekTo(timestamp);
                       setIsPlaying(true);
                     }
