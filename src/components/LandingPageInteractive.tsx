@@ -23,7 +23,6 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
   const [activeTab, setActiveTab] = useState<TabType>('map');
   const [visitedTabs, setVisitedTabs] = useState<Set<TabType>>(new Set(['map']));
   const [showEngagementBanner, setShowEngagementBanner] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
@@ -37,16 +36,6 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
       }, 1000);
     }
   }, [visitedTabs, bannerDismissed]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!showModal && visitedTabs.size >= 3) {
-        setShowModal(true);
-      }
-    }, 45000);
-
-    return () => clearTimeout(timer);
-  }, [visitedTabs, showModal]);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -393,57 +382,6 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-2 hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-slate-400" />
-            </button>
-
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-cyan-400" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Ready to bring your podcast to life?</h2>
-              <p className="text-slate-400">
-                Get beautiful, interactive episode pages like this one—automatically generated for every episode
-              </p>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex items-start gap-3 text-sm">
-                <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                </div>
-                <p className="text-slate-300">All features auto-generated from your transcript</p>
-              </div>
-              <div className="flex items-start gap-3 text-sm">
-                <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                </div>
-                <p className="text-slate-300">Done-for-you setup and ongoing sync</p>
-              </div>
-              <div className="flex items-start gap-3 text-sm">
-                <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                </div>
-                <p className="text-slate-300">Live in 48 hours</p>
-              </div>
-            </div>
-
-            <button
-              onClick={onGetStarted}
-              className="w-full px-6 py-3 bg-cyan-500 text-slate-950 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
-            >
-              Get This For Your Podcast
-            </button>
           </div>
         </div>
       )}
