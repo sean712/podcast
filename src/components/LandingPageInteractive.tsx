@@ -159,40 +159,124 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
       case 'transcript':
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">Full Transcript</h3>
                 <p className="text-slate-400">Searchable transcript with highlight and copy features</p>
               </div>
             </div>
-            <TranscriptViewer
-              transcript={demoEpisode.transcript || ''}
-              episodeTitle={demoEpisode.title}
-              episodeId={demoEpisode.episode_id}
-              podcastName={demoPodcast.name}
-              onTextSelected={() => {}}
-              theme="dark"
-            />
+            <div className="bg-slate-900/60 backdrop-blur border border-slate-700/60 rounded-2xl p-8">
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Searchable Transcripts</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Every episode gets a full, searchable transcript. Listeners can search for specific topics, copy quotes, and highlight important passages.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <StickyNote className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Highlight & Save</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Listeners can select any text in the transcript to save it as a personal note. Perfect for capturing insights, quotes, and key takeaways.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Timestamp Navigation</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Click any timestamp in the transcript to jump directly to that moment in the audio. Makes finding specific sections quick and easy.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">SEO Benefits</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Transcripts make your content searchable by search engines, helping new listeners discover your podcast through Google searches.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       case 'notes':
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">Episode Notes</h3>
-                <p className="text-slate-400">Save highlights and personal notes while listening</p>
+                <p className="text-slate-400">Personal note-taking workspace for your listeners</p>
               </div>
             </div>
-            <div className="bg-slate-900/60 backdrop-blur border border-slate-700/60 rounded-2xl p-12 text-center">
-              <StickyNote className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-              <p className="text-slate-400 mb-6">Sign in to save notes and highlights from episodes</p>
-              <button
-                onClick={onSignIn}
-                className="px-6 py-3 bg-cyan-500 text-slate-950 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
-              >
-                Sign In to Save Notes
-              </button>
+            <div className="bg-slate-900/60 backdrop-blur border border-slate-700/60 rounded-2xl p-8">
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <StickyNote className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Personal Note Taking</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Listeners can create and save personal notes while engaging with your episode content. Great for educational podcasts and evergreen content.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Highlight Text from Transcript</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Users can select any text from the transcript and save it directly to their notes with the original context preserved.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 pb-6 border-b border-slate-700/60">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Organized by Episode</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Notes are automatically organized by episode, making it easy for listeners to review their takeaways from your entire catalog.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">Increased Engagement</h4>
+                    <p className="text-slate-300 leading-relaxed">
+                      Note-taking features increase listener engagement and make your content more valuable for long-term reference and learning.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
