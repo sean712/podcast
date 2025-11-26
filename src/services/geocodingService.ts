@@ -47,15 +47,34 @@ function cleanLocationName(locationName: string): string[] {
     candidates.push(...slashParts);
   }
 
-  const commaParts = locationName.split(',');
-  if (commaParts.length >= 2) {
-    const lastTwo = commaParts.slice(-2).map(p => p.trim()).join(', ');
-    candidates.push(lastTwo);
+  const commaParts = locationName.split(',').map(p => p.trim());
+  if (commaParts.length === 2) {
+    const cityPart = commaParts[0].trim();
+    const countryPart = commaParts[1].trim();
 
-    const lastOne = commaParts[commaParts.length - 1].trim();
-    if (lastOne) {
-      candidates.push(lastOne);
+    const countriesAndRegions = [
+      'palestine', 'israel', 'syria', 'lebanon', 'jordan', 'iraq', 'egypt',
+      'saudi arabia', 'yemen', 'kuwait', 'oman', 'uae', 'emirates',
+      'turkey', 'russia', 'ukraine', 'china', 'india', 'pakistan',
+      'afghanistan', 'iran', 'middle east'
+    ];
+
+    const countryLower = countryPart.toLowerCase();
+    const isKnownRegion = countriesAndRegions.some(region => countryLower.includes(region));
+
+    if (isKnownRegion && cityPart.length > 2) {
+      candidates.push(`${cityPart}, ${countryPart}`);
+    } else {
+      const lastTwo = commaParts.slice(-2).join(', ');
+      candidates.push(lastTwo);
+
+      if (countryPart.length > 2) {
+        candidates.push(countryPart);
+      }
     }
+  } else if (commaParts.length > 2) {
+    candidates.push(commaParts.slice(0, 2).join(', '));
+    candidates.push(commaParts.slice(-2).join(', '));
   }
 
   const andMatch = locationName.match(/^([^(]+?)\s+(?:and|&)\s+/i);

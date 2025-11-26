@@ -17,6 +17,33 @@ interface NominatimResult {
   place_rank: number;
 }
 
+interface RegionBounds {
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+}
+
+const REGION_BOUNDS: Record<string, RegionBounds> = {
+  'palestine': { minLat: 29.5, maxLat: 33.5, minLon: 34.0, maxLon: 36.0 },
+  'israel': { minLat: 29.5, maxLat: 33.5, minLon: 34.0, maxLon: 36.0 },
+  'syria': { minLat: 32.0, maxLat: 37.5, minLon: 35.5, maxLon: 42.5 },
+  'lebanon': { minLat: 33.0, maxLat: 34.7, minLon: 35.0, maxLon: 36.7 },
+  'jordan': { minLat: 29.0, maxLat: 33.5, minLon: 34.5, maxLon: 39.5 },
+  'iraq': { minLat: 29.0, maxLat: 37.5, minLon: 38.5, maxLon: 49.0 },
+  'egypt': { minLat: 22.0, maxLat: 32.0, minLon: 25.0, maxLon: 36.0 },
+  'saudi arabia': { minLat: 16.0, maxLat: 32.5, minLon: 34.5, maxLon: 56.0 },
+  'yemen': { minLat: 12.0, maxLat: 19.0, minLon: 42.5, maxLon: 54.5 },
+  'kuwait': { minLat: 28.5, maxLat: 30.5, minLon: 46.5, maxLon: 49.0 },
+  'oman': { minLat: 16.5, maxLat: 26.5, minLon: 52.0, maxLon: 60.0 },
+  'united arab emirates': { minLat: 22.5, maxLat: 26.5, minLon: 51.0, maxLon: 56.5 },
+  'turkey': { minLat: 36.0, maxLat: 42.5, minLon: 26.0, maxLon: 45.0 },
+  'russia': { minLat: 41.0, maxLat: 82.0, minLon: 19.0, maxLon: 180.0 },
+  'ukraine': { minLat: 44.0, maxLat: 53.0, minLon: 22.0, maxLon: 40.5 },
+  'china': { minLat: 18.0, maxLat: 54.0, minLon: 73.0, maxLon: 135.0 },
+  'india': { minLat: 8.0, maxLat: 37.0, minLon: 68.0, maxLon: 97.5 },
+};
+
 function detectFeatureType(locationName: string): string | null {
   const lowerName = locationName.toLowerCase();
 
@@ -62,7 +89,43 @@ function extractExpectedRegion(locationName: string): string | null {
   return null;
 }
 
-function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null): number {
+function isWithinBounds(lat: number, lon: number, region: string): boolean {
+  const bounds = REGION_BOUNDS[region];
+  if (!bounds) return true;
+
+  return lat >= bounds.minLat && lat <= bounds.maxLat &&
+         lon >= bounds.minLon && lon <= bounds.maxLon;
+}
+
+function parseStructuredLocation(locationName: string): { city: string; country: string } | null {
+  const parts = locationName.split(',').map(p => p.trim());
+  if (parts.length !== 2) return null;
+
+  const [city, country] = parts;
+  if (city.length < 2 || country.length < 2) return null;
+
+  return { city, country };
+}
+
+async function tryStructuredSearch(city: string, country: string): Promise<NominatimResult[]> {
+  const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&format=json&limit=10`;
+
+  console.log(`   📍 Trying structured search: city="${city}", country="${country}"`);
+
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "PodcastTranscriptViewer/1.0 (Supabase Edge Function)",
+    },
+  });
+
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  console.log(`   → Structured search returned ${data.length} results`);
+  return Array.isArray(data) ? data : [];
+}
+
+function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null): number {
   let score = 0;
 
   score += result.importance * 100;
@@ -101,11 +164,21 @@ function scoreResult(result: NominatimResult, locationName: string, expectedType
     score += 30;
   }
 
-  const expectedRegion = extractExpectedRegion(locationName);
   if (expectedRegion) {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+
     if (displayNameLower.includes(expectedRegion)) {
       score += 300;
+
+      if (isWithinBounds(lat, lon, expectedRegion)) {
+        score += 200;
+      }
     } else {
+      score -= 1000;
+    }
+
+    if (!isWithinBounds(lat, lon, expectedRegion)) {
       score -= 500;
     }
   }
@@ -113,7 +186,7 @@ function scoreResult(result: NominatimResult, locationName: string, expectedType
   return score;
 }
 
-function validateResult(result: NominatimResult, locationName: string, expectedType: string | null): boolean {
+function validateResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null): boolean {
   if (result.class === 'building' && expectedType && expectedType !== 'building') {
     console.log(`❌ Rejecting building result for ${locationName} (expected ${expectedType})`);
     return false;
@@ -125,11 +198,18 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
   }
 
   const displayNameLower = result.display_name.toLowerCase();
-  const expectedRegion = extractExpectedRegion(locationName);
 
   if (expectedRegion) {
     if (!displayNameLower.includes(expectedRegion)) {
       console.log(`❌ Rejecting result - expected region "${expectedRegion}" not found in "${result.display_name}"`);
+      return false;
+    }
+
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+
+    if (!isWithinBounds(lat, lon, expectedRegion)) {
+      console.log(`❌ Rejecting result - coordinates (${lat}, ${lon}) outside bounds for ${expectedRegion}`);
       return false;
     }
   }
@@ -172,20 +252,36 @@ Deno.serve(async (req: Request) => {
 
     console.log(`🔍 Geocoding: "${locationName}"`);
 
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=5`,
-      {
-        headers: {
-          "User-Agent": "PodcastTranscriptViewer/1.0 (Supabase Edge Function)",
-        },
-      }
-    );
+    const expectedRegion = extractExpectedRegion(locationName);
+    const expectedType = detectFeatureType(locationName);
+    console.log(`   Expected region: ${expectedRegion || 'none'}`);
+    console.log(`   Expected feature type: ${expectedType || 'any'}`);
 
-    if (!response.ok) {
-      throw new Error(`Geocoding failed with status ${response.status}`);
+    let data: NominatimResult[] = [];
+
+    const structured = parseStructuredLocation(locationName);
+    if (structured && expectedRegion) {
+      data = await tryStructuredSearch(structured.city, structured.country);
     }
 
-    const data: NominatimResult[] = await response.json();
+    if (data.length === 0) {
+      console.log(`   🔍 Trying free-form search`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=10`,
+        {
+          headers: {
+            "User-Agent": "PodcastTranscriptViewer/1.0 (Supabase Edge Function)",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Geocoding failed with status ${response.status}`);
+      }
+
+      data = await response.json();
+      console.log(`   → Free-form search returned ${data.length} results`);
+    }
 
     if (!Array.isArray(data) || data.length === 0) {
       console.log(`❌ No results found for "${locationName}"`);
@@ -195,11 +291,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const expectedType = detectFeatureType(locationName);
-    console.log(`   Expected feature type: ${expectedType || 'any'}`);
     console.log(`   Found ${data.length} candidate(s)`);
 
-    const validResults = data.filter(result => validateResult(result, locationName, expectedType));
+    const validResults = data.filter(result => validateResult(result, locationName, expectedType, expectedRegion));
 
     if (validResults.length === 0) {
       console.log(`❌ No valid results after filtering for "${locationName}"`);
@@ -211,14 +305,14 @@ Deno.serve(async (req: Request) => {
 
     const scoredResults = validResults.map(result => ({
       result,
-      score: scoreResult(result, locationName, expectedType)
+      score: scoreResult(result, locationName, expectedType, expectedRegion)
     }));
 
     scoredResults.sort((a, b) => b.score - a.score);
 
     console.log(`   Top results:`);
     scoredResults.slice(0, 3).forEach((item, idx) => {
-      console.log(`   ${idx + 1}. [Score: ${item.score.toFixed(1)}] ${item.result.display_name} (${item.result.class}/${item.result.type})`);
+      console.log(`   ${idx + 1}. [Score: ${item.score.toFixed(1)}] ${item.result.display_name} (${item.result.class}/${item.result.type}) at ${item.result.lat}, ${item.result.lon}`);
     });
 
     const bestResult = scoredResults[0].result;
