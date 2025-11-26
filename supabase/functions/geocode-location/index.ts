@@ -83,6 +83,11 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
     return false;
   }
 
+  if (result.class === 'place' && ['city', 'town', 'village', 'country', 'state', 'county'].includes(result.type)) {
+    console.log(`✅ Accepting place result: ${result.type}`);
+    return true;
+  }
+
   const displayNameLower = result.display_name.toLowerCase();
   const searchNameLower = locationName.toLowerCase();
   const mainSearchTerm = searchNameLower.split(',')[0].trim().replace(/\s+/g, ' ');
