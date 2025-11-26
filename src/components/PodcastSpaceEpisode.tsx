@@ -95,6 +95,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           locations: validLocations.map((loc: any) => ({ name: loc.name, context: loc.context, quotes: loc.quotes })),
           keyMoments: cachedAnalysis.key_moments || [],
           references: cachedAnalysis.references || [],
+          worldEvents: cachedAnalysis.world_events || [],
         });
         setLocations(validLocations);
         setIsLoadingLocations(false);
@@ -269,7 +270,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             ) : (
               <>
                 {analysis ? (
-                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
+                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
                 ) : (
                   <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                     <p className="text-slate-600">No timeline data available yet</p>
@@ -660,7 +661,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {episode.transcript && activeTab === 'timeline' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} />
+                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
               ) : (
                 <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                   <p className="text-slate-600">No timeline data available yet</p>

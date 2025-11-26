@@ -13,6 +13,7 @@ export interface CachedAnalysis {
   locations: GeocodedLocation[];
   key_moments: any[];
   references: any[];
+  world_events: any[];
   analysis_version: string;
   created_at: string;
   updated_at: string;
@@ -59,7 +60,8 @@ export async function saveCachedAnalysis(
         locations: locations,
         key_moments: analysis.keyMoments,
         references: analysis.references,
-        analysis_version: 'v4',
+        world_events: analysis.worldEvents || [],
+        analysis_version: 'v5',
       },
       {
         onConflict: 'episode_id',
@@ -72,7 +74,7 @@ export async function saveCachedAnalysis(
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
 
-  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v4' });
+  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v5' });
 }
 
 export async function deleteAnalysis(episodeId: string): Promise<void> {

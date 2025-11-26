@@ -76,6 +76,7 @@ Deno.serve(async (req: Request) => {
             locations: cachedAnalysis.locations,
             keyMoments: cachedAnalysis.key_moments || [],
             references: cachedAnalysis.references || [],
+            worldEvents: cachedAnalysis.world_events || [],
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -94,7 +95,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes. IMPORTANT: For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events. IMPORTANT: For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
             },
             {
               role: "user",
@@ -228,9 +229,23 @@ Deno.serve(async (req: Request) => {
                       required: ["type", "name", "context", "quote", "timestamp"],
                       additionalProperties: false
                     }
+                  },
+                  worldEvents: {
+                    type: "array",
+                    description: "For each timeline event date, provide 2-3 notable parallel world events that occurred around the same time. Include a mix of globally significant events and region-specific events related to locations mentioned. Categories: politics, science, culture, sports, technology, war, economics. Keep descriptions concise (1-2 sentences).",
+                    items: {
+                      type: "object",
+                      properties: {
+                        date: { type: "string", description: "Should match or be close to a timeline event date" },
+                        event: { type: "string", description: "Brief description of the world event (1-2 sentences)" },
+                        category: { type: "string", enum: ["politics", "science", "culture", "sports", "technology", "war", "economics", "other"] }
+                      },
+                      required: ["date", "event", "category"],
+                      additionalProperties: false
+                    }
                   }
                 },
-                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations", "references"],
+                required: ["summary", "keyMoments", "keyPersonnel", "timeline", "locations", "references", "worldEvents"],
                 additionalProperties: false
               }
             }
@@ -308,6 +323,7 @@ Deno.serve(async (req: Request) => {
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
         references: Array.isArray(analysis.references) ? analysis.references : [],
+        worldEvents: Array.isArray(analysis.worldEvents) ? analysis.worldEvents : [],
       };
       console.log("Final result:", JSON.stringify(result, null, 2));
 
