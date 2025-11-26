@@ -39,6 +39,8 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const [refreshProgress, setRefreshProgress] = useState<string | null>(null);
   const [syncLogs, setSyncLogs] = useState<EpisodeSyncLog[]>([]);
   const [isLoadingSyncLogs, setIsLoadingSyncLogs] = useState(false);
+  const [isTriggeringSync, setIsTriggeringSync] = useState(false);
+  const [syncResult, setSyncResult] = useState<{success: boolean; message: string} | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -106,6 +108,52 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
       console.error('Error loading sync logs:', err);
     } finally {
       setIsLoadingSyncLogs(false);
+    }
+  };
+
+  const handleTriggerDailySync = async () => {
+    if (!confirm('Trigger daily sync now?\n\nThis will check all active podcasts for new episodes.')) {
+      return;
+    }
+
+    setIsTriggeringSync(true);
+    setSyncResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('daily-sync', {
+        body: {},
+      });
+
+      if (error) {
+        console.error('Daily sync error:', error);
+        setSyncResult({
+          success: false,
+          message: error.message || 'Failed to trigger sync',
+        });
+        return;
+      }
+
+      console.log('Daily sync response:', data);
+      setSyncResult({
+        success: data.success,
+        message: data.message || 'Sync completed',
+      });
+
+      // Refresh sync logs after completion
+      await loadSyncLogs();
+
+      // Refresh the page data if callback provided
+      if (onEpisodesRefreshed) {
+        await onEpisodesRefreshed();
+      }
+    } catch (err) {
+      console.error('Error triggering daily sync:', err);
+      setSyncResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'Unknown error occurred',
+      });
+    } finally {
+      setIsTriggeringSync(false);
     }
   };
 
@@ -550,10 +598,54 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
               </div>
             ) : (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">Sync Status</h2>
-                  <p className="text-sm text-gray-600 mt-1">Monitor automated episode syncing and scheduling</p>
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Sync Status</h2>
+                    <p className="text-sm text-gray-600 mt-1">Monitor automated episode syncing and scheduling</p>
+                  </div>
+                  <button
+                    onClick={handleTriggerDailySync}
+                    disabled={isTriggeringSync}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isTriggeringSync ? 'animate-spin' : ''}`} />
+                    {isTriggeringSync ? 'Running Sync...' : 'Trigger Sync Now'}
+                  </button>
                 </div>
+
+                {syncResult && (
+                  <div className={`mb-6 p-4 border rounded-lg ${
+                    syncResult.success
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      {syncResult.success ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex-1">
+                        <p className={`font-medium ${
+                          syncResult.success ? 'text-green-900' : 'text-red-900'
+                        }`}>
+                          {syncResult.success ? 'Sync Completed' : 'Sync Failed'}
+                        </p>
+                        <p className={`text-sm mt-1 ${
+                          syncResult.success ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {syncResult.message}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSyncResult(null)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
