@@ -30,6 +30,38 @@ function detectFeatureType(locationName: string): string | null {
   return null;
 }
 
+function extractExpectedRegion(locationName: string): string | null {
+  const lowerName = locationName.toLowerCase();
+
+  const regionPatterns = [
+    { pattern: /(palestine|palestinian territories?|west bank|gaza)/i, region: 'palestine' },
+    { pattern: /(israel)/i, region: 'israel' },
+    { pattern: /(syria|syrian)/i, region: 'syria' },
+    { pattern: /(lebanon|lebanese)/i, region: 'lebanon' },
+    { pattern: /(jordan|jordanian)/i, region: 'jordan' },
+    { pattern: /(iraq|iraqi)/i, region: 'iraq' },
+    { pattern: /(egypt|egyptian)/i, region: 'egypt' },
+    { pattern: /(saudi arabia|saudi)/i, region: 'saudi arabia' },
+    { pattern: /(yemen|yemeni)/i, region: 'yemen' },
+    { pattern: /(kuwait|kuwaiti)/i, region: 'kuwait' },
+    { pattern: /(oman|omani)/i, region: 'oman' },
+    { pattern: /(uae|emirates|united arab emirates)/i, region: 'united arab emirates' },
+    { pattern: /(turkey|turkish)/i, region: 'turkey' },
+    { pattern: /(russia|russian)/i, region: 'russia' },
+    { pattern: /(ukraine|ukrainian)/i, region: 'ukraine' },
+    { pattern: /(china|chinese)/i, region: 'china' },
+    { pattern: /(india|indian)/i, region: 'india' },
+  ];
+
+  for (const { pattern, region } of regionPatterns) {
+    if (pattern.test(lowerName)) {
+      return region;
+    }
+  }
+
+  return null;
+}
+
 function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null): number {
   let score = 0;
 
@@ -69,6 +101,15 @@ function scoreResult(result: NominatimResult, locationName: string, expectedType
     score += 30;
   }
 
+  const expectedRegion = extractExpectedRegion(locationName);
+  if (expectedRegion) {
+    if (displayNameLower.includes(expectedRegion)) {
+      score += 300;
+    } else {
+      score -= 500;
+    }
+  }
+
   return score;
 }
 
@@ -83,12 +124,21 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
     return false;
   }
 
+  const displayNameLower = result.display_name.toLowerCase();
+  const expectedRegion = extractExpectedRegion(locationName);
+
+  if (expectedRegion) {
+    if (!displayNameLower.includes(expectedRegion)) {
+      console.log(`❌ Rejecting result - expected region "${expectedRegion}" not found in "${result.display_name}"`);
+      return false;
+    }
+  }
+
   if (result.class === 'place' && ['city', 'town', 'village', 'country', 'state', 'county'].includes(result.type)) {
     console.log(`✅ Accepting place result: ${result.type}`);
     return true;
   }
 
-  const displayNameLower = result.display_name.toLowerCase();
   const searchNameLower = locationName.toLowerCase();
   const mainSearchTerm = searchNameLower.split(',')[0].trim().replace(/\s+/g, ' ');
 
