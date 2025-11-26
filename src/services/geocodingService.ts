@@ -18,13 +18,29 @@ class GeocodingServiceError extends Error {
 
 function cleanLocationName(locationName: string): string[] {
   const candidates: string[] = [];
+  let cleaned = locationName.trim();
+
+  cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
+
+  cleaned = cleaned.replace(/\s+(region|area|city|province|district|territory|zone|sector)\s*$/i, '').trim();
+
+  const suffixPatterns = [
+    /\s+crossing\s+area$/i,
+    /\s+vicinity$/i,
+    /\s+suburbs?$/i,
+    /\s+outskirts$/i,
+    /\s+surrounding\s+area$/i,
+  ];
+
+  for (const pattern of suffixPatterns) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+
+  if (cleaned && cleaned !== locationName) {
+    candidates.push(cleaned);
+  }
 
   candidates.push(locationName.trim());
-
-  const parenthesesRemoved = locationName.replace(/\([^)]*\)/g, '').trim();
-  if (parenthesesRemoved && parenthesesRemoved !== locationName) {
-    candidates.push(parenthesesRemoved);
-  }
 
   const slashParts = locationName.split('/').map(p => p.trim());
   if (slashParts.length > 1) {
@@ -45,11 +61,6 @@ function cleanLocationName(locationName: string): string[] {
   const andMatch = locationName.match(/^([^(]+?)\s+(?:and|&)\s+/i);
   if (andMatch) {
     candidates.push(andMatch[1].trim());
-  }
-
-  const impliedMatch = locationName.match(/^([^(]+?)\s+\(implied/i);
-  if (impliedMatch) {
-    candidates.push(impliedMatch[1].trim());
   }
 
   return [...new Set(candidates.filter(c => c.length > 0))];

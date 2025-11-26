@@ -6,6 +6,100 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+interface NominatimResult {
+  place_id: number;
+  lat: string;
+  lon: string;
+  display_name: string;
+  class: string;
+  type: string;
+  importance: number;
+  place_rank: number;
+}
+
+function detectFeatureType(locationName: string): string | null {
+  const lowerName = locationName.toLowerCase();
+
+  if (lowerName.includes('river') || lowerName.includes('نهر')) return 'river';
+  if (lowerName.includes('mountain') || lowerName.includes('mt.') || lowerName.includes('mount')) return 'mountain';
+  if (lowerName.includes('sea') || lowerName.includes('ocean')) return 'sea';
+  if (lowerName.includes('lake')) return 'lake';
+  if (lowerName.includes('desert')) return 'desert';
+  if (lowerName.includes('valley')) return 'valley';
+
+  return null;
+}
+
+function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null): number {
+  let score = 0;
+
+  score += result.importance * 100;
+
+  if (expectedType) {
+    if (expectedType === 'river' && result.class === 'waterway' && result.type === 'river') {
+      score += 200;
+    } else if (expectedType === 'mountain' && result.class === 'natural' && result.type === 'peak') {
+      score += 200;
+    } else if (expectedType === 'sea' && result.class === 'natural' && result.type === 'water') {
+      score += 200;
+    } else if (expectedType === 'lake' && result.class === 'natural' && result.type === 'water') {
+      score += 200;
+    }
+  }
+
+  if (result.place_rank <= 12) {
+    score += 50;
+  } else if (result.place_rank <= 16) {
+    score += 30;
+  }
+
+  if (result.class === 'place' && ['city', 'town', 'village', 'country', 'state'].includes(result.type)) {
+    score += 40;
+  }
+
+  if (result.class === 'building' || result.type === 'apartments' || result.type === 'tower') {
+    score -= 150;
+  }
+
+  const displayNameLower = result.display_name.toLowerCase();
+  const searchNameLower = locationName.toLowerCase();
+
+  const mainSearchTerm = searchNameLower.split(',')[0].trim();
+  if (displayNameLower.includes(mainSearchTerm)) {
+    score += 30;
+  }
+
+  return score;
+}
+
+function validateResult(result: NominatimResult, locationName: string, expectedType: string | null): boolean {
+  if (result.class === 'building' && expectedType && expectedType !== 'building') {
+    console.log(`❌ Rejecting building result for ${locationName} (expected ${expectedType})`);
+    return false;
+  }
+
+  if (expectedType === 'river' && !(result.class === 'waterway' && result.type === 'river')) {
+    console.log(`❌ Rejecting non-river result for ${locationName}`);
+    return false;
+  }
+
+  const displayNameLower = result.display_name.toLowerCase();
+  const searchNameLower = locationName.toLowerCase();
+  const mainSearchTerm = searchNameLower.split(',')[0].trim().replace(/\s+/g, ' ');
+
+  if (mainSearchTerm.length > 3) {
+    const searchWords = mainSearchTerm.split(' ').filter(w => w.length > 2);
+    const hasMatch = searchWords.some(word => displayNameLower.includes(word));
+
+    if (!hasMatch) {
+      console.log(`❌ Rejecting result - no matching terms between "${mainSearchTerm}" and "${result.display_name}"`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -21,8 +115,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    console.log(`🔍 Geocoding: "${locationName}"`);
+
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=5`,
       {
         headers: {
           "User-Agent": "PodcastTranscriptViewer/1.0 (Supabase Edge Function)",
@@ -34,22 +130,51 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Geocoding failed with status ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: NominatimResult[] = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {
+      console.log(`❌ No results found for "${locationName}"`);
       return new Response(
         JSON.stringify(null),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const result = data[0];
+    const expectedType = detectFeatureType(locationName);
+    console.log(`   Expected feature type: ${expectedType || 'any'}`);
+    console.log(`   Found ${data.length} candidate(s)`);
+
+    const validResults = data.filter(result => validateResult(result, locationName, expectedType));
+
+    if (validResults.length === 0) {
+      console.log(`❌ No valid results after filtering for "${locationName}"`);
+      return new Response(
+        JSON.stringify(null),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const scoredResults = validResults.map(result => ({
+      result,
+      score: scoreResult(result, locationName, expectedType)
+    }));
+
+    scoredResults.sort((a, b) => b.score - a.score);
+
+    console.log(`   Top results:`);
+    scoredResults.slice(0, 3).forEach((item, idx) => {
+      console.log(`   ${idx + 1}. [Score: ${item.score.toFixed(1)}] ${item.result.display_name} (${item.result.class}/${item.result.type})`);
+    });
+
+    const bestResult = scoredResults[0].result;
     const geocoded = {
       name: locationName,
-      lat: parseFloat(result.lat),
-      lon: parseFloat(result.lon),
-      displayName: result.display_name,
+      lat: parseFloat(bestResult.lat),
+      lon: parseFloat(bestResult.lon),
+      displayName: bestResult.display_name,
     };
+
+    console.log(`✅ Selected: ${geocoded.displayName} at ${geocoded.lat}, ${geocoded.lon}`);
 
     return new Response(
       JSON.stringify(geocoded),
