@@ -70,7 +70,10 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
     }
 
     if (locations.length === 0) {
-      console.log('🗺️ No locations to display yet');
+      console.log('🗺️ No locations to display yet - showing world view');
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([20, 0], 2);
+      }
       return;
     }
 
@@ -206,8 +209,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   }, [locations]);
 
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 max-w-md mx-4">
+    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm pointer-events-none">
+      <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 max-w-md mx-4 shadow-2xl pointer-events-auto">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="relative">
             <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
