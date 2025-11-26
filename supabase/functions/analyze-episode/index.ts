@@ -83,15 +83,15 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "analyze") {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
+          model: "gpt-5-mini",
+          input: [
             {
               role: "system",
               content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, and locations with supporting quotes. IMPORTANT: For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
@@ -101,11 +101,13 @@ Deno.serve(async (req: Request) => {
               content: `Analyze this podcast transcript:\n\n${transcript}`
             }
           ],
-          max_tokens: 16000,
-          temperature: 0.3,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
+          max_output_tokens: 16000,
+          reasoning: {
+            effort: "medium"
+          },
+          text: {
+            format: {
+              type: "json_schema",
               name: "podcast_analysis",
               strict: true,
               schema: {
@@ -242,35 +244,62 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("API Response:", JSON.stringify(data, null, 2));
+      console.log("API Response status:", data.status);
+      console.log("API Response full structure:", JSON.stringify(data, null, 2));
 
-      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-        console.error("No choices in response");
+      if (data.status === "incomplete") {
+        console.error("Incomplete response:", data.incomplete_details);
         return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [], references: [] }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const message = data.choices[0]?.message;
-      if (!message || !message.content) {
-        console.error("No message content in response");
+      if (!data.output || !Array.isArray(data.output) || data.output.length === 0) {
+        console.error("No output in response");
         return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [], references: [] }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      if (message.refusal) {
-        console.error("Model refused:", message.refusal);
+      const messageItem = data.output.find((item: any) => item.type === "message");
+      if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
+        console.error("No message content in output");
         return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [], references: [] }),
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      console.log("Message content:", message.content);
-      const analysis = JSON.parse(message.content);
+      const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
+
+      if (!contentItem) {
+        console.error("No output_text in message content");
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (contentItem.type === "refusal") {
+        console.error("Model refused:", contentItem.refusal);
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!contentItem.text) {
+        console.error("No text in content item");
+        return new Response(
+          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Content item text:", contentItem.text);
+      const analysis = JSON.parse(contentItem.text);
       console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
       const result = {
         summary: analysis.summary || "",
