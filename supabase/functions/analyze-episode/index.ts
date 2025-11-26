@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
           ],
           max_output_tokens: 16000,
           reasoning: {
-            effort: "medium"
+            effort: "low"
           },
           text: {
             format: {
