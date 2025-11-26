@@ -213,8 +213,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
             <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
             <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
           </div>
-          <p className="text-white text-lg font-medium">Discovering locations...</p>
-          <p className="text-slate-300 text-sm text-center">Mapping places mentioned in the episode</p>
+          <p className="text-white text-lg font-medium">Analyzing episode...</p>
+          <p className="text-slate-300 text-sm text-center">Discovering and mapping locations mentioned in the transcript</p>
         </div>
       </div>
     </div>
@@ -232,7 +232,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
     );
   }
 
-  if (locations.length === 0) {
+  if (locations.length === 0 && !isLoading) {
     return (
       <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center">
         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">

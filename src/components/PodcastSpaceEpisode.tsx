@@ -226,28 +226,85 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </>
         );
       case 'people':
-        return analysis ? (
-          <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
-        ) : (
-          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-slate-600">No personnel data available yet</p>
-          </div>
+        return (
+          <>
+            {isLoadingAnalysis ? (
+              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 bg-emerald-500/15 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-slate-700 text-lg font-medium">Identifying key people...</p>
+                  <p className="text-slate-500 text-sm">Analyzing mentions and roles</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
+                ) : (
+                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                    <p className="text-slate-600">No personnel data available yet</p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         );
       case 'timeline':
-        return analysis ? (
-          <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
-        ) : (
-          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-slate-600">No timeline data available yet</p>
-          </div>
+        return (
+          <>
+            {isLoadingAnalysis ? (
+              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 bg-purple-500/15 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-slate-700 text-lg font-medium">Building timeline...</p>
+                  <p className="text-slate-500 text-sm">Extracting chronological events</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
+                ) : (
+                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                    <p className="text-slate-600">No timeline data available yet</p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         );
       case 'references':
-        return analysis ? (
-          <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
-        ) : (
-          <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-slate-600">No references data available yet</p>
-          </div>
+        return (
+          <>
+            {isLoadingAnalysis ? (
+              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 bg-cyan-500/15 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-slate-700 text-lg font-medium">Finding references...</p>
+                  <p className="text-slate-500 text-sm">Identifying books, films, and more</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
+                ) : (
+                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
+                    <p className="text-slate-600">No references data available yet</p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         );
       case 'transcript':
         return (
