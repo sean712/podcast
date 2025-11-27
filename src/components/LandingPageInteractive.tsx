@@ -276,7 +276,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800/60">
+      <header className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -284,10 +284,12 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
               <span className="text-xl font-bold text-white">Augmented Pods</span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm font-medium text-cyan-400">Interactive Demo</span>
-              </div>
+              <button
+                onClick={onGetStarted}
+                className="bg-cyan-500 text-slate-950 px-5 py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-all text-sm"
+              >
+                Get This For Your Podcast
+              </button>
               <button
                 onClick={onSignIn}
                 className="text-slate-300 hover:text-white font-medium transition-colors"
@@ -300,20 +302,48 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
       </header>
 
       <main className="pb-24">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 relative">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="absolute top-24 right-1/4 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
+          </div>
+          <div className="max-w-5xl mx-auto text-center">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              Beautiful interactive pages for every episode
+            </h1>
+            <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed max-w-3xl mx-auto">
+              Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
+            </p>
+            <button
+              onClick={onGetStarted}
+              className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
+            >
+              Get This For Your Podcast
+              <Sparkles className="w-5 h-5" />
+            </button>
+            <p className="text-sm text-slate-400 mt-4">
+              Setup handled by us • Live in 48 hours
+            </p>
+          </div>
+        </section>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+                Try It Yourself
+              </h2>
+              <p className="text-lg text-slate-300">
+                Explore an interactive episode page below
+              </p>
+            </div>
             <div className="flex items-start gap-6 mb-6">
-              <img
-                src={demoEpisode.image_url}
-                alt={demoEpisode.title}
-                className="w-32 h-32 rounded-xl shadow-lg object-cover flex-shrink-0"
-              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-3xl font-bold text-white mb-2 leading-tight">
+                    <h3 className="text-2xl font-bold text-white mb-2 leading-tight">
                       {demoEpisode.title}
-                    </h1>
+                    </h3>
                     <p className="text-lg text-cyan-400 font-medium mb-3">{demoPodcast.name}</p>
                   </div>
                 </div>
