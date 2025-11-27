@@ -141,6 +141,7 @@ export default function AdminPanel() {
         description: selectedPodcast.podcast_description,
         image_url: selectedPodcast.podcast_image_url,
         publisher_name: selectedPodcast.publisher_name,
+        podcast_url: selectedPodcast.podcast_url,
       });
 
       await updatePodcastStatus(newPodcast.id, 'active');

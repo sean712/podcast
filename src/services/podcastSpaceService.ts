@@ -96,6 +96,7 @@ export async function createPodcast(podcast: {
   description: string;
   image_url?: string;
   publisher_name?: string;
+  podcast_url?: string;
 }): Promise<PodcastSpace> {
   console.log('Creating podcast with data:', podcast);
 

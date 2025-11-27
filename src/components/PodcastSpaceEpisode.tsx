@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -404,7 +404,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
-                <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                  {podcast.podcast_url && (
+                    <a
+                      href={podcast.podcast_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      title="Visit podcast website"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -429,7 +442,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
-                <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                  {podcast.podcast_url && (
+                    <a
+                      href={podcast.podcast_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      title="Visit podcast website"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
 

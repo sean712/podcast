@@ -6,6 +6,7 @@ export interface PodcastSpace {
   description: string;
   image_url: string | null;
   publisher_name: string | null;
+  podcast_url: string | null;
   status: 'active' | 'inactive' | 'pending';
   is_paused: boolean;
   last_synced_at: string | null;
