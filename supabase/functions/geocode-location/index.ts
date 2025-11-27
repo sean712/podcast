@@ -198,23 +198,30 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
   }
 
   const displayNameLower = result.display_name.toLowerCase();
+  const lat = parseFloat(result.lat);
+  const lon = parseFloat(result.lon);
+
+  const isPlaceResult = result.class === 'place' && ['city', 'town', 'village', 'country', 'state', 'county'].includes(result.type);
 
   if (expectedRegion) {
-    if (!displayNameLower.includes(expectedRegion)) {
-      console.log(`❌ Rejecting result - expected region "${expectedRegion}" not found in "${result.display_name}"`);
+    const hasRegionName = displayNameLower.includes(expectedRegion);
+    const withinBounds = isWithinBounds(lat, lon, expectedRegion);
+
+    if (!hasRegionName && !withinBounds) {
+      console.log(`❌ Rejecting result - neither region name "${expectedRegion}" found nor coordinates (${lat}, ${lon}) within bounds for ${result.display_name}`);
       return false;
     }
 
-    const lat = parseFloat(result.lat);
-    const lon = parseFloat(result.lon);
+    if (!hasRegionName) {
+      console.log(`⚠️  Warning: Region "${expectedRegion}" not in display name, but coordinates (${lat}, ${lon}) are within bounds - accepting`);
+    }
 
-    if (!isWithinBounds(lat, lon, expectedRegion)) {
-      console.log(`❌ Rejecting result - coordinates (${lat}, ${lon}) outside bounds for ${expectedRegion}`);
-      return false;
+    if (!withinBounds) {
+      console.log(`⚠️  Warning: Coordinates (${lat}, ${lon}) outside bounds, but region "${expectedRegion}" found in display name - accepting`);
     }
   }
 
-  if (result.class === 'place' && ['city', 'town', 'village', 'country', 'state', 'county'].includes(result.type)) {
+  if (isPlaceResult) {
     console.log(`✅ Accepting place result: ${result.type}`);
     return true;
   }
