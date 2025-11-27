@@ -9,6 +9,7 @@ import AdminPanel from './components/AdminPanel';
 import LandingPage from './components/LandingPage';
 import LandingPageInteractive from './components/LandingPageInteractive';
 import AuthModal from './components/AuthModal';
+import CreatorContactModal from './components/CreatorContactModal';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multiTenant';
 
 export default function AppRouter() {
@@ -22,6 +23,7 @@ export default function AppRouter() {
   const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
 
   useEffect(() => {
     detectRoute();
@@ -287,8 +289,9 @@ export default function AppRouter() {
 
   return (
     <>
-      <LandingPageInteractive onGetStarted={() => setShowAuthModal(true)} onSignIn={() => setShowAuthModal(true)} />
+      <LandingPageInteractive onGetStarted={() => setShowCreatorModal(true)} onSignIn={() => setShowAuthModal(true)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <CreatorContactModal isOpen={showCreatorModal} onClose={() => setShowCreatorModal(false)} />
     </>
   );
 }
