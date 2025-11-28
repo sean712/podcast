@@ -31,7 +31,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/95 to-slate-900 z-10" />
           <div className="absolute inset-0">
             <img
-              src="/Adobe Express - file.png"
+              src="/adobe-express-hero.png"
               alt="Podcast analytics dashboard"
               className="w-full h-full object-cover opacity-40"
             />
