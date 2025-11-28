@@ -27,14 +27,24 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </header>
 
       <main>
-        <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <div>
+        <section className="relative min-h-[90vh] flex items-center bg-slate-950 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/40 via-transparent to-slate-950/60 z-10"></div>
+
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/Adobe Express - file copy copy.png"
+              alt="Podcast dashboard background"
+              className="w-full h-full object-cover opacity-30"
+            />
+          </div>
+
+          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <div className="backdrop-blur-sm bg-slate-900/40 rounded-3xl p-8 lg:p-12 border border-slate-700/30">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight">
                   Beautiful interactive pages for every episode
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-200 mb-10 leading-relaxed">
+                <p className="text-lg sm:text-xl text-slate-100 mb-10 leading-relaxed">
                   Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
                 </p>
                 <button
@@ -44,18 +54,20 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                   Get This For Your Podcast
                   <Sparkles className="w-6 h-6" />
                 </button>
-                <p className="text-sm text-slate-300 mt-6">
+                <p className="text-sm text-slate-200 mt-6">
                   Setup handled by us • Live in 48 hours
                 </p>
               </div>
-              <div className="relative">
-                <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
+
+              <div className="relative lg:block hidden">
+                <div className="rounded-2xl overflow-hidden shadow-2xl border border-cyan-500/20 bg-slate-900/60 backdrop-blur-sm transform hover:scale-105 transition-transform duration-300">
                   <img
                     src="/adobe-express-hero.png"
-                    alt="Podcast analytics dashboard"
+                    alt="Interactive podcast dashboard with timeline and profiles"
                     className="w-full h-auto"
                   />
                 </div>
+                <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-3xl blur-2xl -z-10"></div>
               </div>
             </div>
           </div>
