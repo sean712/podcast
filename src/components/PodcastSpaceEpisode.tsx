@@ -50,6 +50,30 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   }, []);
 
   useEffect(() => {
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('header');
+      if (header) {
+        const height = header.offsetHeight;
+        document.documentElement.style.setProperty('--header-height', `${height}px`);
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+
+    const observer = new MutationObserver(updateHeaderHeight);
+    const header = document.querySelector('header');
+    if (header) {
+      observer.observe(header, { childList: true, subtree: true, attributes: true });
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+      observer.disconnect();
+    };
+  }, [episode.audio_url, settings]);
+
+  useEffect(() => {
     setCurrentEpisode({
       episodeId: episode.episode_id,
       title: episode.title,
@@ -542,8 +566,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-      {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800/70 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
+      {/* Fixed Unified Header - Contains all top elements */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
         {/* Augmented Pods Branding Bar */}
         <div className="border-b border-slate-800/50 bg-slate-950/90">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -561,7 +585,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
 
         {/* Episode Info Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+        <div className="border-b border-slate-800/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           {/* Mobile Layout: Stack vertically */}
           <div className="flex flex-col gap-2 md:hidden">
             <div className="flex items-center justify-end gap-2">
@@ -654,29 +679,27 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               </button>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Audio Player Bar - Fixed to viewport */}
-      {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-b border-slate-800/60 bg-slate-900 z-40 top-[130px] md:top-[105px]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-            <AudioPlayer
-              audioUrl={episode.audio_url}
-              episodeTitle={episode.title}
-              episodeId={episode.episode_id}
-              podcastName={podcast.name}
-              episodeImage={episode.image_url}
-              compact={true}
-              // dark header bar context
-              // theme handled internally via colors; compact variant blends well on dark
-            />
           </div>
         </div>
-      )}
 
-     {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[186px] md:top-[162px]' : 'top-[130px] md:top-[105px]'} border-b border-slate-800/60`}>
+        {/* Audio Player Bar */}
+        {episode.audio_url && isTabVisible('player') && (
+          <div className="border-b border-slate-800/50 bg-slate-900">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+              <AudioPlayer
+                audioUrl={episode.audio_url}
+                episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
+                episodeImage={episode.image_url}
+                compact={true}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Tabbed Navigation */}
+        <div className="border-b border-slate-800/50 bg-slate-900/95 backdrop-blur">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px items-center">
               {isTabVisible('map') && (
@@ -800,8 +823,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </nav>
           </div>
         </div>
+      </header>
 
-      <main className={episode.audio_url && isTabVisible('player') ? 'pt-[262px] md:pt-[202px]' : 'pt-[194px] md:pt-[144px]'}>
+      <main style={{paddingTop: 'var(--header-height)'}} className="transition-all">
         {/* Map Always Visible as Base Layer */}
         {episode.transcript && (
           <section className="relative">
