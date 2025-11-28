@@ -827,81 +827,61 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       <main style={{paddingTop: 'var(--header-height)'}} className="transition-all">
         {/* Map Always Visible as Base Layer */}
-        {episode.transcript && (
-          <section className="relative">
-            <LocationMap
-              locations={locations}
-              isLoading={isLoadingLocations}
-              error={locationError}
-              showSidePanel={(isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)}
-              mapHeight="calc(100vh - 190px)"
-              currentEpisodeId={episode.episode_id}
-            />
+        <section className="relative">
+          <LocationMap
+            locations={locations}
+            isLoading={isLoadingLocations}
+            error={locationError}
+            showSidePanel={(isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)}
+            mapHeight="calc(100vh - 190px)"
+            currentEpisodeId={episode.episode_id}
+          />
 
-            {/* Mobile: Single Panel Overlay */}
-            {isMobile && activeTab !== 'map' && (
-              <div className="absolute inset-0 z-[1000] pointer-events-none">
-                <div className="pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 shadow-2xl overflow-hidden">
-                  <div className="p-4 overflow-y-auto max-h-[70vh]">
-                    {renderOverlayContent()}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Desktop: Dashboard with Resizable Panels */}
-            {!isMobile && (
-              <DashboardManager
-                openPanels={openPanels}
-                onPanelClose={(panelId) => togglePanel(panelId)}
-              >
-                {(panelId) => renderPanelContent(panelId)}
-              </DashboardManager>
-            )}
-          </section>
-        )}
-        {/* Old Tab Content (hidden) */}
-        <div className="hidden">
-          {/* No Transcript Message */}
+          {/* No Transcript Banner - shown on map when no transcript available */}
           {!episode.transcript && (
-            <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-blue-100 rounded-2xl p-12 text-center shadow-sm">
-              <div className="max-w-2xl mx-auto">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  Episode Not Yet Transcribed
-                </h3>
-                <p className="text-slate-600 text-lg leading-relaxed mb-6">
-                  It looks like this episode hasn't been transcribed yet. Check back later to see timelines, maps, key moments, and much more.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-blue-500" />
-                    <span>Timelines</span>
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1001] max-w-lg w-full mx-4">
+              <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-blue-400" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Map className="w-4 h-4 text-blue-500" />
-                    <span>Location Maps</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <UsersIcon className="w-4 h-4 text-blue-500" />
-                    <span>Key People</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-500" />
-                    <span>Key Moments</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-500" />
-                    <span>Full Transcript</span>
+                  <div className="flex-1">
+                    <h3 className="text-white font-semibold mb-1">
+                      Episode Not Yet Analyzed
+                    </h3>
+                    <p className="text-slate-300 text-sm">
+                      This episode hasn't been transcribed yet. Check back later for timelines, maps, key moments, and more.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Mobile: Single Panel Overlay */}
+          {isMobile && activeTab !== 'map' && episode.transcript && (
+            <div className="absolute inset-0 z-[1000] pointer-events-none">
+              <div className="pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 shadow-2xl overflow-hidden">
+                <div className="p-4 overflow-y-auto max-h-[70vh]">
+                  {renderOverlayContent()}
+                </div>
+              </div>
+            </div>
+          )}
 
+          {/* Desktop: Dashboard with Resizable Panels */}
+          {!isMobile && episode.transcript && (
+            <DashboardManager
+              openPanels={openPanels}
+              onPanelClose={(panelId) => togglePanel(panelId)}
+            >
+              {(panelId) => renderPanelContent(panelId)}
+            </DashboardManager>
+          )}
+        </section>
+
+        {/* Old Tab Content (hidden) */}
+        <div className="hidden">
 {/* Timeline Tab */}
           {episode.transcript && activeTab === 'timeline' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
