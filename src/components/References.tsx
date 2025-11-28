@@ -41,7 +41,35 @@ const typeLabels = {
 
 export default function References({ references, theme = 'light', currentEpisodeId }: ReferencesProps) {
   const { currentEpisode, seekTo, setIsPlaying } = useAudio();
-  const groupedReferences = references.reduce((acc, ref) => {
+
+  const processedReferences = references.map(ref => {
+    if (ref.urls && ref.urls.length > 0) {
+      return ref;
+    }
+
+    const urlMatch = ref.context?.match(/URL:\s*([^\s,]+)/);
+    if (urlMatch) {
+      const url = urlMatch[1];
+      const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+      const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+
+      const contextWithoutUrl = ref.context?.replace(/\s*URL:\s*[^\s,]+/, '').trim();
+
+      return {
+        ...ref,
+        context: contextWithoutUrl,
+        urls: [{
+          url: fullUrl,
+          title: ref.name,
+          domain: domain
+        }]
+      };
+    }
+
+    return ref;
+  });
+
+  const groupedReferences = processedReferences.reduce((acc, ref) => {
     if (!acc[ref.type]) {
       acc[ref.type] = [];
     }
@@ -95,12 +123,12 @@ export default function References({ references, theme = 'light', currentEpisode
                     <div
                       key={index}
                       onClick={handleClick}
-                      className={`rounded-xl p-5 transition-all border ${
+                      className={`rounded-xl p-5 transition-all border overflow-hidden ${
                         isPlayable ? 'cursor-pointer' : ''
                       } ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <h4 className={`font-semibold text-base mb-2.5 leading-snug ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
+                        <h4 className={`font-semibold text-base mb-2.5 leading-snug break-words ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
                         {isPlayable && (
                           <div className={`flex-shrink-0 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                             <Play className="w-4 h-4" fill="currentColor" />
@@ -108,17 +136,17 @@ export default function References({ references, theme = 'light', currentEpisode
                         )}
                       </div>
                       {ref.context && (
-                        <p className={`text-sm mb-3 leading-relaxed ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
+                        <p className={`text-sm mb-3 leading-relaxed break-words ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
                       )}
                       {ref.quote && (
-                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
+                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed break-words ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
                           "{ref.quote}"
                         </blockquote>
                       )}
                       {ref.urls && ref.urls.length > 0 && (
                         <div className={`mt-4 pt-3 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
                           <p className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>Learn more:</p>
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             {ref.urls.map((urlItem, urlIndex) => (
                               <a
                                 key={urlIndex}
@@ -126,11 +154,13 @@ export default function References({ references, theme = 'light', currentEpisode
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                className={`flex items-center gap-2 text-sm hover:underline group ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                                className={`flex items-start gap-2 text-sm hover:underline group min-w-0 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
                               >
-                                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="flex-1 truncate">{urlItem.title || urlItem.domain}</span>
-                                <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'}`}>{urlItem.domain}</span>
+                                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="break-words">{urlItem.title || urlItem.domain}</div>
+                                  <div className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'} break-all`}>{urlItem.domain}</div>
+                                </div>
                               </a>
                             ))}
                           </div>
