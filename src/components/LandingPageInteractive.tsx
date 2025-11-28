@@ -307,23 +307,34 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
             <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
             <div className="absolute top-24 right-1/4 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
           </div>
-          <div className="max-w-5xl mx-auto text-center">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Beautiful interactive content for every episode
-            </h1>
-            <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Give your listeners more than just audio. Automated, branded episode content with smart features—no extra work required.
-            </p>
-            <button
-              onClick={onGetStarted}
-              className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
-            >
-              Get This For Your Podcast
-              <Sparkles className="w-5 h-5" />
-            </button>
-            <p className="text-sm text-slate-400 mt-4">
-              Setup handled by us • Live in 48 hours
-            </p>
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                  Beautiful interactive content for every episode
+                </h1>
+                <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed">
+                  Give your listeners more than just audio. Automated, branded episode content with smart features—no extra work required.
+                </p>
+                <button
+                  onClick={onGetStarted}
+                  className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
+                >
+                  Get This For Your Podcast
+                  <Sparkles className="w-5 h-5" />
+                </button>
+                <p className="text-sm text-slate-400 mt-4">
+                  Setup handled by us • Live in 48 hours
+                </p>
+              </div>
+              <div className="relative">
+                <img
+                  src="/Adobe Express - file copy copy copy.png"
+                  alt="Interactive podcast dashboard showing map, timeline, profiles, and quotes"
+                  className="rounded-2xl shadow-2xl w-full h-auto"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
