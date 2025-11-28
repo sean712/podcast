@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink, X } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -10,6 +10,7 @@ import EpisodeNotes from './EpisodeNotes';
 import References from './References';
 import AudioPlayer from './AudioPlayer';
 import PodcastFooter from './PodcastFooter';
+import DashboardManager, { type TabType } from './DashboardManager';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
@@ -26,7 +27,6 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type TabType = 'overview' | 'moments' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const { setCurrentEpisode } = useAudio();
@@ -37,7 +37,17 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<TabType>('map');
+  const [activeTab, setActiveTab] = useState<TabType | 'map'>('map');
+  const [openPanels, setOpenPanels] = useState<TabType[]>([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setCurrentEpisode({
@@ -150,13 +160,181 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
-    // Switch to notes tab so user can see and save the note
-    setActiveTab('notes');
+    if (isMobile) {
+      setActiveTab('notes');
+    } else {
+      togglePanel('notes');
+    }
   };
 
 
   const handleHighlightUsed = () => {
     setHighlightedTextForNote(undefined);
+  };
+
+  const togglePanel = (panelId: TabType) => {
+    setOpenPanels(prev => {
+      if (prev.includes(panelId)) {
+        return prev.filter(id => id !== panelId);
+      } else {
+        return [...prev, panelId];
+      }
+    });
+  };
+
+  const handleTabClick = (tabId: TabType | 'map') => {
+    if (isMobile) {
+      setActiveTab(tabId);
+    } else {
+      if (tabId === 'map') {
+        setActiveTab('map');
+        setOpenPanels([]);
+      } else {
+        togglePanel(tabId);
+      }
+    }
+  };
+
+  const closeAllPanels = () => {
+    setOpenPanels([]);
+  };
+
+  const renderPanelContent = (panelId: TabType) => {
+    if (!episode.transcript) return null;
+
+    switch (panelId) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                <p className="text-slate-300 text-sm">Analyzing transcript...</p>
+              </div>
+            ) : (
+              <>
+                {analysisError && (
+                  <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-300 font-semibold">Analysis Error</p>
+                      <p className="text-red-200 text-sm">{analysisError}</p>
+                    </div>
+                  </div>
+                )}
+                {analysis && <EpisodeSummary summary={analysis.summary} theme="dark" />}
+              </>
+            )}
+          </div>
+        );
+      case 'moments':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+                <p className="text-slate-300 text-sm">Finding key moments...</p>
+              </div>
+            ) : (
+              <>
+                {analysisError && (
+                  <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-300 font-semibold">Analysis Error</p>
+                      <p className="text-red-200 text-sm">{analysisError}</p>
+                    </div>
+                  </div>
+                )}
+                {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
+                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                )}
+              </>
+            )}
+          </div>
+        );
+      case 'people':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                <p className="text-slate-300 text-sm">Identifying key people...</p>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
+                ) : (
+                  <p className="text-slate-400 text-center py-8">No personnel data available</p>
+                )}
+              </>
+            )}
+          </div>
+        );
+      case 'timeline':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                <p className="text-slate-300 text-sm">Building timeline...</p>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
+                ) : (
+                  <p className="text-slate-400 text-center py-8">No timeline data available</p>
+                )}
+              </>
+            )}
+          </div>
+        );
+      case 'references':
+        return (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                <p className="text-slate-300 text-sm">Finding references...</p>
+              </div>
+            ) : (
+              <>
+                {analysis ? (
+                  <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
+                ) : (
+                  <p className="text-slate-400 text-center py-8">No references available</p>
+                )}
+              </>
+            )}
+          </div>
+        );
+      case 'transcript':
+        return (
+          <TranscriptViewer
+            transcript={episode.transcript}
+            episodeTitle={episode.title}
+            episodeId={episode.episode_id}
+            podcastName={podcast.name}
+            onTextSelected={handleTextSelected}
+            theme="dark"
+          />
+        );
+      case 'notes':
+        return (
+          <EpisodeNotes
+            episodeId={episode.episode_id}
+            episodeTitle={episode.title}
+            podcastName={podcast.name}
+            highlightedText={highlightedTextForNote}
+            onHighlightUsed={handleHighlightUsed}
+            theme="dark"
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   const renderOverlayContent = () => {
@@ -500,12 +678,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
      {/* Tabbed Navigation - Fixed to viewport */}
       <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'} border-b border-slate-800/60`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
+            <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px items-center">
               {isTabVisible('map') && (
                 <button
-                  onClick={() => setActiveTab('map')}
+                  onClick={() => handleTabClick('map')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'map'
+                    (isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
@@ -516,22 +694,22 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('overview') && (
                 <button
-                  onClick={() => setActiveTab('overview')}
+                  onClick={() => handleTabClick('overview')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'overview'
+                    (isMobile && activeTab === 'overview') || (!isMobile && openPanels.includes('overview'))
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <FileText className="w-3.5 h-3.5" /> 
+                  <FileText className="w-3.5 h-3.5" />
                   Overview
                 </button>
               )}
               {isTabVisible('moments') && (
                 <button
-                  onClick={() => setActiveTab('moments')}
+                  onClick={() => handleTabClick('moments')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'moments'
+                    (isMobile && activeTab === 'moments') || (!isMobile && openPanels.includes('moments'))
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
@@ -542,9 +720,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('people') && (
                 <button
-                  onClick={() => setActiveTab('people')}
+                  onClick={() => handleTabClick('people')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'people'
+                    (isMobile && activeTab === 'people') || (!isMobile && openPanels.includes('people'))
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
@@ -555,9 +733,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('timeline') && (
                 <button
-                  onClick={() => setActiveTab('timeline')}
+                  onClick={() => handleTabClick('timeline')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'timeline'
+                    (isMobile && activeTab === 'timeline') || (!isMobile && openPanels.includes('timeline'))
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
@@ -568,9 +746,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('references') && (
                 <button
-                  onClick={() => setActiveTab('references')}
+                  onClick={() => handleTabClick('references')}
                   className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    activeTab === 'references'
+                    (isMobile && activeTab === 'references') || (!isMobile && openPanels.includes('references'))
                       ? 'border-cyan-400 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
@@ -583,9 +761,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <>
                   {isTabVisible('transcript') && (
                     <button
-                      onClick={() => setActiveTab('transcript')}
+                      onClick={() => handleTabClick('transcript')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                        activeTab === 'transcript'
+                        (isMobile && activeTab === 'transcript') || (!isMobile && openPanels.includes('transcript'))
                           ? 'border-cyan-400 text-white'
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
@@ -596,9 +774,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   )}
                   {isTabVisible('notes') && (
                     <button
-                      onClick={() => setActiveTab('notes')}
+                      onClick={() => handleTabClick('notes')}
                       className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                        activeTab === 'notes'
+                        (isMobile && activeTab === 'notes') || (!isMobile && openPanels.includes('notes'))
                           ? 'border-cyan-400 text-white'
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
@@ -609,35 +787,52 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   )}
                 </>
               )}
+              {!isMobile && openPanels.length > 0 && (
+                <button
+                  onClick={closeAllPanels}
+                  className="flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 border-transparent text-red-400 hover:text-red-300 ml-auto"
+                  title="Close all panels"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Close All
+                </button>
+              )}
             </nav>
           </div>
         </div>
 
       <main className={episode.audio_url && isTabVisible('player') ? 'pt-[222px] md:pt-[158px]' : 'pt-[154px] md:pt-[100px]'}>
-        {/* Overlay Map + Panel */}
+        {/* Map Always Visible as Base Layer */}
         {episode.transcript && (
           <section className="relative">
             <LocationMap
               locations={locations}
               isLoading={isLoadingLocations}
               error={locationError}
-              showSidePanel={activeTab === 'map'}
+              showSidePanel={isMobile && activeTab === 'map'}
               mapHeight="calc(100vh - 190px)"
               currentEpisodeId={episode.episode_id}
             />
-            {activeTab !== 'map' && (
+
+            {/* Mobile: Single Panel Overlay */}
+            {isMobile && activeTab !== 'map' && (
               <div className="absolute inset-0 z-[1000] pointer-events-none">
-                <div className="hidden lg:block pointer-events-auto absolute right-6 top-6 w-[560px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
-                  <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-                    {renderOverlayContent()}
-                  </div>
-                </div>
-                <div className="lg:hidden pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/90 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
-                  <div className="p-4 overflow-y-auto max-h-[65vh]">
+                <div className="pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 shadow-2xl overflow-hidden">
+                  <div className="p-4 overflow-y-auto max-h-[70vh]">
                     {renderOverlayContent()}
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Desktop: Dashboard with Resizable Panels */}
+            {!isMobile && (
+              <DashboardManager
+                openPanels={openPanels}
+                onPanelClose={(panelId) => togglePanel(panelId)}
+              >
+                {(panelId) => renderPanelContent(panelId)}
+              </DashboardManager>
             )}
           </section>
         )}
