@@ -356,13 +356,74 @@ ${transcript}`,
       const analysis = JSON.parse(contentItem.text);
       console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
 
+      const annotations = contentItem.annotations || [];
+      console.log(`Found ${annotations.length} annotations (URL citations)`);
+
+      const urlCitations: Array<{ url: string; title: string; start_index: number; end_index: number }> = [];
+      for (const annotation of annotations) {
+        if (annotation.type === "url_citation") {
+          urlCitations.push({
+            url: annotation.url,
+            title: annotation.title || "",
+            start_index: annotation.start_index || 0,
+            end_index: annotation.end_index || 0
+          });
+          console.log(`Citation: ${annotation.title} - ${annotation.url}`);
+        }
+      }
+
+      let references = Array.isArray(analysis.references) ? analysis.references : [];
+      if (urlCitations.length > 0 && references.length > 0) {
+        console.log("Matching URLs to references...");
+        references = references.map((ref: any) => {
+          const refUrls: Array<{ url: string; title: string; domain: string }> = [];
+          const refName = ref.name.toLowerCase();
+
+          for (const citation of urlCitations) {
+            const citationTitle = citation.title.toLowerCase();
+            const refWords = refName.split(' ').filter((w: string) => w.length > 3);
+
+            let isMatch = false;
+            for (const word of refWords) {
+              if (citationTitle.includes(word)) {
+                isMatch = true;
+                break;
+              }
+            }
+
+            if (isMatch) {
+              try {
+                const domain = new URL(citation.url).hostname.replace('www.', '');
+                refUrls.push({
+                  url: citation.url,
+                  title: citation.title,
+                  domain: domain
+                });
+                console.log(`  Matched "${ref.name}" with "${citation.title}"`);
+
+                if (refUrls.length >= 3) break;
+              } catch (e) {
+                console.error(`Invalid URL: ${citation.url}`, e);
+              }
+            }
+          }
+
+          if (refUrls.length > 0) {
+            return { ...ref, urls: refUrls };
+          }
+          return ref;
+        });
+
+        console.log(`Attached URLs to ${references.filter((r: any) => r.urls).length} references`);
+      }
+
       const result = {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
-        references: Array.isArray(analysis.references) ? analysis.references : [],
+        references: references,
         worldEvents: Array.isArray(analysis.worldEvents) ? analysis.worldEvents : [],
       };
       console.log("Final result:", JSON.stringify(result, null, 2));
