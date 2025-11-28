@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink, Layout } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -10,7 +10,6 @@ import EpisodeNotes from './EpisodeNotes';
 import References from './References';
 import AudioPlayer from './AudioPlayer';
 import PodcastFooter from './PodcastFooter';
-import DraggablePanel from './DraggablePanel';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
@@ -27,14 +26,7 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-type PanelType = 'overview' | 'moments' | 'people' | 'timeline' | 'references' | 'transcript' | 'notes';
-
-interface OpenPanel {
-  id: string;
-  type: PanelType;
-  zIndex: number;
-  isMinimized: boolean;
-}
+type TabType = 'overview' | 'moments' | 'people' | 'timeline' | 'map' | 'references' | 'transcript' | 'notes';
 
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const { setCurrentEpisode } = useAudio();
@@ -45,9 +37,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-  const [openPanels, setOpenPanels] = useState<OpenPanel[]>([]);
-  const [nextZIndex, setNextZIndex] = useState(1000);
-  const [isMobile, setIsMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('map');
 
   useEffect(() => {
     setCurrentEpisode({
@@ -160,216 +150,22 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
-    openPanel('notes');
+    // Switch to notes tab so user can see and save the note
+    setActiveTab('notes');
   };
+
 
   const handleHighlightUsed = () => {
     setHighlightedTextForNote(undefined);
   };
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const openPanel = (type: PanelType) => {
-    if (isMobile) return;
-
-    const existingPanel = openPanels.find(p => p.type === type);
-    if (existingPanel) {
-      bringPanelToFront(existingPanel.id);
-      return;
-    }
-
-    const newPanel: OpenPanel = {
-      id: `panel-${type}-${Date.now()}`,
-      type,
-      zIndex: nextZIndex,
-      isMinimized: false,
-    };
-
-    setOpenPanels(prev => [...prev, newPanel]);
-    setNextZIndex(prev => prev + 1);
-  };
-
-  const closePanel = (id: string) => {
-    setOpenPanels(prev => prev.filter(p => p.id !== id));
-  };
-
-  const bringPanelToFront = (id: string) => {
-    setOpenPanels(prev =>
-      prev.map(p => (p.id === id ? { ...p, zIndex: nextZIndex } : p))
-    );
-    setNextZIndex(prev => prev + 1);
-  };
-
-  const togglePanelMinimize = (id: string) => {
-    setOpenPanels(prev =>
-      prev.map(p => (p.id === id ? { ...p, isMinimized: !p.isMinimized } : p))
-    );
-  };
-
-  const isPanelOpen = (type: PanelType) => {
-    return openPanels.some(p => p.type === type);
-  };
-
-  const getPanelDefaultPosition = (index: number) => {
-    const offset = index * 40;
-    return { x: 100 + offset, y: 100 + offset };
-  };
-
-  const renderPanelContent = (type: PanelType) => {
-    if (!episode.transcript && type !== 'notes') return null;
-
-    switch (type) {
+  const renderOverlayContent = () => {
+    if (!episode.transcript) return null;
+    switch (activeTab) {
       case 'overview':
-        return isLoadingAnalysis ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Analyzing transcript...</p>
-          </div>
-        ) : analysisError ? (
-          <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-red-300 font-semibold">Analysis Error</p>
-                <p className="text-red-200 text-sm">{analysisError}</p>
-              </div>
-            </div>
-          </div>
-        ) : analysis ? (
-          <EpisodeSummary summary={analysis.summary} theme="dark" />
-        ) : null;
-
-      case 'moments':
-        return isLoadingAnalysis ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-10 h-10 text-orange-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Finding key moments...</p>
-          </div>
-        ) : analysis && analysis.keyMoments && analysis.keyMoments.length > 0 ? (
-          <KeyMoments moments={analysis.keyMoments} theme="dark" />
-        ) : (
-          <p className="text-slate-400 text-center py-12">No key moments available</p>
-        );
-
-      case 'people':
-        return isLoadingAnalysis ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Identifying people...</p>
-          </div>
-        ) : analysis ? (
-          <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
-        ) : (
-          <p className="text-slate-400 text-center py-12">No personnel data available</p>
-        );
-
-      case 'timeline':
-        return isLoadingAnalysis ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Building timeline...</p>
-          </div>
-        ) : analysis ? (
-          <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
-        ) : (
-          <p className="text-slate-400 text-center py-12">No timeline data available</p>
-        );
-
-      case 'references':
-        return isLoadingAnalysis ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Finding references...</p>
-          </div>
-        ) : analysis ? (
-          <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
-        ) : (
-          <p className="text-slate-400 text-center py-12">No references available</p>
-        );
-
-      case 'transcript':
         return (
-          <TranscriptViewer
-            transcript={episode.transcript}
-            episodeTitle={episode.title}
-            episodeId={episode.episode_id}
-            podcastName={podcast.name}
-            onTextSelected={handleTextSelected}
-            theme="dark"
-          />
-        );
-
-      case 'notes':
-        return (
-          <EpisodeNotes
-            episodeId={episode.episode_id}
-            episodeTitle={episode.title}
-            podcastName={podcast.name}
-            highlightedText={highlightedTextForNote}
-            onHighlightUsed={handleHighlightUsed}
-            theme="dark"
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // Removed old renderOverlayContent function - now using renderPanelContent
-
-  const isTabVisible = (tabName: string): boolean => {
-    const visibleTabs = settings?.visible_tabs;
-    if (!visibleTabs || visibleTabs.length === 0) {
-      return true;
-    }
-    return visibleTabs.includes(tabName);
-  };
-
-  const primaryColor = settings?.primary_color || '#10b981';
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-
-  const shareUrl = `${window.location.origin}/${podcast.slug}/${episode.slug}`;
-
-  const handleCopyUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopySuccess(true);
-      setTimeout(() => {
-        setCopySuccess(false);
-        setShowShareModal(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-      {/* Fixed Header with Episode Info */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800/70 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-          {/* Mobile Layout: Stack vertically */}
-          <div className="flex flex-col gap-2 md:hidden">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={onBack}
-                className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors group"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
-              </button>
-              <div className="flex items-center gap-2">
-                {episode.duration && (
+          <div className="space-y-6">
+            {isLoadingAnalysis ? (
               <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
                 <div className="flex flex-col items-center justify-center gap-4">
                   <div className="relative">
@@ -701,47 +497,56 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
       )}
 
-     {/* Panel Controls - Fixed to viewport */}
+     {/* Tabbed Navigation - Fixed to viewport */}
       <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[146px] md:top-[118px]' : 'top-[90px] md:top-[61px]'} border-b border-slate-800/60`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2">
-              <div className="flex items-center gap-1 text-slate-400 text-xs font-medium mr-2">
-                <Layout className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">Panels:</span>
-              </div>
-              {isTabVisible('overview') && (
+            <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px">
+              {isTabVisible('map') && (
                 <button
-                  onClick={() => openPanel('overview')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                    isPanelOpen('overview')
-                      ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                      : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                  onClick={() => setActiveTab('map')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'map'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <FileText className="w-3.5 h-3.5" />
+                  <Map className="w-3.5 h-3.5" />
+                  Locations {locations.length > 0 && `(${locations.length})`}
+                </button>
+              )}
+              {isTabVisible('overview') && (
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'overview'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" /> 
                   Overview
                 </button>
               )}
               {isTabVisible('moments') && (
                 <button
-                  onClick={() => openPanel('moments')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                    isPanelOpen('moments')
-                      ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                      : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                  onClick={() => setActiveTab('moments')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'moments'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  Moments
+                  Key Moments
                 </button>
               )}
               {isTabVisible('people') && (
                 <button
-                  onClick={() => openPanel('people')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                    isPanelOpen('people')
-                      ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                      : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                  onClick={() => setActiveTab('people')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'people'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <UsersIcon className="w-3.5 h-3.5" />
@@ -750,11 +555,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('timeline') && (
                 <button
-                  onClick={() => openPanel('timeline')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                    isPanelOpen('timeline')
-                      ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                      : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                  onClick={() => setActiveTab('timeline')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'timeline'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
@@ -763,26 +568,26 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               )}
               {isTabVisible('references') && (
                 <button
-                  onClick={() => openPanel('references')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                    isPanelOpen('references')
-                      ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                      : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                  onClick={() => setActiveTab('references')}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === 'references'
+                      ? 'border-cyan-400 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Tag className="w-3.5 h-3.5" />
-                  References
+                  References {analysis?.references && analysis.references.length > 0 && `(${analysis.references.length})`}
                 </button>
               )}
               {episode.transcript && (
                 <>
                   {isTabVisible('transcript') && (
                     <button
-                      onClick={() => openPanel('transcript')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                        isPanelOpen('transcript')
-                          ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                          : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                      onClick={() => setActiveTab('transcript')}
+                      className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                        activeTab === 'transcript'
+                          ? 'border-cyan-400 text-white'
+                          : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
@@ -791,11 +596,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   )}
                   {isTabVisible('notes') && (
                     <button
-                      onClick={() => openPanel('notes')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
-                        isPanelOpen('notes')
-                          ? 'bg-cyan-500/20 border border-cyan-400/60 text-cyan-300'
-                          : 'bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                      onClick={() => setActiveTab('notes')}
+                      className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
+                        activeTab === 'notes'
+                          ? 'border-cyan-400 text-white'
+                          : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <StickyNote className="w-3.5 h-3.5" />
@@ -804,68 +609,34 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   )}
                 </>
               )}
-              {openPanels.length > 0 && (
-                <button
-                  onClick={() => setOpenPanels([])}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all bg-slate-800/60 border border-slate-700/60 text-slate-300 hover:bg-red-500/20 hover:border-red-400/60 hover:text-red-300"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Close All
-                </button>
-              )}
             </nav>
           </div>
         </div>
 
       <main className={episode.audio_url && isTabVisible('player') ? 'pt-[222px] md:pt-[158px]' : 'pt-[154px] md:pt-[100px]'}>
-        {/* Map as Base Layer + Floating Panels */}
+        {/* Overlay Map + Panel */}
         {episode.transcript && (
-          <section className="relative" style={{ height: 'calc(100vh - 222px)' }}>
-            {/* Always visible map */}
+          <section className="relative">
             <LocationMap
               locations={locations}
               isLoading={isLoadingLocations}
               error={locationError}
-              showSidePanel={true}
-              mapHeight="100%"
+              showSidePanel={activeTab === 'map'}
+              mapHeight="calc(100vh - 190px)"
               currentEpisodeId={episode.episode_id}
             />
-
-            {/* Draggable Panels Container */}
-            {!isMobile && openPanels.length > 0 && (
-              <div className="absolute inset-0 pointer-events-none">
-                {openPanels.map((panel, index) => {
-                  const panelConfig = {
-                    overview: { title: 'Overview', icon: <FileText className="w-4 h-4" />, size: { width: 560, height: 400 } },
-                    moments: { title: 'Key Moments', icon: <Sparkles className="w-4 h-4" />, size: { width: 560, height: 500 } },
-                    people: { title: 'Key People', icon: <UsersIcon className="w-4 h-4" />, size: { width: 560, height: 500 } },
-                    timeline: { title: 'Timeline', icon: <Clock className="w-4 h-4" />, size: { width: 600, height: 600 } },
-                    references: { title: 'References', icon: <Tag className="w-4 h-4" />, size: { width: 560, height: 500 } },
-                    transcript: { title: 'Transcript', icon: <BookOpen className="w-4 h-4" />, size: { width: 700, height: 700 } },
-                    notes: { title: 'Notes', icon: <StickyNote className="w-4 h-4" />, size: { width: 560, height: 500 } },
-                  };
-
-                  const config = panelConfig[panel.type];
-
-                  return (
-                    <div key={panel.id} className="pointer-events-auto">
-                      <DraggablePanel
-                        id={panel.id}
-                        title={config.title}
-                        icon={config.icon}
-                        onClose={() => closePanel(panel.id)}
-                        onFocus={() => bringPanelToFront(panel.id)}
-                        zIndex={panel.zIndex}
-                        defaultPosition={getPanelDefaultPosition(index)}
-                        defaultSize={config.size}
-                        isMinimized={panel.isMinimized}
-                        onToggleMinimize={() => togglePanelMinimize(panel.id)}
-                      >
-                        {renderPanelContent(panel.type)}
-                      </DraggablePanel>
-                    </div>
-                  );
-                })}
+            {activeTab !== 'map' && (
+              <div className="absolute inset-0 z-[1000] pointer-events-none">
+                <div className="hidden lg:block pointer-events-auto absolute right-6 top-6 w-[560px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
+                  <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+                    {renderOverlayContent()}
+                  </div>
+                </div>
+                <div className="lg:hidden pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/90 backdrop-blur border border-slate-700/60 shadow-2xl overflow-hidden">
+                  <div className="p-4 overflow-y-auto max-h-[65vh]">
+                    {renderOverlayContent()}
+                  </div>
+                </div>
               </div>
             )}
           </section>
