@@ -27,40 +27,33 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </header>
 
       <main>
-        <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 relative">
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-            <div className="absolute -bottom-16 -right-16 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl" />
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/95 to-slate-900 z-10" />
+          <div className="absolute inset-0">
+            <img
+              src="/Adobe Express - file.png"
+              alt="Podcast analytics dashboard"
+              className="w-full h-full object-cover opacity-40"
+            />
           </div>
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="text-center lg:text-left">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                  Beautiful interactive pages for every episode
-                </h1>
-                <p className="text-xl text-slate-300 mb-10 leading-relaxed">
-                  Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
-                </p>
-                <button
-                  onClick={onGetStarted}
-                  className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
-                >
-                  Get This For Your Podcast
-                  <Sparkles className="w-5 h-5" />
-                </button>
-                <p className="text-sm text-slate-400 mt-4">
-                  Setup handled by us • Live in 48 hours
-                </p>
-              </div>
-              <div className="flex justify-center lg:justify-end">
-                <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60 bg-slate-900/60 backdrop-blur">
-                  <img
-                    src="/Screenshot 2025-11-06 at 15.45.27.png"
-                    alt="Person listening to podcast with interactive features"
-                    className="w-full h-auto"
-                  />
-                </div>
-              </div>
+          <div className="relative z-20 px-4 sm:px-6 lg:px-8 py-32 sm:py-40 lg:py-48">
+            <div className="max-w-5xl mx-auto text-center">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-8 leading-tight">
+                Beautiful interactive pages for every episode
+              </h1>
+              <p className="text-xl sm:text-2xl text-slate-200 mb-12 leading-relaxed max-w-3xl mx-auto">
+                Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
+              </p>
+              <button
+                onClick={onGetStarted}
+                className="bg-cyan-500 text-slate-950 px-10 py-5 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-2xl hover:shadow-cyan-500/50 inline-flex items-center gap-3 text-xl border border-cyan-400/60 hover:scale-105"
+              >
+                Get This For Your Podcast
+                <Sparkles className="w-6 h-6" />
+              </button>
+              <p className="text-sm text-slate-300 mt-6">
+                Setup handled by us • Live in 48 hours
+              </p>
             </div>
           </div>
         </section>
