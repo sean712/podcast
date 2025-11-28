@@ -42,6 +42,9 @@ const REGION_BOUNDS: Record<string, RegionBounds> = {
   'ukraine': { minLat: 44.0, maxLat: 53.0, minLon: 22.0, maxLon: 40.5 },
   'china': { minLat: 18.0, maxLat: 54.0, minLon: 73.0, maxLon: 135.0 },
   'india': { minLat: 8.0, maxLat: 37.0, minLon: 68.0, maxLon: 97.5 },
+  'belarus': { minLat: 51.2, maxLat: 56.2, minLon: 23.2, maxLon: 32.8 },
+  'mozambique': { minLat: -26.9, maxLat: -10.5, minLon: 30.2, maxLon: 40.8 },
+  'mali': { minLat: 10.1, maxLat: 25.0, minLon: -12.3, maxLon: 4.3 },
 };
 
 function detectFeatureType(locationName: string): string | null {
@@ -55,6 +58,13 @@ function detectFeatureType(locationName: string): string | null {
   if (lowerName.includes('valley')) return 'valley';
 
   return null;
+}
+
+function isSimpleCountryQuery(locationName: string, expectedRegion: string | null): boolean {
+  if (!expectedRegion) return false;
+  const cleaned = locationName.toLowerCase().trim();
+  const region = expectedRegion.toLowerCase();
+  return cleaned === region || cleaned === region.replace(' ', '') || cleaned.startsWith(region);
 }
 
 function extractExpectedRegion(locationName: string): string | null {
@@ -78,6 +88,9 @@ function extractExpectedRegion(locationName: string): string | null {
     { pattern: /(ukraine|ukrainian)/i, region: 'ukraine' },
     { pattern: /(china|chinese)/i, region: 'china' },
     { pattern: /(india|indian)/i, region: 'india' },
+    { pattern: /(belarus|belarusian)/i, region: 'belarus' },
+    { pattern: /(mozambique|moçambique)/i, region: 'mozambique' },
+    { pattern: /(mali|malian)/i, region: 'mali' },
   ];
 
   for (const { pattern, region } of regionPatterns) {
@@ -125,10 +138,24 @@ async function tryStructuredSearch(city: string, country: string): Promise<Nomin
   return Array.isArray(data) ? data : [];
 }
 
-function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null): number {
+function scoreResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null, isSimpleCountry: boolean): number {
   let score = 0;
 
   score += result.importance * 100;
+
+  if (result.class === 'boundary' && result.type === 'administrative') {
+    score += 100;
+    if (isSimpleCountry) {
+      score += 400;
+    }
+  }
+
+  if (result.class === 'place' && result.type === 'country') {
+    score += 500;
+    if (isSimpleCountry) {
+      score += 300;
+    }
+  }
 
   if (expectedType) {
     if (expectedType === 'river' && result.class === 'waterway' && result.type === 'river') {
@@ -174,19 +201,19 @@ function scoreResult(result: NominatimResult, locationName: string, expectedType
       if (isWithinBounds(lat, lon, expectedRegion)) {
         score += 200;
       }
-    } else {
-      score -= 1000;
+    } else if (!isSimpleCountry) {
+      score -= 200;
     }
 
-    if (!isWithinBounds(lat, lon, expectedRegion)) {
-      score -= 500;
+    if (!isWithinBounds(lat, lon, expectedRegion) && !isSimpleCountry) {
+      score -= 100;
     }
   }
 
   return score;
 }
 
-function validateResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null): boolean {
+function validateResult(result: NominatimResult, locationName: string, expectedType: string | null, expectedRegion: string | null, isSimpleCountry: boolean): boolean {
   if (result.class === 'building' && expectedType && expectedType !== 'building') {
     console.log(`❌ Rejecting building result for ${locationName} (expected ${expectedType})`);
     return false;
@@ -202,27 +229,33 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
   const lon = parseFloat(result.lon);
 
   const isPlaceResult = result.class === 'place' && ['city', 'town', 'village', 'country', 'state', 'county'].includes(result.type);
+  const isBoundaryResult = result.class === 'boundary' && result.type === 'administrative';
+
+  if (isSimpleCountry && (isPlaceResult || isBoundaryResult)) {
+    console.log(`✅ Accepting ${result.class}/${result.type} result for simple country query`);
+    return true;
+  }
 
   if (expectedRegion) {
     const hasRegionName = displayNameLower.includes(expectedRegion);
     const withinBounds = isWithinBounds(lat, lon, expectedRegion);
 
-    if (!hasRegionName && !withinBounds) {
+    if (!hasRegionName && !withinBounds && !isSimpleCountry) {
       console.log(`❌ Rejecting result - neither region name "${expectedRegion}" found nor coordinates (${lat}, ${lon}) within bounds for ${result.display_name}`);
       return false;
     }
 
-    if (!hasRegionName) {
+    if (!hasRegionName && withinBounds) {
       console.log(`⚠️  Warning: Region "${expectedRegion}" not in display name, but coordinates (${lat}, ${lon}) are within bounds - accepting`);
     }
 
-    if (!withinBounds) {
+    if (!withinBounds && hasRegionName) {
       console.log(`⚠️  Warning: Coordinates (${lat}, ${lon}) outside bounds, but region "${expectedRegion}" found in display name - accepting`);
     }
   }
 
-  if (isPlaceResult) {
-    console.log(`✅ Accepting place result: ${result.type}`);
+  if (isPlaceResult || isBoundaryResult) {
+    console.log(`✅ Accepting ${result.class}/${result.type} result`);
     return true;
   }
 
@@ -233,7 +266,7 @@ function validateResult(result: NominatimResult, locationName: string, expectedT
     const searchWords = mainSearchTerm.split(' ').filter(w => w.length > 2);
     const hasMatch = searchWords.some(word => displayNameLower.includes(word));
 
-    if (!hasMatch) {
+    if (!hasMatch && !isSimpleCountry) {
       console.log(`❌ Rejecting result - no matching terms between "${mainSearchTerm}" and "${result.display_name}"`);
       return false;
     }
@@ -261,8 +294,10 @@ Deno.serve(async (req: Request) => {
 
     const expectedRegion = extractExpectedRegion(locationName);
     const expectedType = detectFeatureType(locationName);
+    const isSimpleCountry = isSimpleCountryQuery(locationName, expectedRegion);
     console.log(`   Expected region: ${expectedRegion || 'none'}`);
     console.log(`   Expected feature type: ${expectedType || 'any'}`);
+    console.log(`   Is simple country query: ${isSimpleCountry}`);
 
     let data: NominatimResult[] = [];
 
@@ -300,7 +335,7 @@ Deno.serve(async (req: Request) => {
 
     console.log(`   Found ${data.length} candidate(s)`);
 
-    const validResults = data.filter(result => validateResult(result, locationName, expectedType, expectedRegion));
+    const validResults = data.filter(result => validateResult(result, locationName, expectedType, expectedRegion, isSimpleCountry));
 
     if (validResults.length === 0) {
       console.log(`❌ No valid results after filtering for "${locationName}"`);
@@ -312,7 +347,7 @@ Deno.serve(async (req: Request) => {
 
     const scoredResults = validResults.map(result => ({
       result,
-      score: scoreResult(result, locationName, expectedType, expectedRegion)
+      score: scoreResult(result, locationName, expectedType, expectedRegion, isSimpleCountry)
     }));
 
     scoredResults.sort((a, b) => b.score - a.score);

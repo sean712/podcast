@@ -85,9 +85,10 @@ function cleanLocationName(locationName: string): string[] {
   return [...new Set(candidates.filter(c => c.length > 0))];
 }
 
-async function tryGeocodeWithFallback(locationName: string): Promise<GeocodedLocation | null> {
+async function tryGeocodeWithFallback(locationName: string, retryCount = 0): Promise<GeocodedLocation | null> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const maxRetries = 2;
 
   try {
     const response = await fetch(
@@ -103,6 +104,12 @@ async function tryGeocodeWithFallback(locationName: string): Promise<GeocodedLoc
     );
 
     if (!response.ok) {
+      if (response.status === 429 && retryCount < maxRetries) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`   ⏳ Rate limited, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return tryGeocodeWithFallback(locationName, retryCount + 1);
+      }
       return null;
     }
 
@@ -114,6 +121,12 @@ async function tryGeocodeWithFallback(locationName: string): Promise<GeocodedLoc
 
     return data;
   } catch (error) {
+    if (retryCount < maxRetries) {
+      const delay = Math.pow(2, retryCount) * 1000;
+      console.log(`   ⚠️ Error occurred, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return tryGeocodeWithFallback(locationName, retryCount + 1);
+    }
     return null;
   }
 }
@@ -157,7 +170,9 @@ export async function geocodeLocations(
   for (let i = 0; i < locations.length; i++) {
     const location = locations[i];
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (i > 0) {
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
 
     console.log(`[${i + 1}/${locations.length}] Geocoding "${location.name}"...`);
 
