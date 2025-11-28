@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nWhen extracting references, use web search to find 1-3 high-quality, authoritative URLs (official websites, Wikipedia, museum sites, major news sources, encyclopedias) for each reference to help users learn more."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
             },
             {
               role: "user",
@@ -106,31 +106,6 @@ Deno.serve(async (req: Request) => {
           reasoning: {
             effort: "low"
           },
-          tools: [
-            {
-              type: "web_search",
-              filters: {
-                allowed_domains: [
-                  "wikipedia.org",
-                  "britannica.com",
-                  "imdb.com",
-                  "goodreads.com",
-                  "amazon.com",
-                  "nytimes.com",
-                  "theguardian.com",
-                  "bbc.com",
-                  "reuters.com",
-                  "npr.org",
-                  "smithsonianmag.com",
-                  "history.com",
-                  "nationalgeographic.com",
-                  "museum",
-                  "gov",
-                  "edu"
-                ]
-              }
-            }
-          ],
           text: {
             format: {
               type: "json_schema",
@@ -342,60 +317,13 @@ Deno.serve(async (req: Request) => {
       const analysis = JSON.parse(contentItem.text);
       console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
 
-      const annotations = contentItem.annotations || [];
-      console.log(`Found ${annotations.length} annotations (URL citations)`);
-
-      const urlCitations: Array<{ url: string; title: string; start_index: number; end_index: number }> = [];
-      for (const annotation of annotations) {
-        if (annotation.type === "url_citation") {
-          urlCitations.push({
-            url: annotation.url,
-            title: annotation.title || "",
-            start_index: annotation.start_index || 0,
-            end_index: annotation.end_index || 0
-          });
-          console.log(`Citation: ${annotation.title} - ${annotation.url}`);
-        }
-      }
-
-      let references = Array.isArray(analysis.references) ? analysis.references : [];
-      if (urlCitations.length > 0 && references.length > 0) {
-        const referencesText = JSON.stringify(references);
-
-        references = references.map((ref: any) => {
-          const refUrls: Array<{ url: string; title: string; domain: string }> = [];
-          const refName = ref.name.toLowerCase();
-
-          for (const citation of urlCitations) {
-            const citationTitle = citation.title.toLowerCase();
-            if (citationTitle.includes(refName) || refName.includes(citationTitle.split(' ')[0])) {
-              const domain = new URL(citation.url).hostname.replace('www.', '');
-              refUrls.push({
-                url: citation.url,
-                title: citation.title,
-                domain: domain
-              });
-
-              if (refUrls.length >= 3) break;
-            }
-          }
-
-          if (refUrls.length > 0) {
-            return { ...ref, urls: refUrls };
-          }
-          return ref;
-        });
-
-        console.log(`Attached URLs to ${references.filter((r: any) => r.urls).length} references`);
-      }
-
       const result = {
         summary: analysis.summary || "",
         keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
-        references: references,
+        references: Array.isArray(analysis.references) ? analysis.references : [],
         worldEvents: Array.isArray(analysis.worldEvents) ? analysis.worldEvents : [],
       };
       console.log("Final result:", JSON.stringify(result, null, 2));
