@@ -28,14 +28,14 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
       <main>
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/95 to-slate-900 z-10" />
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 z-0">
             <img
               src="/adobe-express-hero.png"
               alt="Podcast analytics dashboard"
-              className="w-full h-full object-cover opacity-40"
+              className="w-full h-full object-cover opacity-30"
             />
           </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-900/85 to-slate-900 z-10" />
           <div className="relative z-20 px-4 sm:px-6 lg:px-8 py-32 sm:py-40 lg:py-48">
             <div className="max-w-5xl mx-auto text-center">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-8 leading-tight">
