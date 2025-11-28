@@ -42,10 +42,10 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               <div className="backdrop-blur-sm bg-slate-900/40 rounded-3xl p-8 lg:p-12 border border-slate-700/30">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight">
-                  Beautiful interactive pages for every episode
+                  Beautiful interactive content for every episode
                 </h1>
                 <p className="text-lg sm:text-xl text-slate-100 mb-10 leading-relaxed">
-                  Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
+                  Give your listeners more than just audio. Automated, branded episode content with smart features—no extra work required.
                 </p>
                 <button
                   onClick={onGetStarted}
