@@ -809,7 +809,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               locations={locations}
               isLoading={isLoadingLocations}
               error={locationError}
-              showSidePanel={isMobile && activeTab === 'map'}
+              showSidePanel={(isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)}
               mapHeight="calc(100vh - 190px)"
               currentEpisodeId={episode.episode_id}
             />
