@@ -659,7 +659,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       {/* Audio Player Bar - Fixed to viewport */}
       {episode.audio_url && isTabVisible('player') && (
-        <div className="fixed left-0 right-0 border-b border-slate-800/60 bg-slate-900 z-40 top-[118px] md:top-[93px]">
+        <div className="fixed left-0 right-0 border-b border-slate-800/60 bg-slate-900 z-40 top-[130px] md:top-[105px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <AudioPlayer
               audioUrl={episode.audio_url}
@@ -676,7 +676,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       )}
 
      {/* Tabbed Navigation - Fixed to viewport */}
-      <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[174px] md:top-[150px]' : 'top-[118px] md:top-[93px]'} border-b border-slate-800/60`}>
+      <div className={`fixed left-0 right-0 bg-slate-900/95 backdrop-blur z-40 ${episode.audio_url && isTabVisible('player') ? 'top-[186px] md:top-[162px]' : 'top-[130px] md:top-[105px]'} border-b border-slate-800/60`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px items-center">
               {isTabVisible('map') && (
@@ -801,7 +801,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-      <main className={episode.audio_url && isTabVisible('player') ? 'pt-[250px] md:pt-[190px]' : 'pt-[182px] md:pt-[132px]'}>
+      <main className={episode.audio_url && isTabVisible('player') ? 'pt-[262px] md:pt-[202px]' : 'pt-[194px] md:pt-[144px]'}>
         {/* Map Always Visible as Base Layer */}
         {episode.transcript && (
           <section className="relative">
