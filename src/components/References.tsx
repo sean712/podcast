@@ -128,7 +128,7 @@ export default function References({ references, theme = 'light', currentEpisode
                       } ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <h4 className={`font-semibold text-base mb-2.5 leading-snug break-words ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
+                        <h4 className={`font-semibold text-base mb-2.5 leading-snug break-words select-text ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
                         {isPlayable && (
                           <div className={`flex-shrink-0 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                             <Play className="w-4 h-4" fill="currentColor" />
@@ -136,10 +136,10 @@ export default function References({ references, theme = 'light', currentEpisode
                         )}
                       </div>
                       {ref.context && (
-                        <p className={`text-sm mb-3 leading-relaxed break-words ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
+                        <p className={`text-sm mb-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
                       )}
                       {ref.quote && (
-                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed break-words ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
+                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
                           "{ref.quote}"
                         </blockquote>
                       )}

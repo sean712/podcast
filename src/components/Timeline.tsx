@@ -76,17 +76,17 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
                       <div className="flex-1 min-w-0">
                         <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 border border-teal-600 rounded-lg mb-3 ${isDark ? 'bg-teal-900/40' : 'bg-teal-100'}`}>
                           <Calendar className={`w-3.5 h-3.5 ${isDark ? 'text-teal-300' : 'text-teal-700'}`} />
-                          <span className={`text-sm font-semibold ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>
+                          <span className={`text-sm font-semibold select-text ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>
                             {event.date}
                           </span>
                         </div>
 
-                        <h4 className={`font-bold text-lg mb-2 leading-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                        <h4 className={`font-bold text-lg mb-2 leading-tight select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                           {event.event}
                         </h4>
 
                         {isExpanded && event.significance && (
-                          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          <p className={`text-sm leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                             {event.significance}
                           </p>
                         )}
@@ -108,7 +108,7 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
                         {event.details && (
                           <div className="flex gap-2">
                             <Info className={`w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5`} />
-                            <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                            <p className={`text-sm leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                               {event.details}
                             </p>
                           </div>
@@ -143,7 +143,7 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
                                   }`}
                                 >
                                   <div className="flex items-start justify-between gap-2">
-                                    <p className={`text-xs italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                    <p className={`text-xs italic leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                       "{quoteText}"
                                     </p>
                                     {isPlayable && (
@@ -196,7 +196,7 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
                             <div key={weIndex} className="flex items-start gap-2">
                               <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${isDark ? 'bg-slate-500' : 'bg-slate-400'}`}></div>
                               <div>
-                                <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                <p className={`text-xs leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                   {worldEvent.event}
                                 </p>
                                 <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] rounded ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-600'}`}>

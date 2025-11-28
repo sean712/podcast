@@ -48,14 +48,14 @@ export default function KeyPersonnel({ personnel, theme = 'light', currentEpisod
             >
               {/* Name and Role */}
               <div className="mb-4">
-                <h4 className={`font-semibold text-lg mb-2.5 leading-snug ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
-                <span className={`text-sm font-medium text-white ${color.bg} px-3 py-1.5 rounded-md inline-block`}>
+                <h4 className={`font-semibold text-lg mb-2.5 leading-snug select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
+                <span className={`text-sm font-medium text-white ${color.bg} px-3 py-1.5 rounded-md inline-block select-text`}>
                   {person.role}
                 </span>
               </div>
 
             {/* Relevance */}
-            <p className={`text-sm leading-relaxed mb-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+            <p className={`text-sm leading-relaxed mb-3 select-text ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               {person.relevance}
             </p>
 
@@ -101,7 +101,7 @@ export default function KeyPersonnel({ personnel, theme = 'light', currentEpisod
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                            <p className={`text-sm italic leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                               "{quoteText}"
                             </p>
                             {isPlayable && (

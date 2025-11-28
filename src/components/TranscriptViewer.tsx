@@ -314,7 +314,7 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
           style={{ scrollBehavior: 'smooth' }}
         >
           <div
-            className={`max-w-4xl mx-auto text-base`}
+            className={`max-w-4xl mx-auto text-base select-text`}
             onMouseUp={handleTextSelection}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -324,18 +324,18 @@ export default function TranscriptViewer({ transcript, episodeTitle, episodeId, 
               <div key={i} className="mb-6">
                 <div className="flex items-start gap-3">
                   {showTimestamps && segment.timestamp && (
-                    <span className={`text-xs font-mono mt-1 flex-shrink-0 w-20 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <span className={`text-xs font-mono mt-1 flex-shrink-0 w-20 select-text ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                       {segment.timestamp}
                     </span>
                   )}
                   <div className="flex-1">
                     {showSpeakers && segment.speaker && (
-                      <span className={`${theme === 'dark' ? 'text-slate-100 bg-slate-800' : 'text-slate-600 bg-slate-200'} font-semibold text-sm px-2 py-0.5 rounded mr-2`}>
+                      <span className={`${theme === 'dark' ? 'text-slate-100 bg-slate-800' : 'text-slate-600 bg-slate-200'} font-semibold text-sm px-2 py-0.5 rounded mr-2 select-text`}>
                         {segment.speaker}
                       </span>
                     )}
                     <span
-                      className={`${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'} leading-relaxed`}
+                      className={`${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'} leading-relaxed select-text`}
                       dangerouslySetInnerHTML={{
                         __html: 'highlightedText' in segment ? segment.highlightedText : segment.text
                       }}

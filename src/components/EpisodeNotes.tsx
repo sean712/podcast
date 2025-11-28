@@ -296,7 +296,7 @@ export default function EpisodeNotes({
       {highlightedText && isCreating && (
         <div className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
           <p className="text-sm text-amber-800 mb-2 font-semibold">Highlighted text:</p>
-          <p className="text-sm text-slate-700 italic">"{highlightedText}"</p>
+          <p className="text-sm text-slate-700 italic select-text">"{highlightedText}"</p>
         </div>
       )}
 
@@ -391,10 +391,10 @@ export default function EpisodeNotes({
                 <>
                   {note.highlightedText && (
                     <div className={`mb-3 p-3 border-l-4 ${color.accent} rounded ${theme === 'dark' ? 'bg-slate-800' : color.bg}`}>
-                      <p className={`text-xs italic ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>"{note.highlightedText}"</p>
+                      <p className={`text-xs italic select-text ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>"{note.highlightedText}"</p>
                     </div>
                   )}
-                  <p className={`text-sm whitespace-pre-wrap mb-4 leading-relaxed ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{note.noteText}</p>
+                  <p className={`text-sm whitespace-pre-wrap mb-4 leading-relaxed select-text ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{note.noteText}</p>
                   <div className="flex items-center justify-between">
                     <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                     {new Date(note.createdAt).toLocaleDateString('en-US', {
