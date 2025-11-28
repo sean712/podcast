@@ -105,14 +105,25 @@ Deno.serve(async (req: Request) => {
                   "nytimes.com",
                   "theguardian.com",
                   "bbc.com",
+                  "bbc.co.uk",
                   "reuters.com",
                   "npr.org",
                   "smithsonianmag.com",
                   "history.com",
                   "nationalgeographic.com",
-                  "museum",
-                  "gov",
-                  "edu"
+                  "si.edu",
+                  "moma.org",
+                  "metmuseum.org",
+                  "britannica.com",
+                  "loc.gov",
+                  "archives.gov",
+                  "nasa.gov",
+                  "nih.gov",
+                  "harvard.edu",
+                  "stanford.edu",
+                  "mit.edu",
+                  "ox.ac.uk",
+                  "cam.ac.uk"
                 ]
               }
             }
