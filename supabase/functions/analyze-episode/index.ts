@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
           input: [
             {
               role: "system",
-              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events. IMPORTANT: For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
+              content: "You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'."
             },
             {
               role: "user",
@@ -120,13 +120,13 @@ Deno.serve(async (req: Request) => {
                   },
                   keyMoments: {
                     type: "array",
-                    description: "5-8 key moments that are important, interesting, or surprising",
+                    description: "5-8 MEMORABLE moments from THIS podcast conversation that are surprising, funny, shocking, insightful, or inspiring - the moments listeners will want to share and remember. These should be standout conversational moments, revelations, unexpected insights, powerful statements, or fascinating stories told during the episode. DO NOT include generic historical facts or timeline events. Focus on what makes THIS specific episode engaging and memorable. Examples: unexpected revelations, counterintuitive insights, humorous exchanges, shocking statements, inspiring stories, surprising connections, or 'aha' moments.",
                     items: {
                       type: "object",
                       properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        quote: { type: "string" },
+                        title: { type: "string", description: "Attention-grabbing title that captures the surprise/interest (e.g., 'The Unexpected Truth About...', 'Why Everything We Thought Was Wrong', 'The Moment That Changed Everything')" },
+                        description: { type: "string", description: "Explain WHY this moment is memorable, surprising, or significant. What makes it stand out? What's the key insight or takeaway?" },
+                        quote: { type: "string", description: "The most compelling quote that captures this memorable moment" },
                         timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format (e.g., '01:23:45.678')" }
                       },
                       required: ["title", "description", "quote", "timestamp"],
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
                   },
                   timeline: {
                     type: "array",
-                    description: "Key chronological events mentioned in the transcript (max 10)",
+                    description: "Key chronological HISTORICAL events with specific dates mentioned in the transcript (max 10). Focus on factual historical events like wars, treaties, political changes, battles, etc. These are different from Key Moments - timeline is about historical facts with dates, while Key Moments are about memorable parts of the podcast conversation itself.",
                     items: {
                       type: "object",
                       properties: {
