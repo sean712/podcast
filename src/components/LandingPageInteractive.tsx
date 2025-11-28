@@ -309,10 +309,10 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
           </div>
           <div className="max-w-5xl mx-auto text-center">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Beautiful interactive pages for every episode
+              Beautiful interactive content for every episode
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Give your listeners more than just audio. Automated, branded episode pages with smart features—no extra work required.
+              Give your listeners more than just audio. Automated, branded episode content with smart features—no extra work required.
             </p>
             <button
               onClick={onGetStarted}
