@@ -1,4 +1,4 @@
-import { Book, Film, Building2, Package, FileText, Globe, Tag, Play } from 'lucide-react';
+import { Book, Film, Building2, Package, FileText, Globe, Tag, Play, ExternalLink } from 'lucide-react';
 import type { Reference } from '../services/openaiService';
 import { useAudio } from '../contexts/AudioContext';
 import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
@@ -114,6 +114,27 @@ export default function References({ references, theme = 'light', currentEpisode
                         <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
                           "{ref.quote}"
                         </blockquote>
+                      )}
+                      {ref.urls && ref.urls.length > 0 && (
+                        <div className={`mt-4 pt-3 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
+                          <p className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>Learn more:</p>
+                          <div className="space-y-1.5">
+                            {ref.urls.map((urlItem, urlIndex) => (
+                              <a
+                                key={urlIndex}
+                                href={urlItem.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className={`flex items-center gap-2 text-sm hover:underline group ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span className="flex-1 truncate">{urlItem.title || urlItem.domain}</span>
+                                <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'}`}>{urlItem.domain}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
                       )}
                       {isPlayable && timestamp !== null && (
                         <div className={`text-xs font-medium mt-2 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>

@@ -46,6 +46,11 @@ export interface Reference {
   context?: string;
   quote?: string;
   timestamp?: string;
+  urls?: Array<{
+    url: string;
+    title: string;
+    domain: string;
+  }>;
 }
 
 export interface TranscriptAnalysis {
