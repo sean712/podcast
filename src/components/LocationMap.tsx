@@ -235,17 +235,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
     );
   }
 
-  if (locations.length === 0 && !isLoading) {
-    return (
-      <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <MapPin className="w-8 h-8 text-slate-400" />
-        </div>
-        <p className="text-slate-700 font-medium">No locations mentioned</p>
-        <p className="text-slate-500 text-sm mt-1">This episode doesn't reference specific places</p>
-      </div>
-    );
-  }
+  // Removed the early return - always render the map, even with no locations
 
   return (
     <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900' : ''}`} ref={containerRef}>
