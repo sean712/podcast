@@ -284,7 +284,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Optional built-in side panel/list */}
         {showSidePanel && (
           <div
-            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl flex flex-col"
+            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl flex flex-col overflow-hidden"
             style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
           >
             <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2 flex-shrink-0">
@@ -295,7 +295,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                 </span>
               </div>
             </div>
-            <div className="p-4 overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 p-4">
               <div className="grid grid-cols-1 gap-3">
                 {locations.map((location, index) => (
                   <button
