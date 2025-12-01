@@ -567,9 +567,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
       {/* Fixed Unified Header - Contains all top elements */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-950 to-slate-900 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
         {/* Augmented Pods Branding Bar */}
-        <div className="border-b border-slate-800/50 bg-slate-950/90">
+        <div className="border-b border-slate-800/50 bg-slate-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <button
