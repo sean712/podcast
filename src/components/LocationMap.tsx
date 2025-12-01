@@ -295,7 +295,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                 </span>
               </div>
             </div>
-            <div className="overflow-y-auto flex-1 p-4">
+            <div className="overflow-y-auto flex-1 min-h-0 p-4">
               <div className="grid grid-cols-1 gap-3">
                 {locations.map((location, index) => (
                   <button
