@@ -284,10 +284,10 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Optional built-in side panel/list */}
         {showSidePanel && (
           <div
-            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
+            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl flex flex-col"
             style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
           >
-            <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2 flex-shrink-0">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
                 <MapPin className="w-4 h-4 text-orange-400" />
                 <span className="text-sm font-semibold text-slate-100">
@@ -295,7 +295,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
                 </span>
               </div>
             </div>
-            <div className="p-4 overflow-y-auto" style={{ maxHeight: 'inherit' }}>
+            <div className="p-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 gap-3">
                 {locations.map((location, index) => (
                   <button
