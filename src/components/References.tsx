@@ -1,4 +1,5 @@
-import { Book, Film, Building2, Package, FileText, Globe, Tag, Play, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Book, Film, Building2, Package, FileText, Globe, Tag, Play, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Reference } from '../services/openaiService';
 import { useAudio } from '../contexts/AudioContext';
 import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
@@ -41,6 +42,19 @@ const typeLabels = {
 
 export default function References({ references, theme = 'light', currentEpisodeId }: ReferencesProps) {
   const { currentEpisode, seekTo, setIsPlaying } = useAudio();
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (key: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
 
   const processedReferences = references.map(ref => {
     if (ref.urls && ref.urls.length > 0) {
@@ -107,12 +121,14 @@ export default function References({ references, theme = 'light', currentEpisode
               </div>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="space-y-2">
                 {refs.map((ref, index) => {
+                  const itemKey = `${type}-${index}`;
+                  const isExpanded = expandedItems.has(itemKey);
                   const timestamp = ref.timestamp ? parseTimestamp(ref.timestamp) : null;
                   const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
 
-                  const handleClick = () => {
+                  const handlePlayback = () => {
                     if (isPlayable && timestamp !== null) {
                       seekTo(timestamp);
                       setIsPlaying(true);
@@ -122,53 +138,88 @@ export default function References({ references, theme = 'light', currentEpisode
                   return (
                     <div
                       key={index}
-                      onClick={handleClick}
-                      className={`rounded-xl p-5 transition-all border overflow-hidden ${
-                        isPlayable ? 'cursor-pointer' : ''
-                      } ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 hover:border-slate-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      className={`rounded-lg border transition-all ${
+                        theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'border-gray-200 bg-white'
+                      }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <h4 className={`font-semibold text-base mb-2.5 leading-snug break-words select-text ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>{ref.name}</h4>
-                        {isPlayable && (
-                          <div className={`flex-shrink-0 p-1.5 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                            <Play className="w-4 h-4" fill="currentColor" />
-                          </div>
-                        )}
-                      </div>
-                      {ref.context && (
-                        <p className={`text-sm mb-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>{ref.context}</p>
-                      )}
-                      {ref.quote && (
-                        <blockquote className={`text-sm italic border-l-2 pl-3.5 mt-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
-                          "{ref.quote}"
-                        </blockquote>
-                      )}
-                      {ref.urls && ref.urls.length > 0 && (
-                        <div className={`mt-4 pt-3 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
-                          <p className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>Learn more:</p>
-                          <div className="space-y-2">
-                            {ref.urls.map((urlItem, urlIndex) => (
-                              <a
-                                key={urlIndex}
-                                href={urlItem.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className={`flex items-start gap-2 text-sm hover:underline group min-w-0 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
-                              >
-                                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                                <div className="flex-1 min-w-0">
-                                  <div className="break-words">{urlItem.title || urlItem.domain}</div>
-                                  <div className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'} break-all`}>{urlItem.domain}</div>
-                                </div>
-                              </a>
-                            ))}
-                          </div>
+                      <button
+                        onClick={() => toggleExpanded(itemKey)}
+                        className={`w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-opacity-50 transition-colors text-left ${
+                          theme === 'dark' ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0 flex items-center gap-3">
+                          <h4 className={`font-semibold text-base break-words select-text flex-1 ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>
+                            {ref.name}
+                          </h4>
+                          {isPlayable && (
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlayback();
+                              }}
+                              className={`flex-shrink-0 p-1.5 rounded-lg cursor-pointer ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
+                            >
+                              <Play className="w-4 h-4" fill="currentColor" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {isPlayable && timestamp !== null && (
-                        <div className={`text-xs font-medium mt-2 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                          {formatTimestamp(timestamp)}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {ref.urls && ref.urls.length > 0 && (
+                            <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+                          )}
+                          {isExpanded ? (
+                            <ChevronUp className={`w-5 h-5 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`} />
+                          ) : (
+                            <ChevronDown className={`w-5 h-5 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`} />
+                          )}
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className={`px-4 pb-4 pt-2 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
+                          {ref.context && (
+                            <p className={`text-sm mb-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>
+                              {ref.context}
+                            </p>
+                          )}
+                          {ref.quote && (
+                            <blockquote className={`text-sm italic border-l-2 pl-3.5 mb-3 leading-relaxed break-words select-text ${theme === 'dark' ? 'text-slate-400 border-slate-600' : 'text-gray-500 border-gray-300'}`}>
+                              "{ref.quote}"
+                            </blockquote>
+                          )}
+                          {ref.urls && ref.urls.length > 0 && (
+                            <div className={`mt-3 pt-3 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
+                              <p className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>Learn more:</p>
+                              <div className="space-y-2">
+                                {ref.urls.map((urlItem, urlIndex) => (
+                                  <a
+                                    key={urlIndex}
+                                    href={urlItem.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`flex items-start gap-2 text-sm hover:underline group min-w-0 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="break-words">{urlItem.title || urlItem.domain}</div>
+                                      <div className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'} break-all`}>{urlItem.domain}</div>
+                                    </div>
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {isPlayable && timestamp !== null && (
+                            <button
+                              onClick={handlePlayback}
+                              className={`text-xs font-medium mt-3 flex items-center gap-1 ${theme === 'dark' ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'}`}
+                            >
+                              <Play className="w-3 h-3" fill="currentColor" />
+                              {formatTimestamp(timestamp)}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
