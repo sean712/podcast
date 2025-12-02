@@ -128,7 +128,19 @@ Deno.serve(async (req: Request) => {
               }
             }
           ],
-          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nCRITICAL: For EVERY reference (books, films, companies, products, articles, websites), you MUST use the web_search tool to find 1-3 authoritative URLs and include them in the urls array for that reference. This is mandatory - do not skip web search. For each URL found, extract the full URL, page title, and domain name. Prioritize high-quality sources from the allowed domains list.\n\nAnalyze this podcast transcript and return the analysis in the following JSON format:\n\n${transcript}`,
+          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.
+
+IMPORTANT DISTINCTION:
+- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)
+- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.
+
+For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.
+
+When extracting references (books, films, companies, products, etc.), use web search to find authoritative URLs for each one to help users learn more.
+
+Analyze this podcast transcript and return the analysis in the following JSON format:
+
+${transcript}`,
           max_output_tokens: 16000,
           reasoning: {
             effort: "low"
@@ -137,7 +149,7 @@ Deno.serve(async (req: Request) => {
             format: {
               type: "json_schema",
               name: "podcast_analysis",
-              strict: false,
+              strict: true,
               schema: {
                 type: "object",
                 properties: {
@@ -240,7 +252,7 @@ Deno.serve(async (req: Request) => {
                   },
                   references: {
                     type: "array",
-                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context. IMPORTANT: Use web search to find authoritative URLs for each reference to help users learn more.",
+                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
                     items: {
                       type: "object",
                       properties: {
@@ -251,21 +263,7 @@ Deno.serve(async (req: Request) => {
                         name: { type: "string" },
                         context: { type: "string" },
                         quote: { type: "string" },
-                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" },
-                        urls: {
-                          type: "array",
-                          description: "URLs found via web search for this reference (1-3 authoritative links)",
-                          items: {
-                            type: "object",
-                            properties: {
-                              url: { type: "string", description: "Full URL to authoritative source" },
-                              title: { type: "string", description: "Title of the web page" },
-                              domain: { type: "string", description: "Domain name (e.g., 'wikipedia.org')" }
-                            },
-                            required: ["url", "title", "domain"],
-                            additionalProperties: false
-                          }
-                        }
+                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
                       },
                       required: ["type", "name", "context", "quote", "timestamp"],
                       additionalProperties: false
@@ -356,12 +354,7 @@ Deno.serve(async (req: Request) => {
 
       console.log("Content item text:", contentItem.text);
       const analysis = JSON.parse(contentItem.text);
-      console.log("Parsed analysis references:", JSON.stringify(analysis.references, null, 2));
-
-      let references = Array.isArray(analysis.references) ? analysis.references : [];
-
-      const refsWithUrls = references.filter((r: any) => r.urls && r.urls.length > 0).length;
-      console.log(`References with URLs from schema: ${refsWithUrls} out of ${references.length}`);
+      console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
 
       const annotations = contentItem.annotations || [];
       console.log(`Found ${annotations.length} annotations (URL citations)`);
@@ -379,14 +372,10 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      let references = Array.isArray(analysis.references) ? analysis.references : [];
       if (urlCitations.length > 0 && references.length > 0) {
-        console.log("Using annotation matching as fallback for references without URLs...");
+        console.log("Matching URLs to references...");
         references = references.map((ref: any) => {
-          if (ref.urls && ref.urls.length > 0) {
-            console.log(`  Reference \"${ref.name}\" already has ${ref.urls.length} URLs from schema`);
-            return ref;
-          }
-
           const refUrls: Array<{ url: string; title: string; domain: string }> = [];
           const refName = ref.name.toLowerCase();
 
@@ -410,7 +399,7 @@ Deno.serve(async (req: Request) => {
                   title: citation.title,
                   domain: domain
                 });
-                console.log(`  Matched \"${ref.name}\" with annotation \"${citation.title}\"`);
+                console.log(`  Matched "${ref.name}" with "${citation.title}"`);
 
                 if (refUrls.length >= 3) break;
               } catch (e) {
@@ -425,8 +414,7 @@ Deno.serve(async (req: Request) => {
           return ref;
         });
 
-        const finalRefsWithUrls = references.filter((r: any) => r.urls && r.urls.length > 0).length;
-        console.log(`After annotation matching: ${finalRefsWithUrls} out of ${references.length} references have URLs`);
+        console.log(`Attached URLs to ${references.filter((r: any) => r.urls).length} references`);
       }
 
       const result = {
@@ -450,7 +438,7 @@ Deno.serve(async (req: Request) => {
       const messages = [
         {
           role: "system" as const,
-          content: `You are a helpful assistant that answers questions about a podcast episode titled \"${episodeTitle}\".\n\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\n\nWhen answering:\n- Be conversational and helpful\n- Quote relevant parts of the transcript when appropriate\n- If the answer isn't in the transcript, say so honestly\n- Provide context and explain connections between topics\n- Keep responses concise but informative\n\nHere is the full transcript:\n\n${transcript}`,
+          content: `You are a helpful assistant that answers questions about a podcast episode titled "${episodeTitle}".\n\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\n\nWhen answering:\n- Be conversational and helpful\n- Quote relevant parts of the transcript when appropriate\n- If the answer isn't in the transcript, say so honestly\n- Provide context and explain connections between topics\n- Keep responses concise but informative\n\nHere is the full transcript:\n\n${transcript}`,
         },
         ...(conversationHistory || []),
         {
