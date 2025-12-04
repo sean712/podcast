@@ -212,4 +212,28 @@ export async function bulkDownloadEpisodes(
   }
 }
 
+export async function requestRetranscription(
+  episodeId: string
+): Promise<{ message: string; priority: string; remaining_high_priority: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('podscan-proxy', {
+      body: {
+        action: 'requestRetranscription',
+        episodeId,
+      },
+    });
+
+    if (error) {
+      throw new PodscanApiError(error.message || 'Failed to request retranscription');
+    }
+
+    return data as { message: string; priority: string; remaining_high_priority: string };
+  } catch (error) {
+    if (error instanceof PodscanApiError) {
+      throw error;
+    }
+    throw new PodscanApiError('Failed to request retranscription');
+  }
+}
+
 export { PodscanApiError };

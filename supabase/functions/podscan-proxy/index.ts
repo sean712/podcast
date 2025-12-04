@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface PodscanRequest {
-  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes" | "getPodcastByItunesId" | "getPodcastByRssFeed" | "batchProbeLatestEpisodes";
+  action: "search" | "getEpisodes" | "getEpisode" | "bulkDownloadEpisodes" | "getPodcastByItunesId" | "getPodcastByRssFeed" | "batchProbeLatestEpisodes" | "requestRetranscription";
   query?: string;
   podcastId?: string;
   podcastIds?: string[];
@@ -372,6 +372,43 @@ Deno.serve(async (req: Request) => {
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        return new Response(
+          JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(
+        JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "requestRetranscription") {
+      const { episodeId } = requestData;
+
+      if (!episodeId) {
+        return new Response(
+          JSON.stringify({ error: "Episode ID required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const response = await fetch(`${podscanApiUrl}/episodes/${episodeId}/retranscribe`, {
+        method: "POST",
+        headers: podscanHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. You have used your high-priority requests for this hour." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         return new Response(
           JSON.stringify({ error: errorData.error || `API request failed with status ${response.status}` }),
