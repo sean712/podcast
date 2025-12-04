@@ -17,46 +17,67 @@ export interface FeaturedEpisode {
 
 export const featuredEpisodesService = {
   async getFeaturedEpisodes(): Promise<FeaturedEpisode[]> {
-    const { data, error } = await supabase
+    const { data: analysesData, error: analysesError } = await supabase
       .from('episode_analyses')
-      .select(`
-        episode_id,
-        episode_title,
-        episode_slug,
-        description,
-        published_date,
-        audio_url,
-        featured_at,
-        podcast_id,
-        podcasts (
-          podcast_title,
-          podcast_slug,
-          artwork_url,
-          creator_name
-        )
-      `)
+      .select('episode_id, featured_at')
       .eq('is_featured', true)
       .order('featured_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching featured episodes:', error);
-      throw error;
+    if (analysesError) {
+      console.error('Error fetching featured episode IDs:', analysesError);
+      throw analysesError;
     }
 
-    return (data || []).map((episode: any) => ({
+    if (!analysesData || analysesData.length === 0) {
+      return [];
+    }
+
+    const episodeIds = analysesData.map(a => a.episode_id);
+
+    const { data: episodesData, error: episodesError } = await supabase
+      .from('episodes')
+      .select(`
+        episode_id,
+        title,
+        slug,
+        description,
+        published_at,
+        audio_url,
+        podcast_id,
+        podcasts (
+          name,
+          slug,
+          image_url,
+          publisher_name
+        )
+      `)
+      .in('episode_id', episodeIds);
+
+    if (episodesError) {
+      console.error('Error fetching episode details:', episodesError);
+      throw episodesError;
+    }
+
+    const featuredMap = new Map(analysesData.map(a => [a.episode_id, a.featured_at]));
+
+    const episodes = (episodesData || []).map((episode: any) => ({
       episode_id: episode.episode_id,
-      episode_title: episode.episode_title,
-      episode_slug: episode.episode_slug,
-      description: episode.description,
-      published_date: episode.published_date,
-      audio_url: episode.audio_url,
-      featured_at: episode.featured_at,
+      episode_title: episode.title,
+      episode_slug: episode.slug,
+      description: episode.description || '',
+      published_date: episode.published_at,
+      audio_url: episode.audio_url || '',
+      featured_at: featuredMap.get(episode.episode_id) || new Date().toISOString(),
       podcast_id: episode.podcast_id,
-      podcast_title: episode.podcasts?.podcast_title || '',
-      podcast_slug: episode.podcasts?.podcast_slug || '',
-      artwork_url: episode.podcasts?.artwork_url,
-      creator_name: episode.podcasts?.creator_name,
+      podcast_title: episode.podcasts?.name || '',
+      podcast_slug: episode.podcasts?.slug || '',
+      artwork_url: episode.podcasts?.image_url,
+      creator_name: episode.podcasts?.publisher_name,
     }));
+
+    episodes.sort((a, b) => new Date(b.featured_at).getTime() - new Date(a.featured_at).getTime());
+
+    return episodes;
   },
 
   async toggleFeaturedStatus(episodeId: string, isFeatured: boolean): Promise<void> {
