@@ -320,10 +320,10 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                  Beautiful interactive content for every episode
+                  Visual interactive content for every episode
                 </h1>
                 <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed">
-                  Give your listeners more than just audio. Automated, branded episode content with smart features—no extra work required.
+                  When listeners play your podcast, what do they hear? Locations, timelines, people, insights, references. You've already done the hard work, now let Augmented Pods engage your listeners and keep them coming back.
                 </p>
                 <button
                   onClick={onGetStarted}
