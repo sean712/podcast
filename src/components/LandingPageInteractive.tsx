@@ -457,7 +457,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
             Discover Our Featured Episodes
           </h2>
           <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Explore hand-picked episodes from podcasts already using Augmented Pods. See how interactive content transforms the listening experience.
+            Discover our hand-picked selection of exceptional podcast episodes. See how interactive content transforms the listening experience and imagine offering this to your listeners for every episode you publish.
           </p>
           <a
             href="/featured"
