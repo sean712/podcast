@@ -297,7 +297,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                 onClick={onGetStarted}
                 className="bg-cyan-500 text-slate-950 px-5 py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-all text-sm"
               >
-                Get This For Your Podcast
+                Augment my pod
               </button>
               <button
                 onClick={onSignIn}
@@ -327,10 +327,9 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                 </p>
                 <button
                   onClick={onGetStarted}
-                  className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
+                  className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl text-lg border border-cyan-400/60"
                 >
-                  Get This For Your Podcast
-                  <Sparkles className="w-5 h-5" />
+                  Augment my pod
                 </button>
                 <p className="text-sm text-slate-400 mt-4">
                   Setup handled by us • Live in 48 hours
