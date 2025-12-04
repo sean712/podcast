@@ -100,7 +100,7 @@ export default function FeaturedEpisodesPage() {
             {episodes.map((episode) => (
               <a
                 key={episode.episode_id}
-                href={`/featured/${episode.episode_slug}`}
+                href={`/${episode.podcast_slug}/${episode.episode_slug}`}
                 className="group"
               >
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 h-full flex flex-col">

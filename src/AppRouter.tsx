@@ -7,7 +7,6 @@ import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
 import PodcastSpaceAdmin from './components/PodcastSpaceAdmin';
 import AdminPanel from './components/AdminPanel';
 import FeaturedEpisodesPage from './components/FeaturedEpisodesPage';
-import FeaturedEpisodeViewer from './components/FeaturedEpisodeViewer';
 import LandingPage from './components/LandingPage';
 import LandingPageInteractive from './components/LandingPageInteractive';
 import AuthModal from './components/AuthModal';
@@ -16,12 +15,11 @@ import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multi
 
 export default function AppRouter() {
   const { user, loading: authLoading } = useAuth();
-  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'podcast-admin' | 'featured' | 'featured-episode' | 'main'>('main');
+  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'podcast-admin' | 'featured' | 'main'>('main');
   const [podcast, setPodcast] = useState<PodcastSpace | null>(null);
   const [settings, setSettings] = useState<PodcastSettings | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<StoredEpisode | null>(null);
   const [episodes, setEpisodes] = useState<StoredEpisode[]>([]);
-  const [featuredEpisodeSlug, setFeaturedEpisodeSlug] = useState<string | null>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(true);
   const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -53,19 +51,8 @@ export default function AppRouter() {
 
     if (path === '/featured' || path === '/featured/') {
       setRouteType('featured');
-      setFeaturedEpisodeSlug(null);
       setIsLoadingRoute(false);
       return;
-    }
-
-    if (path.startsWith('/featured/')) {
-      const episodeSlug = path.split('/featured/')[1];
-      if (episodeSlug) {
-        setRouteType('featured-episode');
-        setFeaturedEpisodeSlug(episodeSlug);
-        setIsLoadingRoute(false);
-        return;
-      }
     }
 
     const pathSegments = path.split('/').filter(Boolean);
@@ -309,10 +296,6 @@ export default function AppRouter() {
 
   if (routeType === 'featured') {
     return <FeaturedEpisodesPage />;
-  }
-
-  if (routeType === 'featured-episode' && featuredEpisodeSlug) {
-    return <FeaturedEpisodeViewer episodeSlug={featuredEpisodeSlug} />;
   }
 
   return (
