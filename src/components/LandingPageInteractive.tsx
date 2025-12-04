@@ -443,6 +443,32 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
         />
       </div>
 
+      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/3 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
+          <div className="absolute bottom-0 right-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
+        </div>
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-2 mb-6">
+            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <span className="text-sm font-medium text-amber-400">Curated Episodes</span>
+          </div>
+          <h2 className="text-5xl sm:text-6xl font-bold text-white mb-6">
+            Discover Our Featured Episodes
+          </h2>
+          <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
+            Explore hand-picked episodes from podcasts already using Augmented Pods. See how interactive content transforms the listening experience.
+          </p>
+          <a
+            href="/featured"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-4 rounded-lg font-semibold hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg hover:shadow-xl text-lg border border-amber-400/60"
+          >
+            <Star className="w-5 h-5 fill-white" />
+            See Featured Episodes
+          </a>
+        </div>
+      </section>
+
       <PodcastFooter />
 
       <style>{`
