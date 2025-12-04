@@ -136,14 +136,23 @@ IMPORTANT DISTINCTION:
 
 For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.
 
-When extracting references (books, films, companies, products, etc.), use web search to find authoritative URLs for each one to help users learn more.
+CRITICAL: REFERENCE URLs ARE MANDATORY
+For EVERY reference you extract (books, films, companies, products, articles, websites), you MUST perform a web search to find its official URL. This is NOT optional.
+- Search for the exact reference name immediately after extracting it
+- Use authoritative sources: Wikipedia for general topics, IMDB for films, Goodreads/Amazon for books, official company websites, etc.
+- Embed the URL citation directly where you mention the reference name in your response text
+- The citation should appear in the JSON response as an annotation so the URL can be matched to the reference
+- Example: After extracting "The Great Gatsby", immediately search for "The Great Gatsby book" and cite the Goodreads or Wikipedia URL
+- Do this for EVERY SINGLE reference without exception
+
+Format: As you write each reference in your JSON response, perform a web search and include the citation inline. The system will automatically extract these citations and attach them to your references.
 
 Analyze this podcast transcript and return the analysis in the following JSON format:
 
 ${transcript}`,
           max_output_tokens: 16000,
           reasoning: {
-            effort: "low"
+            effort: "medium"
           },
           text: {
             format: {
@@ -252,7 +261,7 @@ ${transcript}`,
                   },
                   references: {
                     type: "array",
-                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
+                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context. CRITICAL: You MUST use web search to find and cite authoritative URLs for EVERY reference you extract. Search for each reference immediately and embed the citation in your response text.",
                     items: {
                       type: "object",
                       properties: {
