@@ -372,6 +372,14 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
               </div>
             </div>
 
+            <div className="mb-6">
+              <DemoAudioPlayerStatic
+                episodeTitle={demoEpisode.title}
+                podcastName={demoPodcast.name}
+                duration={demoEpisode.duration}
+              />
+            </div>
+
             <div className="border-b border-slate-800 mb-6">
               <div className="flex gap-1 overflow-x-auto">
                 {tabs.map((tab) => {
@@ -403,7 +411,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
       </main>
 
       {showEngagementBanner && !bannerDismissed && (
-        <div className="fixed bottom-24 left-0 right-0 z-30 px-4 sm:px-6 lg:px-8 animate-slide-up">
+        <div className="fixed bottom-4 left-0 right-0 z-30 px-4 sm:px-6 lg:px-8 animate-slide-up">
           <div className="max-w-4xl mx-auto">
             <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl shadow-2xl p-6 flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -434,14 +442,6 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
           </div>
         </div>
       )}
-
-      <div className="fixed bottom-0 left-0 right-0 z-40">
-        <DemoAudioPlayerStatic
-          episodeTitle={demoEpisode.title}
-          podcastName={demoPodcast.name}
-          duration={demoEpisode.duration}
-        />
-      </div>
 
       <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="pointer-events-none absolute inset-0 -z-10">
