@@ -7,6 +7,7 @@ import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroup
 import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
 import { refreshPodcastEpisodes } from '../services/episodeSyncService';
 import { featuredEpisodesService } from '../services/featuredEpisodesService';
+import { requestRetranscription, PodscanApiError } from '../services/podscanApi';
 import type { PodcastSpace, StoredEpisode, EpisodeSyncLog } from '../types/multiTenant';
 import { supabase } from '../lib/supabase';
 
@@ -44,6 +45,7 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const [syncResult, setSyncResult] = useState<{success: boolean; message: string} | null>(null);
   const [featuredEpisodes, setFeaturedEpisodes] = useState<Set<string>>(new Set());
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
+  const [requestingRetranscription, setRequestingRetranscription] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -333,6 +335,26 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
     }
   };
 
+  const handleRequestRetranscription = async (episodeId: string, episodeTitle: string) => {
+    if (!confirm(`Request retranscription for "${episodeTitle}"?\n\nThis will move the episode up in the transcription queue.`)) {
+      return;
+    }
+
+    setRequestingRetranscription(episodeId);
+    try {
+      const result = await requestRetranscription(episodeId);
+      alert(`${result.message}\n\nPriority: ${result.priority}\nRemaining high-priority requests: ${result.remaining_high_priority}`);
+    } catch (err) {
+      if (err instanceof PodscanApiError) {
+        alert(`Failed to request retranscription:\n${err.message}`);
+      } else {
+        alert('Failed to request retranscription. Please try again.');
+      }
+    } finally {
+      setRequestingRetranscription(null);
+    }
+  };
+
   if (!user || !isOwner(user)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -591,6 +613,26 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                             )}
                           </div>
                           <div className="flex gap-2">
+                            {!episode.transcript && (
+                              <button
+                                onClick={() => handleRequestRetranscription(episode.episode_id, episode.title)}
+                                disabled={requestingRetranscription === episode.episode_id}
+                                className="flex items-center gap-2 px-3 py-2 bg-cyan-50 text-cyan-600 rounded-lg hover:bg-cyan-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Request transcription from Podscan"
+                              >
+                                {requestingRetranscription === episode.episode_id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Requesting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RefreshCw className="w-4 h-4" />
+                                    Request Transcript
+                                  </>
+                                )}
+                              </button>
+                            )}
                             <button
                               onClick={() => handleToggleFeatured(episode.episode_id, featuredEpisodes.has(episode.episode_id))}
                               disabled={togglingFeatured === episode.episode_id}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink, X, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink, X } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -14,7 +14,6 @@ import DashboardManager, { type TabType } from './DashboardManager';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
-import { requestRetranscription, PodscanApiError } from '../services/podscanApi';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
 import { useAudio } from '../contexts/AudioContext';
@@ -549,8 +548,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isPlaying, setIsPlaying] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [isRequestingRetranscription, setIsRequestingRetranscription] = useState(false);
-  const [retranscriptionMessage, setRetranscriptionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const shareUrl = `${window.location.origin}/${podcast.slug}/${episode.slug}`;
 
@@ -564,39 +561,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       }, 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleRequestRetranscription = async () => {
-    setIsRequestingRetranscription(true);
-    setRetranscriptionMessage(null);
-
-    try {
-      const result = await requestRetranscription(episode.episode_id);
-      setRetranscriptionMessage({
-        type: 'success',
-        text: `${result.message} (Priority: ${result.priority}, Remaining high-priority requests: ${result.remaining_high_priority})`
-      });
-      setTimeout(() => {
-        setRetranscriptionMessage(null);
-      }, 10000);
-    } catch (err) {
-      if (err instanceof PodscanApiError) {
-        setRetranscriptionMessage({
-          type: 'error',
-          text: err.message
-        });
-      } else {
-        setRetranscriptionMessage({
-          type: 'error',
-          text: 'Failed to request retranscription. Please try again.'
-        });
-      }
-      setTimeout(() => {
-        setRetranscriptionMessage(null);
-      }, 10000);
-    } finally {
-      setIsRequestingRetranscription(false);
     }
   };
 
@@ -885,35 +849,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     <h3 className="text-white font-semibold mb-1">
                       Episode Not Yet Analyzed
                     </h3>
-                    <p className="text-slate-300 text-sm mb-3">
-                      This episode hasn't been transcribed yet. You can request transcription to move it up in the queue.
+                    <p className="text-slate-300 text-sm">
+                      This episode hasn't been transcribed yet. Check back later for timelines, maps, key moments, and more.
                     </p>
-                    <button
-                      onClick={handleRequestRetranscription}
-                      disabled={isRequestingRetranscription}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      {isRequestingRetranscription ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Requesting...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4" />
-                          Request Transcription
-                        </>
-                      )}
-                    </button>
-                    {retranscriptionMessage && (
-                      <div className={`mt-3 p-3 rounded-lg text-sm ${
-                        retranscriptionMessage.type === 'success'
-                          ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-200'
-                          : 'bg-red-500/20 border border-red-500/30 text-red-200'
-                      }`}>
-                        {retranscriptionMessage.text}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
