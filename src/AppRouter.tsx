@@ -6,6 +6,7 @@ import PodcastSpaceHome from './components/PodcastSpaceHome';
 import PodcastSpaceEpisode from './components/PodcastSpaceEpisode';
 import PodcastSpaceAdmin from './components/PodcastSpaceAdmin';
 import AdminPanel from './components/AdminPanel';
+import FeaturedEpisodesPage from './components/FeaturedEpisodesPage';
 import LandingPage from './components/LandingPage';
 import LandingPageInteractive from './components/LandingPageInteractive';
 import AuthModal from './components/AuthModal';
@@ -14,7 +15,7 @@ import type { PodcastSpace, PodcastSettings, StoredEpisode } from './types/multi
 
 export default function AppRouter() {
   const { user, loading: authLoading } = useAuth();
-  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'podcast-admin' | 'main'>('main');
+  const [routeType, setRouteType] = useState<'admin' | 'podcast-space' | 'podcast-admin' | 'featured' | 'main'>('main');
   const [podcast, setPodcast] = useState<PodcastSpace | null>(null);
   const [settings, setSettings] = useState<PodcastSettings | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<StoredEpisode | null>(null);
@@ -44,6 +45,12 @@ export default function AppRouter() {
 
     if (path === '/admin' || path === '/admin/') {
       setRouteType('admin');
+      setIsLoadingRoute(false);
+      return;
+    }
+
+    if (path === '/featured' || path === '/featured/') {
+      setRouteType('featured');
       setIsLoadingRoute(false);
       return;
     }
@@ -285,6 +292,10 @@ export default function AppRouter() {
         onEpisodeClick={handleEpisodeClick}
       />
     );
+  }
+
+  if (routeType === 'featured') {
+    return <FeaturedEpisodesPage />;
   }
 
   return (

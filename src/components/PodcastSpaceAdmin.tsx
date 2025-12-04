@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity } from 'lucide-react';
+import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroupsForEpisode } from '../services/episodeGroupMembersService';
 import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
 import { refreshPodcastEpisodes } from '../services/episodeSyncService';
+import { featuredEpisodesService } from '../services/featuredEpisodesService';
 import type { PodcastSpace, StoredEpisode, EpisodeSyncLog } from '../types/multiTenant';
 import { supabase } from '../lib/supabase';
 
@@ -41,6 +42,8 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const [isLoadingSyncLogs, setIsLoadingSyncLogs] = useState(false);
   const [isTriggeringSync, setIsTriggeringSync] = useState(false);
   const [syncResult, setSyncResult] = useState<{success: boolean; message: string} | null>(null);
+  const [featuredEpisodes, setFeaturedEpisodes] = useState<Set<string>>(new Set());
+  const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -48,6 +51,7 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
     }
     loadGroups();
     loadEpisodesWithAnalysis();
+    loadFeaturedEpisodes();
     if (activeTab === 'sync') {
       loadSyncLogs();
     }
@@ -70,6 +74,22 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
       }
     }
     setEpisodesWithAnalysis(episodesWithCache);
+  };
+
+  const loadFeaturedEpisodes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('episode_analyses')
+        .select('episode_id, is_featured')
+        .eq('is_featured', true);
+
+      if (error) throw error;
+
+      const featured = new Set(data?.map(e => e.episode_id) || []);
+      setFeaturedEpisodes(featured);
+    } catch (err) {
+      console.error('Error loading featured episodes:', err);
+    }
   };
 
   const loadGroups = async () => {
@@ -289,6 +309,27 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
     } catch (err) {
       console.error('Error removing episode from group:', err);
       alert('Failed to remove episode from group');
+    }
+  };
+
+  const handleToggleFeatured = async (episodeId: string, isFeatured: boolean) => {
+    setTogglingFeatured(episodeId);
+    try {
+      await featuredEpisodesService.toggleFeaturedStatus(episodeId, !isFeatured);
+      setFeaturedEpisodes(prev => {
+        const newSet = new Set(prev);
+        if (!isFeatured) {
+          newSet.add(episodeId);
+        } else {
+          newSet.delete(episodeId);
+        }
+        return newSet;
+      });
+    } catch (err) {
+      console.error('Error toggling featured status:', err);
+      alert('Failed to toggle featured status');
+    } finally {
+      setTogglingFeatured(null);
     }
   };
 
@@ -550,6 +591,28 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                             )}
                           </div>
                           <div className="flex gap-2">
+                            <button
+                              onClick={() => handleToggleFeatured(episode.episode_id, featuredEpisodes.has(episode.episode_id))}
+                              disabled={togglingFeatured === episode.episode_id}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+                                featuredEpisodes.has(episode.episode_id)
+                                  ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                              title={featuredEpisodes.has(episode.episode_id) ? 'Unfeature episode' : 'Feature episode'}
+                            >
+                              {togglingFeatured === episode.episode_id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  {featuredEpisodes.has(episode.episode_id) ? 'Unfeaturing...' : 'Featuring...'}
+                                </>
+                              ) : (
+                                <>
+                                  <Star className={`w-4 h-4 ${featuredEpisodes.has(episode.episode_id) ? 'fill-amber-500' : ''}`} />
+                                  {featuredEpisodes.has(episode.episode_id) ? 'Featured' : 'Feature'}
+                                </>
+                              )}
+                            </button>
                             {groups.length > 0 && (
                               <select
                                 onChange={(e) => {
