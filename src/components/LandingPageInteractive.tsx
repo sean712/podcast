@@ -136,7 +136,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">Episode Overview</h3>
-                <p className="text-slate-400">AI-generated summary of the episode content</p>
+                <p className="text-slate-400">Summary of the episode content</p>
               </div>
               <div className="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
                 <span className="text-xs font-medium text-indigo-400">Auto-Generated</span>
@@ -320,7 +320,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                  Visual interactive content for every episode
+                  Interactive, visual content for every episode
                 </h1>
                 <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed">
                   When listeners play your podcast, what do they hear? Locations, timelines, people, insights, references. Augmented Pods brings all of this to life and engages your listeners in a new way to keep them coming back.
@@ -332,7 +332,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                   Augment my pod
                 </button>
                 <p className="text-sm text-slate-400 mt-4">
-                  Setup handled by us • Live in 48 hours
+                  Setup handled by us • Live in 24 hours
                 </p>
               </div>
               <div className="relative">
