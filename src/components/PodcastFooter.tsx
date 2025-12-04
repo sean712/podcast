@@ -12,11 +12,6 @@ export default function PodcastFooter() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex flex-col items-center md:items-start gap-4">
               <div className="flex items-center gap-3">
-                <img
-                  src="/gemini_generated_image_kcz2kukcz2kukcz2.png"
-                  alt="Augmented Pods"
-                  className="h-16 w-auto"
-                />
                 <div>
                   <div className="flex items-center gap-2">
                     <Radio className="w-6 h-6 text-white" />
@@ -30,15 +25,12 @@ export default function PodcastFooter() {
             </div>
 
             <div className="text-center md:text-right">
-              <p className="text-slate-200 font-medium mb-3">
-                Want this for your podcast?
-              </p>
               <button
                 onClick={() => setShowContactModal(true)}
                 className="inline-flex items-center gap-2 bg-cyan-500 text-slate-950 px-6 py-3 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-md hover:shadow-lg"
               >
                 <Mail className="w-5 h-5" />
-                Get Augmented Pods
+                I want to augment my podcast
               </button>
             </div>
           </div>
