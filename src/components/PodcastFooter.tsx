@@ -13,7 +13,7 @@ export default function PodcastFooter() {
             <div className="flex flex-col items-center md:items-start gap-4">
               <div className="flex items-center gap-3">
                 <img
-                  src="/Screenshot 2025-11-06 at 15.45.27.png"
+                  src="/gemini_generated_image_kcz2kukcz2kukcz2.png"
                   alt="Augmented Pods"
                   className="h-16 w-auto"
                 />
