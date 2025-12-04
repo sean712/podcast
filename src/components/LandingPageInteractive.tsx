@@ -323,7 +323,7 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                   Visual interactive content for every episode
                 </h1>
                 <p className="text-xl sm:text-2xl text-slate-300 mb-10 leading-relaxed">
-                  When listeners play your podcast, what do they hear? Locations, timelines, people, insights, references. You've already done the hard work, now let Augmented Pods engage your listeners and keep them coming back.
+                  When listeners play your podcast, what do they hear? Locations, timelines, people, insights, references. Augmented Pods brings all of this to life and engages your listeners in a new way to keep them coming back.
                 </p>
                 <button
                   onClick={onGetStarted}
