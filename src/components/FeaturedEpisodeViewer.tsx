@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Loader2, Radio } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Radio, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import AudioPlayer from './AudioPlayer';
 import TranscriptViewer from './TranscriptViewer';
 import EpisodeSummary from './EpisodeSummary';
 import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
-import LocationMap from './LocationMap';
 import KeyMoments from './KeyMoments';
 import References from './References';
+import { getCachedAnalysis } from '../services/episodeAnalysisCache';
+import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import type { StoredEpisode, PodcastSpace } from '../types/multiTenant';
+import type { TranscriptAnalysis } from '../services/openaiService';
 
 interface FeaturedEpisodeViewerProps {
   episodeSlug: string;
@@ -18,7 +20,10 @@ interface FeaturedEpisodeViewerProps {
 export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeViewerProps) {
   const [episode, setEpisode] = useState<StoredEpisode | null>(null);
   const [podcast, setPodcast] = useState<PodcastSpace | null>(null);
+  const [analysis, setAnalysis] = useState<TranscriptAnalysis | null>(null);
+  const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -53,6 +58,10 @@ export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeVi
       if (podcastData) {
         setPodcast(podcastData);
       }
+
+      if (episodeData.transcript) {
+        loadAnalysis(episodeData.episode_id);
+      }
     } catch (err) {
       console.error('Error loading featured episode:', err);
       setNotFound(true);
@@ -61,9 +70,27 @@ export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeVi
     }
   };
 
+  const loadAnalysis = async (episodeId: string) => {
+    setIsLoadingAnalysis(true);
+    try {
+      const cachedAnalysis = await getCachedAnalysis(episodeId);
+      if (cachedAnalysis) {
+        setAnalysis(cachedAnalysis);
+
+        if (cachedAnalysis.locations && cachedAnalysis.locations.length > 0) {
+          const geocoded = await geocodeLocations(cachedAnalysis.locations);
+          setLocations(geocoded);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading analysis:', err);
+    } finally {
+      setIsLoadingAnalysis(false);
+    }
+  };
+
   const handleBackToFeatured = () => {
-    window.history.pushState({}, '', '/featured');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.location.href = '/featured';
   };
 
   if (isLoading) {
@@ -160,20 +187,55 @@ export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeVi
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <EpisodeSummary episodeId={episode.episode_id} />
-            <KeyPersonnel episodeId={episode.episode_id} />
-            <Timeline episodeId={episode.episode_id} />
-            <KeyMoments episodeId={episode.episode_id} />
-            <References episodeId={episode.episode_id} />
-            {episode.transcript && (
-              <TranscriptViewer
-                transcript={episode.transcript}
-                wordTimestamps={episode.transcript_word_timestamps}
-              />
+            {isLoadingAnalysis ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                <p className="text-slate-300 text-sm">Loading episode content...</p>
+              </div>
+            ) : (
+              <>
+                {analysis?.summary && (
+                  <EpisodeSummary summary={analysis.summary} theme="dark" />
+                )}
+                {analysis?.keyPersonnel && analysis.keyPersonnel.length > 0 && (
+                  <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
+                )}
+                {analysis?.timeline && analysis.timeline.length > 0 && (
+                  <Timeline events={analysis.timeline} theme="dark" />
+                )}
+                {analysis?.keyMoments && analysis.keyMoments.length > 0 && (
+                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                )}
+                {analysis?.references && analysis.references.length > 0 && (
+                  <References references={analysis.references} theme="dark" />
+                )}
+                {episode.transcript && (
+                  <TranscriptViewer
+                    transcript={episode.transcript}
+                    wordTimestamps={episode.transcript_word_timestamps}
+                  />
+                )}
+              </>
             )}
           </div>
           <div className="space-y-6">
-            <LocationMap episodeId={episode.episode_id} />
+            {locations.length > 0 && (
+              <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-white mb-4">Locations</h3>
+                <div className="space-y-3">
+                  {locations.map((location, index) => (
+                    <div key={index} className="text-slate-300">
+                      <div className="font-medium">{location.name}</div>
+                      {location.coordinates && (
+                        <div className="text-xs text-slate-500">
+                          {location.coordinates.lat.toFixed(4)}, {location.coordinates.lng.toFixed(4)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
