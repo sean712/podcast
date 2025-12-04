@@ -49,10 +49,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 </p>
                 <button
                   onClick={onGetStarted}
-                  className="bg-cyan-500 text-slate-950 px-10 py-5 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-2xl hover:shadow-cyan-500/50 inline-flex items-center gap-3 text-xl border border-cyan-400/60 hover:scale-105"
+                  className="bg-cyan-500 text-slate-950 px-10 py-5 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-2xl hover:shadow-cyan-500/50 text-xl border border-cyan-400/60 hover:scale-105"
                 >
-                  Get This For Your Podcast
-                  <Sparkles className="w-6 h-6" />
+                  Augment my pod
                 </button>
                 <p className="text-sm text-slate-200 mt-6">
                   Setup handled by us • Live in 48 hours
@@ -396,10 +395,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
             </p>
             <button
               onClick={onGetStarted}
-              className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2 text-lg border border-cyan-400/60"
+              className="bg-cyan-500 text-slate-950 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-400 transition-all shadow-lg hover:shadow-xl text-lg border border-cyan-400/60"
             >
-              Get Started Now
-              <Sparkles className="w-5 h-5" />
+              Augment my pod
             </button>
             <p className="text-sm text-slate-400 mt-6">
               White-glove setup • Full automation • Live in 48 hours
