@@ -129,7 +129,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           locations: validLocations.map((loc: any) => ({ name: loc.name, context: loc.context, quotes: loc.quotes })),
           keyMoments: cachedAnalysis.key_moments || [],
           references: cachedAnalysis.references || [],
-          worldEvents: cachedAnalysis.world_events || [],
         });
         setLocations(validLocations);
         setIsLoadingLocations(false);
@@ -230,25 +229,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       case 'overview':
         return (
           <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-                <p className="text-slate-300 text-sm">Analyzing transcript...</p>
-              </div>
-            ) : (
-              <>
-                {analysisError && (
-                  <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-300 font-semibold">Analysis Error</p>
-                      <p className="text-red-200 text-sm">{analysisError}</p>
-                    </div>
-                  </div>
-                )}
-                {analysis && <EpisodeSummary summary={analysis.summary} theme="dark" />}
-              </>
-            )}
+            <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} theme="dark" />
           </div>
         );
       case 'moments':
@@ -307,7 +288,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             ) : (
               <>
                 {analysis ? (
-                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
+                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
                 ) : (
                   <p className="text-slate-400 text-center py-8">No timeline data available</p>
                 )}
@@ -367,31 +348,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       case 'overview':
         return (
           <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 bg-blue-500/15 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
-                  <p className="text-slate-500 text-sm">Please wait a moment</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {analysisError && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-3">
-                    <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-700 font-semibold mb-1">Analysis Error</p>
-                      <p className="text-red-600">{analysisError}</p>
-                    </div>
-                  </div>
-                )}
-                {analysis && <EpisodeSummary summary={analysis.summary} theme="dark" />}
-              </>
-            )}
+            <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} theme="dark" />
           </div>
         );
       case 'moments':
@@ -472,7 +429,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             ) : (
               <>
                 {analysis ? (
-                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
+                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
                 ) : (
                   <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                     <p className="text-slate-600">No timeline data available yet</p>
@@ -886,7 +843,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {episode.transcript && activeTab === 'timeline' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {analysis ? (
-                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} worldEvents={analysis.worldEvents} />
+                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} />
               ) : (
                 <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
                   <p className="text-slate-600">No timeline data available yet</p>
@@ -899,33 +856,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           {/* Overview Tab */}
           {episode.transcript && activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {isLoadingAnalysis ? (
-                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="relative">
-                      <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
-                      <div className="absolute inset-0 w-12 h-12 bg-cyan-400/20 rounded-full animate-ping" />
-                    </div>
-                    <p className="text-slate-700 text-lg font-medium">Analysing episode transcript</p>
-                    <p className="text-slate-500 text-sm">Please wait a moment</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {analysisError && (
-                    <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 flex items-start gap-3 backdrop-blur-sm">
-                      <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
-                        <p className="text-red-200">{analysisError}</p>
-                      </div>
-                    </div>
-                  )}
-                  {analysis && (
-                    <EpisodeSummary summary={analysis.summary} />
-                  )}
-                </>
-              )}
+              <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} />
             </div>
           )}
 

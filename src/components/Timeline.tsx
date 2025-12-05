@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Quote, ChevronDown, ChevronUp, Info, Play, Globe, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Quote, ChevronDown, ChevronUp, Info, Play } from 'lucide-react';
 import type { TimelineEvent } from '../services/openaiService';
 import { useAudio } from '../contexts/AudioContext';
 import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
@@ -8,12 +8,10 @@ interface TimelineProps {
   events: TimelineEvent[];
   theme?: 'light' | 'dark';
   currentEpisodeId?: string;
-  worldEvents?: Array<{ date: string; event: string; category: string }>;
 }
 
-export default function Timeline({ events, theme = 'light', currentEpisodeId, worldEvents = [] }: TimelineProps) {
+export default function Timeline({ events, theme = 'light', currentEpisodeId }: TimelineProps) {
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
-  const [showWorldEvents, setShowWorldEvents] = useState(false);
   const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
   if (events.length === 0) return null;
@@ -24,26 +22,8 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
 
   const isDark = theme === 'dark';
 
-  const getWorldEventsForDate = (date: string) => {
-    return worldEvents.filter(we => we.date === date);
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {worldEvents.length > 0 && (
-        <div className="mb-6 flex justify-center">
-          <button
-            onClick={() => setShowWorldEvents(!showWorldEvents)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
-          >
-            {showWorldEvents ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            <span className="text-sm font-medium">
-              {showWorldEvents ? 'Hide' : 'Show'} Parallel World Events
-            </span>
-            <Globe className="w-4 h-4" />
-          </button>
-        </div>
-      )}
       <div className="relative">
         <div className={`absolute left-1/2 top-0 bottom-0 w-0.5 -ml-px hidden md:block ${isDark ? 'bg-teal-500' : 'bg-teal-600'}`}></div>
 
@@ -52,7 +32,6 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
             const isExpanded = expandedEvent === index;
             const hasDetails = !!(event.significance || event.details || (event.quotes && event.quotes.length > 0));
             const isLeft = index % 2 === 0;
-            const relatedWorldEvents = showWorldEvents ? getWorldEventsForDate(event.date) : [];
 
             return (
               <div
@@ -176,52 +155,6 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId, wo
                     isLeft ? 'left-1/2 ml-5' : 'right-1/2 mr-5'
                   }`}
                 ></div>
-
-                {relatedWorldEvents.length > 0 && (
-                  <>
-                    <div
-                      className={`hidden md:block w-full md:w-6/12 ${
-                        isLeft ? 'md:pl-12 md:mr-auto' : 'md:pr-12'
-                      }`}
-                    >
-                      <div className={`rounded-xl p-4 transition-all border ${isDark ? 'bg-slate-900/30 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Globe className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                          <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                            World Events
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {relatedWorldEvents.map((worldEvent, weIndex) => (
-                            <div key={weIndex} className="flex items-start gap-2">
-                              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${isDark ? 'bg-slate-500' : 'bg-slate-400'}`}></div>
-                              <div>
-                                <p className={`text-xs leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                                  {worldEvent.event}
-                                </p>
-                                <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] rounded ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-600'}`}>
-                                  {worldEvent.category}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      className={`hidden md:block absolute top-5 w-8 h-0.5 border-t-2 border-dotted ${isDark ? 'border-slate-600' : 'border-slate-400'} ${
-                        isLeft ? 'right-1/2 mr-5' : 'left-1/2 ml-5'
-                      }`}
-                    ></div>
-
-                    <div className={`hidden md:block absolute ${
-                      isLeft ? 'right-1/2 mr-1' : 'left-1/2 ml-1'
-                    } top-5 w-6 h-6 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-700 border-2 border-slate-600' : 'bg-slate-200 border-2 border-slate-300'}`}>
-                      <Globe className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                    </div>
-                  </>
-                )}
               </div>
             );
           })}

@@ -18,19 +18,12 @@ export interface KeyPerson {
   quotes?: Quote[];
 }
 
-export interface WorldEvent {
-  date: string;
-  event: string;
-  category: string;
-}
-
 export interface TimelineEvent {
   date: string;
   event: string;
   significance: string;
   details?: string;
   quotes?: Quote[];
-  worldEvents?: WorldEvent[];
 }
 
 export interface KeyMoment {
@@ -60,7 +53,6 @@ export interface TranscriptAnalysis {
   locations: ExtractedLocation[];
   keyMoments: KeyMoment[];
   references: Reference[];
-  worldEvents?: WorldEvent[];
 }
 
 class OpenAIServiceError extends Error {
@@ -94,7 +86,6 @@ export async function analyzeTranscript(
       locations: Array.isArray(data?.locations) ? data.locations : [],
       keyMoments: Array.isArray(data?.keyMoments) ? data.keyMoments : [],
       references: Array.isArray(data?.references) ? data.references : [],
-      worldEvents: Array.isArray(data?.worldEvents) ? data.worldEvents : [],
     };
   } catch (error) {
     if (error instanceof OpenAIServiceError) {
