@@ -92,67 +92,10 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           model: "gpt-5",
-          tools: [
-            {
-              type: "web_search",
-              filters: {
-                allowed_domains: [
-                  "wikipedia.org",
-                  "britannica.com",
-                  "imdb.com",
-                  "goodreads.com",
-                  "amazon.com",
-                  "nytimes.com",
-                  "theguardian.com",
-                  "bbc.com",
-                  "bbc.co.uk",
-                  "reuters.com",
-                  "npr.org",
-                  "smithsonianmag.com",
-                  "history.com",
-                  "nationalgeographic.com",
-                  "si.edu",
-                  "moma.org",
-                  "metmuseum.org",
-                  "britannica.com",
-                  "loc.gov",
-                  "archives.gov",
-                  "nasa.gov",
-                  "nih.gov",
-                  "harvard.edu",
-                  "stanford.edu",
-                  "mit.edu",
-                  "ox.ac.uk",
-                  "cam.ac.uk"
-                ]
-              }
-            }
-          ],
-          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.
-
-IMPORTANT DISTINCTION:
-- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)
-- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.
-
-For all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.
-
-CRITICAL: REFERENCE URLs ARE MANDATORY
-For EVERY reference you extract (books, films, companies, products, articles, websites), you MUST perform a web search to find its official URL. This is NOT optional.
-- Search for the exact reference name immediately after extracting it
-- Use authoritative sources: Wikipedia for general topics, IMDB for films, Goodreads/Amazon for books, official company websites, etc.
-- Embed the URL citation directly where you mention the reference name in your response text
-- The citation should appear in the JSON response as an annotation so the URL can be matched to the reference
-- Example: After extracting "The Great Gatsby", immediately search for "The Great Gatsby book" and cite the Goodreads or Wikipedia URL
-- Do this for EVERY SINGLE reference without exception
-
-Format: As you write each reference in your JSON response, perform a web search and include the citation inline. The system will automatically extract these citations and attach them to your references.
-
-Analyze this podcast transcript and return the analysis in the following JSON format:
-
-${transcript}`,
+          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nAnalyze this podcast transcript and return the analysis in the following JSON format:\n\n${transcript}`,
           max_output_tokens: 16000,
           reasoning: {
-            effort: "medium"
+            effort: "low"
           },
           text: {
             format: {
@@ -261,7 +204,7 @@ ${transcript}`,
                   },
                   references: {
                     type: "array",
-                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context. CRITICAL: You MUST use web search to find and cite authoritative URLs for EVERY reference you extract. Search for each reference immediately and embed the citation in your response text.",
+                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
                     items: {
                       type: "object",
                       properties: {
@@ -408,7 +351,7 @@ ${transcript}`,
                   title: citation.title,
                   domain: domain
                 });
-                console.log(`  Matched "${ref.name}" with "${citation.title}"`);
+                console.log(`  Matched \"${ref.name}\" with \"${citation.title}\"`);
 
                 if (refUrls.length >= 3) break;
               } catch (e) {
@@ -447,7 +390,7 @@ ${transcript}`,
       const messages = [
         {
           role: "system" as const,
-          content: `You are a helpful assistant that answers questions about a podcast episode titled "${episodeTitle}".\n\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\n\nWhen answering:\n- Be conversational and helpful\n- Quote relevant parts of the transcript when appropriate\n- If the answer isn't in the transcript, say so honestly\n- Provide context and explain connections between topics\n- Keep responses concise but informative\n\nHere is the full transcript:\n\n${transcript}`,
+          content: `You are a helpful assistant that answers questions about a podcast episode titled \"${episodeTitle}\".\\n\\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\\n\\nWhen answering:\\n- Be conversational and helpful\\n- Quote relevant parts of the transcript when appropriate\\n- If the answer isn't in the transcript, say so honestly\\n- Provide context and explain connections between topics\\n- Keep responses concise but informative\\n\\nHere is the full transcript:\\n\\n${transcript}`,
         },
         ...(conversationHistory || []),
         {
