@@ -16,6 +16,8 @@ export interface KeyPerson {
   role: string;
   relevance: string;
   quotes?: Quote[];
+  wikipediaImageUrl?: string;
+  wikipediaPageUrl?: string;
 }
 
 export interface TimelineEvent {

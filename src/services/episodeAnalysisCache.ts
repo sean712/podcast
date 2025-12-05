@@ -59,7 +59,7 @@ export async function saveCachedAnalysis(
         locations: locations,
         key_moments: analysis.keyMoments,
         references: analysis.references,
-        analysis_version: 'v6',
+        analysis_version: 'v7',
       },
       {
         onConflict: 'episode_id',
@@ -72,7 +72,7 @@ export async function saveCachedAnalysis(
     throw new Error(`Failed to cache analysis: ${error.message}`);
   }
 
-  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v6' });
+  console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v7' });
 }
 
 export async function deleteAnalysis(episodeId: string): Promise<void> {

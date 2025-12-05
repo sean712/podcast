@@ -40,6 +40,104 @@ async function getConfig(key: string): Promise<string | null> {
   }
 }
 
+const WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php";
+
+async function searchWikipediaPerson(name: string): Promise<string | null> {
+  try {
+    const searchUrl = `${WIKIPEDIA_API_BASE}?action=opensearch&search=${encodeURIComponent(name)}&limit=1&format=json&origin=*`;
+
+    const response = await fetch(searchUrl);
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length < 2 || !Array.isArray(data[1]) || data[1].length === 0) {
+      return null;
+    }
+
+    return data[1][0];
+  } catch (error) {
+    console.error(`Error searching Wikipedia for ${name}:`, error);
+    return null;
+  }
+}
+
+async function getPersonWikipediaData(pageTitle: string): Promise<{ imageUrl?: string; pageUrl?: string } | null> {
+  try {
+    const imageUrl = `${WIKIPEDIA_API_BASE}?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages|info&format=json&pithumbsize=300&inprop=url&origin=*`;
+
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.query || !data.query.pages) {
+      return null;
+    }
+
+    const pages = data.query.pages;
+    const pageId = Object.keys(pages)[0];
+    const page = pages[pageId];
+
+    if (!page || pageId === "-1") {
+      return null;
+    }
+
+    const result: { imageUrl?: string; pageUrl?: string } = {
+      pageUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
+    };
+
+    if (page.thumbnail && page.thumbnail.source) {
+      result.imageUrl = page.thumbnail.source;
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`Error fetching Wikipedia data for ${pageTitle}:`, error);
+    return null;
+  }
+}
+
+async function enrichPersonWithWikipedia(person: any): Promise<any> {
+  try {
+    const pageTitle = await searchWikipediaPerson(person.name);
+    if (!pageTitle) {
+      return person;
+    }
+
+    const wikiData = await getPersonWikipediaData(pageTitle);
+    if (!wikiData) {
+      return person;
+    }
+
+    return {
+      ...person,
+      wikipediaImageUrl: wikiData.imageUrl,
+      wikipediaPageUrl: wikiData.pageUrl,
+    };
+  } catch (error) {
+    console.error(`Failed to enrich ${person.name} with Wikipedia data:`, error);
+    return person;
+  }
+}
+
+async function enrichPeopleWithWikipedia(people: any[]): Promise<any[]> {
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const enrichedPeople: any[] = [];
+
+  for (const person of people) {
+    const enriched = await enrichPersonWithWikipedia(person);
+    enrichedPeople.push(enriched);
+    await delay(100);
+  }
+
+  return enrichedPeople;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -354,9 +452,17 @@ Deno.serve(async (req: Request) => {
         console.log(`Attached URLs to ${references.filter((r: any) => r.urls).length} references`);
       }
 
+      let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
+
+      if (keyPersonnel.length > 0) {
+        console.log(`Enriching ${keyPersonnel.length} people with Wikipedia data...`);
+        keyPersonnel = await enrichPeopleWithWikipedia(keyPersonnel);
+        console.log("Wikipedia enrichment complete");
+      }
+
       const result = {
         summary: analysis.summary || "",
-        keyPersonnel: Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [],
+        keyPersonnel: keyPersonnel,
         timeline: Array.isArray(analysis.timeline) ? analysis.timeline : [],
         locations: Array.isArray(analysis.locations) ? analysis.locations : [],
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],

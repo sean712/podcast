@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Quote, ChevronDown, ChevronUp, Play } from 'lucide-react';
+import { Quote, ChevronDown, ChevronUp, Play, User } from 'lucide-react';
 import type { KeyPerson } from '../services/openaiService';
 import { useAudio } from '../contexts/AudioContext';
 import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
@@ -46,12 +46,49 @@ export default function KeyPersonnel({ personnel, theme = 'light', currentEpisod
                 : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               } border rounded-xl p-6 transition-all shadow-sm`}
             >
-              {/* Name and Role */}
-              <div className="mb-4">
-                <h4 className={`font-semibold text-lg mb-2.5 leading-snug select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
-                <span className={`text-sm font-medium text-white ${color.bg} px-3 py-1.5 rounded-md inline-block select-text`}>
-                  {person.role}
-                </span>
+              <div className="flex gap-4 mb-4">
+                {/* Wikipedia Image */}
+                <div className="flex-shrink-0">
+                  {person.wikipediaPageUrl ? (
+                    <a
+                      href={person.wikipediaPageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block group"
+                      title="View on Wikipedia"
+                    >
+                      {person.wikipediaImageUrl ? (
+                        <img
+                          src={person.wikipediaImageUrl}
+                          alt={person.name}
+                          className={`w-16 h-16 rounded-full object-cover border-2 ${color.border} shadow-md group-hover:scale-105 transition-transform`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-16 h-16 rounded-full ${color.bg} flex items-center justify-center border-2 ${color.border} shadow-md group-hover:scale-105 transition-transform ${person.wikipediaImageUrl ? 'hidden' : 'flex'}`}
+                      >
+                        <User className="w-8 h-8 text-white" />
+                      </div>
+                    </a>
+                  ) : (
+                    <div className={`w-16 h-16 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'} flex items-center justify-center border-2 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}>
+                      <User className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Name and Role */}
+                <div className="flex-1 min-w-0">
+                  <h4 className={`font-semibold text-lg mb-2.5 leading-snug select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{person.name}</h4>
+                  <span className={`text-sm font-medium text-white ${color.bg} px-3 py-1.5 rounded-md inline-block select-text`}>
+                    {person.role}
+                  </span>
+                </div>
               </div>
 
             {/* Relevance */}
