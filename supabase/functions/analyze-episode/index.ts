@@ -192,7 +192,7 @@ Deno.serve(async (req: Request) => {
           input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nAnalyze this podcast transcript and return the analysis in the following JSON format:\n\n${transcript}`,
           max_output_tokens: 16000,
           reasoning: {
-            effort: "medium"
+            effort: "low"
           },
           text: {
             format: {
