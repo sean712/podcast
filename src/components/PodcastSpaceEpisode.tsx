@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Clock, Share2, Sparkles, ExternalLink, User, Play, Quote, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Clock, Share2, Sparkles, ExternalLink, User, Play, Quote, ChevronDown, ChevronUp, MapPin, FileText } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -422,6 +422,23 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       </header>
 
       <main className="pt-[180px]">
+        {/* Episode Description */}
+        {episode.description && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-cyan-400" />
+                Episode Description
+              </h2>
+              <div className="text-slate-300 leading-relaxed text-sm space-y-2">
+                {episode.description.split('\n').map((paragraph, index) => (
+                  paragraph.trim() && <p key={index}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {!episode.transcript ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl">
