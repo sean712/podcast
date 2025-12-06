@@ -257,11 +257,12 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   // Removed the early return - always render the map, even with no locations
 
   return (
-    <div className={`relative group ${isFullscreen ? 'bg-slate-900' : ''}`} ref={containerRef} style={isFullscreen ? { width: '100vw', height: '100vh' } : undefined}>
+    <div className={`relative group ${isFullscreen ? 'bg-slate-900' : 'h-full'}`} ref={containerRef} style={isFullscreen ? { width: '100vw', height: '100vh' } : undefined}>
       <div className={`relative bg-slate-900 overflow-hidden ${isFullscreen ? 'h-screen w-screen' : 'h-full w-full'}`}>
         {/* Map Container - full width when side panel hidden */}
         <div
-          className="relative w-full h-full"
+          className="relative w-full"
+          style={{ height: isFullscreen ? '100vh' : '100%' }}
           ref={mapContainerRef}
         />
 
