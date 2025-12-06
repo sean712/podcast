@@ -1,22 +1,21 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Play, Pause, Clock, Calendar, Hash, Share2, Sparkles, FileText, Users as UsersIcon, Map, BookOpen, StickyNote, List, Tag, ExternalLink, X } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Clock, Share2, Sparkles, ExternalLink, User, Play, Quote, ChevronDown, ChevronUp } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
-import KeyPersonnel from './KeyPersonnel';
 import Timeline from './Timeline';
 import TranscriptViewer from './TranscriptViewer';
 import EpisodeNotes from './EpisodeNotes';
 import References from './References';
 import AudioPlayer from './AudioPlayer';
 import PodcastFooter from './PodcastFooter';
-import DashboardManager, { type TabType } from './DashboardManager';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
-import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis } from '../services/openaiService';
+import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis, type KeyPerson } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import type { StoredEpisode, PodcastSpace, PodcastSettings } from '../types/multiTenant';
 import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface PodcastSpaceEpisodeProps {
   episode: StoredEpisode;
@@ -27,9 +26,8 @@ interface PodcastSpaceEpisodeProps {
   onEpisodeClick: (episode: StoredEpisode) => void;
 }
 
-
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
-  const { setCurrentEpisode } = useAudio();
+  const { setCurrentEpisode, currentEpisode, seekTo, setIsPlaying } = useAudio();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -37,41 +35,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [highlightedTextForNote, setHighlightedTextForNote] = useState<string | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<TabType | 'map'>('map');
-  const [openPanels, setOpenPanels] = useState<TabType[]>([]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const updateHeaderHeight = () => {
-      const header = document.querySelector('header');
-      if (header) {
-        const height = header.offsetHeight;
-        document.documentElement.style.setProperty('--header-height', `${height}px`);
-      }
-    };
-
-    updateHeaderHeight();
-    window.addEventListener('resize', updateHeaderHeight);
-
-    const observer = new MutationObserver(updateHeaderHeight);
-    const header = document.querySelector('header');
-    if (header) {
-      observer.observe(header, { childList: true, subtree: true, attributes: true });
-    }
-
-    return () => {
-      window.removeEventListener('resize', updateHeaderHeight);
-      observer.disconnect();
-    };
-  }, [episode.audio_url, settings]);
+  const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     setCurrentEpisode({
@@ -116,12 +82,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           loc && typeof loc === 'object' && loc.lat !== undefined && loc.lon !== undefined
         );
 
-        console.log('📍 Retrieved cached locations:', {
-          total: cachedAnalysis.locations.length,
-          valid: validLocations.length,
-          sample: validLocations[0]
-        });
-
         setAnalysis({
           summary: cachedAnalysis.summary,
           keyPersonnel: cachedAnalysis.key_personnel,
@@ -141,20 +101,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       let geocoded: GeocodedLocation[] = [];
       if (transcriptAnalysis.locations.length > 0) {
-        console.log('🌍 Starting geocoding:', {
-          extractedLocations: transcriptAnalysis.locations.length,
-          processing: Math.min(transcriptAnalysis.locations.length, 25)
-        });
-
         geocoded = await geocodeLocations(transcriptAnalysis.locations.slice(0, 25));
-
-        console.log('✅ Geocoding complete:', {
-          attempted: Math.min(transcriptAnalysis.locations.length, 25),
-          successful: geocoded.length,
-          failed: Math.min(transcriptAnalysis.locations.length, 25) - geocoded.length,
-          sample: geocoded[0]
-        });
-
         setLocations(geocoded);
       }
       setIsLoadingLocations(false);
@@ -180,331 +127,14 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     }
   };
 
-
   const handleTextSelected = (text: string) => {
     setHighlightedTextForNote(text);
-    if (isMobile) {
-      setActiveTab('notes');
-    } else {
-      togglePanel('notes');
-    }
+    document.getElementById('notes-section')?.scrollIntoView({ behavior: 'smooth' });
   };
-
 
   const handleHighlightUsed = () => {
     setHighlightedTextForNote(undefined);
   };
-
-  const togglePanel = (panelId: TabType) => {
-    setOpenPanels(prev => {
-      if (prev.includes(panelId)) {
-        return prev.filter(id => id !== panelId);
-      } else {
-        return [...prev, panelId];
-      }
-    });
-  };
-
-  const handleTabClick = (tabId: TabType | 'map') => {
-    if (isMobile) {
-      setActiveTab(tabId);
-    } else {
-      if (tabId === 'map') {
-        setActiveTab('map');
-        setOpenPanels([]);
-      } else {
-        togglePanel(tabId);
-      }
-    }
-  };
-
-  const closeAllPanels = () => {
-    setOpenPanels([]);
-  };
-
-  const renderPanelContent = (panelId: TabType) => {
-    if (!episode.transcript) return null;
-
-    switch (panelId) {
-      case 'overview':
-        return (
-          <div className="space-y-6">
-            <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} theme="dark" />
-          </div>
-        );
-      case 'moments':
-        return (
-          <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-                <p className="text-slate-300 text-sm">Finding key moments...</p>
-              </div>
-            ) : (
-              <>
-                {analysisError && (
-                  <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-300 font-semibold">Analysis Error</p>
-                      <p className="text-red-200 text-sm">{analysisError}</p>
-                    </div>
-                  </div>
-                )}
-                {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
-                )}
-              </>
-            )}
-          </div>
-        );
-      case 'people':
-        return (
-          <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-                <p className="text-slate-300 text-sm">Identifying key people...</p>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <p className="text-slate-400 text-center py-8">No personnel data available</p>
-                )}
-              </>
-            )}
-          </div>
-        );
-      case 'timeline':
-        return (
-          <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-                <p className="text-slate-300 text-sm">Building timeline...</p>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <p className="text-slate-400 text-center py-8">No timeline data available</p>
-                )}
-              </>
-            )}
-          </div>
-        );
-      case 'references':
-        return (
-          <div className="space-y-6">
-            {isLoadingAnalysis ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-                <p className="text-slate-300 text-sm">Finding references...</p>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <p className="text-slate-400 text-center py-8">No references available</p>
-                )}
-              </>
-            )}
-          </div>
-        );
-      case 'transcript':
-        return (
-          <TranscriptViewer
-            transcript={episode.transcript}
-            episodeTitle={episode.title}
-            episodeId={episode.episode_id}
-            podcastName={podcast.name}
-            onTextSelected={handleTextSelected}
-            theme="dark"
-          />
-        );
-      case 'notes':
-        return (
-          <EpisodeNotes
-            episodeId={episode.episode_id}
-            episodeTitle={episode.title}
-            podcastName={podcast.name}
-            highlightedText={highlightedTextForNote}
-            onHighlightUsed={handleHighlightUsed}
-            theme="dark"
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const renderOverlayContent = () => {
-    if (!episode.transcript) return null;
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6">
-            <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} theme="dark" />
-          </div>
-        );
-      case 'moments':
-        return (
-          <>
-            {isLoadingAnalysis ? (
-              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 bg-orange-500/15 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
-                  <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {analysisError && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-sm">
-                    <div className="flex items-start gap-3 text-red-700">
-                      <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold mb-1">Analysis Error</p>
-                        <p>{analysisError}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
-                )}
-              </>
-            )}
-          </>
-        );
-      case 'people':
-        return (
-          <>
-            {isLoadingAnalysis ? (
-              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 bg-emerald-500/15 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-slate-700 text-lg font-medium">Identifying key people...</p>
-                  <p className="text-slate-500 text-sm">Analyzing mentions and roles</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <KeyPersonnel personnel={analysis.keyPersonnel} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                    <p className="text-slate-600">No personnel data available yet</p>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        );
-      case 'timeline':
-        return (
-          <>
-            {isLoadingAnalysis ? (
-              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 bg-purple-500/15 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-slate-700 text-lg font-medium">Building timeline...</p>
-                  <p className="text-slate-500 text-sm">Extracting chronological events</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                    <p className="text-slate-600">No timeline data available yet</p>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        );
-      case 'references':
-        return (
-          <>
-            {isLoadingAnalysis ? (
-              <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 bg-cyan-500/15 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-slate-700 text-lg font-medium">Finding references...</p>
-                  <p className="text-slate-500 text-sm">Identifying books, films, and more</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {analysis ? (
-                  <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
-                ) : (
-                  <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                    <p className="text-slate-600">No references data available yet</p>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        );
-      case 'transcript':
-        return (
-          <TranscriptViewer
-            transcript={episode.transcript}
-            episodeTitle={episode.title}
-            episodeId={episode.episode_id}
-            podcastName={podcast.name}
-            onTextSelected={handleTextSelected}
-            theme="dark"
-          />
-        );
-      case 'notes':
-        return (
-          <EpisodeNotes
-            episodeId={episode.episode_id}
-            episodeTitle={episode.title}
-            podcastName={podcast.name}
-            highlightedText={highlightedTextForNote}
-            onHighlightUsed={handleHighlightUsed}
-            theme="dark"
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const isTabVisible = (tabName: string): boolean => {
-    const visibleTabs = settings?.visible_tabs;
-    if (!visibleTabs || visibleTabs.length === 0) {
-      return true;
-    }
-    return visibleTabs.includes(tabName);
-  };
-
-  const primaryColor = settings?.primary_color || '#10b981';
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
 
   const shareUrl = `${window.location.origin}/${podcast.slug}/${episode.slug}`;
 
@@ -521,12 +151,150 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     }
   };
 
+  const isTabVisible = (tabName: string): boolean => {
+    const visibleTabs = settings?.visible_tabs;
+    if (!visibleTabs || visibleTabs.length === 0) {
+      return true;
+    }
+    return visibleTabs.includes(tabName);
+  };
+
+  const colors = [
+    { bg: 'bg-teal-600', border: 'border-teal-600', quoteBorder: 'border-teal-600', quoteBg: 'bg-teal-50' },
+    { bg: 'bg-emerald-600', border: 'border-emerald-600', quoteBorder: 'border-emerald-600', quoteBg: 'bg-emerald-50' },
+    { bg: 'bg-cyan-600', border: 'border-cyan-600', quoteBorder: 'border-cyan-600', quoteBg: 'bg-cyan-50' },
+    { bg: 'bg-sky-600', border: 'border-sky-600', quoteBorder: 'border-sky-600', quoteBg: 'bg-sky-50' },
+    { bg: 'bg-violet-600', border: 'border-violet-600', quoteBorder: 'border-violet-600', quoteBg: 'bg-violet-50' },
+    { bg: 'bg-fuchsia-600', border: 'border-fuchsia-600', quoteBorder: 'border-fuchsia-600', quoteBg: 'bg-fuchsia-50' },
+  ];
+
+  const getColor = (index: number) => colors[index % colors.length];
+
+  const renderPersonCard = (person: KeyPerson, index: number) => {
+    const color = getColor(index);
+    const isExpanded = expandedPerson === index;
+
+    const handleQuoteClick = (timestamp: number) => {
+      if (currentEpisode?.episodeId === episode.episode_id) {
+        seekTo(timestamp);
+        setIsPlaying(true);
+      }
+    };
+
+    return (
+      <div
+        key={index}
+        className="bg-slate-900/60 border border-slate-700 rounded-xl overflow-hidden hover:border-slate-600 transition-all"
+      >
+        <button
+          onClick={() => setExpandedPerson(isExpanded ? null : index)}
+          className="w-full p-4 flex items-center gap-3 text-left hover:bg-slate-900/80 transition-colors"
+        >
+          {person.wikipediaPageUrl ? (
+            <a
+              href={person.wikipediaPageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 group"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {person.wikipediaImageUrl ? (
+                <img
+                  src={person.wikipediaImageUrl}
+                  alt={person.name}
+                  className={`w-12 h-12 rounded-full object-cover border-2 ${color.border} shadow-md group-hover:scale-105 transition-transform`}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div
+                className={`w-12 h-12 rounded-full ${color.bg} flex items-center justify-center border-2 ${color.border} shadow-md group-hover:scale-105 transition-transform ${person.wikipediaImageUrl ? 'hidden' : 'flex'}`}
+              >
+                <User className="w-6 h-6 text-white" />
+              </div>
+            </a>
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600">
+              <User className="w-6 h-6 text-slate-400" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-sm text-slate-100 truncate">{person.name}</h4>
+            {!isExpanded && (
+              <p className="text-xs text-slate-400 truncate">{person.role}</p>
+            )}
+          </div>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          )}
+        </button>
+
+        {isExpanded && (
+          <div className="px-4 pb-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div>
+              <span className={`text-xs font-medium text-white ${color.bg} px-2 py-1 rounded-md inline-block`}>
+                {person.role}
+              </span>
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {person.relevance}
+            </p>
+
+            {person.quotes && person.quotes.length > 0 && (
+              <div className="pt-3 border-t border-slate-700/70 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                  <Quote className="w-3.5 h-3.5" />
+                  <span>{person.quotes.length} {person.quotes.length === 1 ? 'quote' : 'quotes'}</span>
+                </div>
+                {person.quotes.map((quote, qIndex) => {
+                  const quoteText = typeof quote === 'string' ? quote : quote.text;
+                  const quoteTimestamp = typeof quote === 'object' && quote.timestamp ? quote.timestamp : null;
+                  const timestamp = quoteTimestamp ? parseTimestamp(quoteTimestamp) : null;
+                  const isPlayable = timestamp !== null && episode.episode_id === currentEpisode?.episodeId;
+
+                  return (
+                    <div
+                      key={qIndex}
+                      onClick={() => isPlayable && timestamp && handleQuoteClick(timestamp)}
+                      className={`relative pl-3 border-l-2 ${color.quoteBorder} bg-slate-800/60 rounded-r-lg p-2.5 ${
+                        isPlayable ? 'cursor-pointer hover:opacity-80' : ''
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-xs italic text-slate-300 leading-relaxed">
+                          "{quoteText}"
+                        </p>
+                        {isPlayable && (
+                          <Play className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="currentColor" />
+                        )}
+                      </div>
+                      {isPlayable && timestamp !== null && (
+                        <div className="text-xs font-medium mt-1.5 text-emerald-500">
+                          {formatTimestamp(timestamp)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-      {/* Fixed Unified Header - Contains all top elements */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900 shadow-[0_2px_0_rgba(0,0,0,0.3)]">
-        {/* Augmented Pods Branding Bar */}
-        <div className="border-b border-slate-800/50 bg-slate-900">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900 shadow-lg">
+        {/* Branding Bar */}
+        <div className="border-b border-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <button
@@ -542,11 +310,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         </div>
 
         {/* Episode Info Bar */}
-        <div className="border-b border-slate-800/50 bg-slate-900">
+        <div className="border-b border-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-          {/* Mobile Layout: Stack vertically */}
-          <div className="flex flex-col gap-2 md:hidden">
-            <div className="flex items-center justify-end gap-2">
+            {/* Mobile Layout */}
+            <div className="flex flex-col gap-2 md:hidden">
+              <div className="flex items-center justify-end gap-2">
                 {episode.duration && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
                     <Clock className="w-3 h-3" />
@@ -556,92 +324,88 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <button
                   onClick={() => setShowShareModal(true)}
                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
-                  aria-label="Share episode"
                 >
                   <Share2 className="w-3 h-3" />
                   Share
                 </button>
-            </div>
-            <div className="flex items-center gap-2.5">
-              {episode.image_url && (
-                <img
-                  src={episode.image_url}
-                  alt={episode.title}
-                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
-                <div className="flex items-center gap-1">
-                  <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
-                  {podcast.podcast_url && (
-                    <a
-                      href={podcast.podcast_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
-                      title="Visit podcast website"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Desktop Layout: Single row */}
-          <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {episode.image_url && (
-                <img
-                  src={episode.image_url}
-                  alt={episode.title}
-                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
-                  {podcast.podcast_url && (
-                    <a
-                      href={podcast.podcast_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
-                      title="Visit podcast website"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
+              <div className="flex items-center gap-2.5">
+                {episode.image_url && (
+                  <img
+                    src={episode.image_url}
+                    alt={episode.title}
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                    {podcast.podcast_url && (
+                      <a
+                        href={podcast.podcast_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {episode.duration && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
-                  <Clock className="w-3 h-3" />
-                  {Math.floor(episode.duration / 60)}m
-                </span>
-              )}
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
-                aria-label="Share episode"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                Share
-              </button>
+            {/* Desktop Layout */}
+            <div className="hidden md:flex items-center gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {episode.image_url && (
+                  <img
+                    src={episode.image_url}
+                    alt={episode.title}
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                    {podcast.podcast_url && (
+                      <a
+                        href={podcast.podcast_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {episode.duration && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
+                    <Clock className="w-3 h-3" />
+                    {Math.floor(episode.duration / 60)}m
+                  </span>
+                )}
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share
+                </button>
+              </div>
             </div>
-          </div>
           </div>
         </div>
 
-        {/* Audio Player Bar */}
+        {/* Audio Player */}
         {episode.audio_url && isTabVisible('player') && (
-          <div className="border-b border-slate-800/50 bg-slate-900">
+          <div className="border-b border-slate-800/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <AudioPlayer
                 audioUrl={episode.audio_url}
@@ -654,326 +418,197 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
           </div>
         )}
-
-        {/* Tabbed Navigation */}
-        <div className="border-b border-slate-800/50 bg-slate-900/95 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px items-center">
-              {isTabVisible('map') && (
-                <button
-                  onClick={() => handleTabClick('map')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Map className="w-3.5 h-3.5" />
-                  Locations {locations.length > 0 && `(${locations.length})`}
-                </button>
-              )}
-              {isTabVisible('overview') && (
-                <button
-                  onClick={() => handleTabClick('overview')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'overview') || (!isMobile && openPanels.includes('overview'))
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  Overview
-                </button>
-              )}
-              {isTabVisible('moments') && (
-                <button
-                  onClick={() => handleTabClick('moments')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'moments') || (!isMobile && openPanels.includes('moments'))
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Key Moments
-                </button>
-              )}
-              {isTabVisible('people') && (
-                <button
-                  onClick={() => handleTabClick('people')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'people') || (!isMobile && openPanels.includes('people'))
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <UsersIcon className="w-3.5 h-3.5" />
-                  People
-                </button>
-              )}
-              {isTabVisible('timeline') && (
-                <button
-                  onClick={() => handleTabClick('timeline')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'timeline') || (!isMobile && openPanels.includes('timeline'))
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  Timeline
-                </button>
-              )}
-              {isTabVisible('references') && (
-                <button
-                  onClick={() => handleTabClick('references')}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                    (isMobile && activeTab === 'references') || (!isMobile && openPanels.includes('references'))
-                      ? 'border-cyan-400 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  References {analysis?.references && analysis.references.length > 0 && `(${analysis.references.length})`}
-                </button>
-              )}
-              {episode.transcript && (
-                <>
-                  {isTabVisible('transcript') && (
-                    <button
-                      onClick={() => handleTabClick('transcript')}
-                      className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                        (isMobile && activeTab === 'transcript') || (!isMobile && openPanels.includes('transcript'))
-                          ? 'border-cyan-400 text-white'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <BookOpen className="w-3.5 h-3.5" />
-                      Transcript
-                    </button>
-                  )}
-                  {isTabVisible('notes') && (
-                    <button
-                      onClick={() => handleTabClick('notes')}
-                      className={`flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 transition-all ${
-                        (isMobile && activeTab === 'notes') || (!isMobile && openPanels.includes('notes'))
-                          ? 'border-cyan-400 text-white'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <StickyNote className="w-3.5 h-3.5" />
-                      Notes
-                    </button>
-                  )}
-                </>
-              )}
-              {!isMobile && openPanels.length > 0 && (
-                <button
-                  onClick={closeAllPanels}
-                  className="flex items-center gap-1.5 px-4 py-2.5 font-medium text-xs whitespace-nowrap border-b-2 border-transparent text-red-400 hover:text-red-300 ml-auto"
-                  title="Close all panels"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Close All
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
       </header>
 
-      <main style={{paddingTop: 'var(--header-height)'}} className="transition-all">
-        {/* Map Always Visible as Base Layer */}
-        <section className="relative">
-          <LocationMap
-            locations={locations}
-            isLoading={isLoadingLocations}
-            error={locationError}
-            showSidePanel={(isMobile && activeTab === 'map') || (!isMobile && openPanels.length === 0)}
-            mapHeight="calc(100vh - 190px)"
-            currentEpisodeId={episode.episode_id}
-          />
-
-          {/* No Transcript Banner - shown on map when no transcript available */}
-          {!episode.transcript && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1001] max-w-lg w-full mx-4">
-              <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 shadow-2xl">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-semibold mb-1">
-                      Episode Not Yet Analyzed
-                    </h3>
-                    <p className="text-slate-300 text-sm">
-                      This episode hasn't been transcribed yet. Check back later for timelines, maps, key moments, and more.
-                    </p>
-                  </div>
+      <main className="pt-[180px]">
+        {!episode.transcript ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-semibold text-lg mb-2">
+                    Episode Not Yet Analyzed
+                  </h3>
+                  <p className="text-slate-300">
+                    This episode hasn't been transcribed yet. Check back later for timelines, maps, key moments, and more.
+                  </p>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Mobile: Single Panel Overlay */}
-          {isMobile && activeTab !== 'map' && episode.transcript && (
-            <div className="absolute inset-0 z-[1000] pointer-events-none">
-              <div className="pointer-events-auto absolute left-3 right-3 bottom-3 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 shadow-2xl overflow-hidden">
-                <div className="p-4 overflow-y-auto max-h-[70vh]">
-                  {renderOverlayContent()}
+          </div>
+        ) : (
+          <>
+            {/* Hero Section: Map + People Panel */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Map - 65% width on desktop */}
+                <div className="w-full lg:w-[65%]">
+                  <div className="h-[400px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+                    <LocationMap
+                      locations={locations}
+                      isLoading={isLoadingLocations}
+                      error={locationError}
+                      showSidePanel={false}
+                      mapHeight="100%"
+                      currentEpisodeId={episode.episode_id}
+                    />
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* Desktop: Dashboard with Resizable Panels */}
-          {!isMobile && episode.transcript && (
-            <DashboardManager
-              openPanels={openPanels}
-              onPanelClose={(panelId) => togglePanel(panelId)}
-            >
-              {(panelId) => renderPanelContent(panelId)}
-            </DashboardManager>
-          )}
-        </section>
-
-        {/* Old Tab Content (hidden) */}
-        <div className="hidden">
-{/* Timeline Tab */}
-          {episode.transcript && activeTab === 'timeline' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {analysis ? (
-                <Timeline events={analysis.timeline} currentEpisodeId={episode.episode_id} />
-              ) : (
-                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                  <p className="text-slate-600">No timeline data available yet</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          
-          {/* Overview Tab */}
-          {episode.transcript && activeTab === 'overview' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <EpisodeSummary summary={stripHtml(decodeHtmlEntities(episode.description))} />
-            </div>
-          )}
-
-          {/* Key Moments Tab */}
-          {episode.transcript && activeTab === 'moments' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {isLoadingAnalysis ? (
-                <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-12 shadow-sm">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="relative">
-                      <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
-                      <div className="absolute inset-0 w-12 h-12 bg-orange-400/20 rounded-full animate-ping" />
+                {/* People Panel - 35% width on desktop, scrollable */}
+                <div className="w-full lg:w-[35%]">
+                  <div className="bg-slate-900/40 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="bg-slate-800/60 border-b border-slate-700 px-4 py-3">
+                      <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                        <User className="w-5 h-5 text-cyan-400" />
+                        People {analysis?.keyPersonnel && `(${analysis.keyPersonnel.length})`}
+                      </h2>
                     </div>
-                    <p className="text-slate-700 text-lg font-medium">Finding key moments...</p>
-                    <p className="text-slate-500 text-sm">Extracting highlights from the episode</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {analysisError && (
-                    <div className="bg-gradient-to-br from-red-900 to-red-950 border border-red-700 rounded-2xl p-8 shadow-sm">
-                      <div className="flex items-start gap-3 text-red-100">
-                        <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-red-300 font-semibold mb-1">Analysis Error</p>
-                          <p className="text-red-200">{analysisError}</p>
+                    <div className="overflow-y-auto max-h-[400px] lg:max-h-[555px] p-4 space-y-3">
+                      {isLoadingAnalysis ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-4">
+                          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                          <p className="text-slate-300 text-sm">Identifying key people...</p>
                         </div>
-                      </div>
+                      ) : analysisError ? (
+                        <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                            <div>
+                              <p className="text-red-300 font-semibold">Analysis Error</p>
+                              <p className="text-red-200 text-sm">{analysisError}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : analysis?.keyPersonnel && analysis.keyPersonnel.length > 0 ? (
+                        analysis.keyPersonnel.map((person, index) => renderPersonCard(person, index))
+                      ) : (
+                        <p className="text-slate-400 text-center py-8">No people identified</p>
+                      )}
                     </div>
-                  )}
-                  {analysis && analysis.keyMoments && analysis.keyMoments.length > 0 && (
-                    <KeyMoments moments={analysis.keyMoments} />
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* People Tab */}
-          {episode.transcript && activeTab === 'people' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {analysis ? (
-                <KeyPersonnel personnel={analysis.keyPersonnel} currentEpisodeId={episode.episode_id} />
-              ) : (
-                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                  <p className="text-slate-600">No personnel data available yet</p>
+                  </div>
                 </div>
+              </div>
+            </section>
+
+            {/* Full-Width Sections Below Hero */}
+            <div className="bg-slate-950/50">
+              {/* Timeline Section */}
+              {isTabVisible('timeline') && (
+                <section className="border-t border-slate-800/60 py-12">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                      <Clock className="w-6 h-6 text-teal-400" />
+                      Timeline
+                    </h2>
+                    {isLoadingAnalysis ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-4">
+                        <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+                        <p className="text-slate-300 text-sm">Building timeline...</p>
+                      </div>
+                    ) : analysis?.timeline && analysis.timeline.length > 0 ? (
+                      <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
+                    ) : (
+                      <p className="text-slate-400 text-center py-8">No timeline data available</p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Key Moments Section */}
+              {isTabVisible('moments') && (
+                <section className="border-t border-slate-800/60 py-12">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                      <Sparkles className="w-6 h-6 text-orange-400" />
+                      Key Moments
+                    </h2>
+                    {isLoadingAnalysis ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-4">
+                        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+                        <p className="text-slate-300 text-sm">Finding key moments...</p>
+                      </div>
+                    ) : analysis?.keyMoments && analysis.keyMoments.length > 0 ? (
+                      <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                    ) : (
+                      <p className="text-slate-400 text-center py-8">No key moments available</p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* References Section */}
+              {isTabVisible('references') && (
+                <section className="border-t border-slate-800/60 py-12">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                      <ExternalLink className="w-6 h-6 text-cyan-400" />
+                      References {analysis?.references && `(${analysis.references.length})`}
+                    </h2>
+                    {isLoadingAnalysis ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-4">
+                        <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                        <p className="text-slate-300 text-sm">Finding references...</p>
+                      </div>
+                    ) : analysis?.references && analysis.references.length > 0 ? (
+                      <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
+                    ) : (
+                      <p className="text-slate-400 text-center py-8">No references available</p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Transcript Section */}
+              {isTabVisible('transcript') && (
+                <section className="border-t border-slate-800/60 py-12">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-white mb-8">Transcript</h2>
+                    <TranscriptViewer
+                      transcript={episode.transcript}
+                      episodeTitle={episode.title}
+                      episodeId={episode.episode_id}
+                      podcastName={podcast.name}
+                      onTextSelected={handleTextSelected}
+                      theme="dark"
+                    />
+                  </div>
+                </section>
+              )}
+
+              {/* Notes Section */}
+              {isTabVisible('notes') && (
+                <section id="notes-section" className="border-t border-slate-800/60 py-12">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-white mb-8">Notes</h2>
+                    <EpisodeNotes
+                      episodeId={episode.episode_id}
+                      episodeTitle={episode.title}
+                      podcastName={podcast.name}
+                      highlightedText={highlightedTextForNote}
+                      onHighlightUsed={handleHighlightUsed}
+                      theme="dark"
+                    />
+                  </div>
+                </section>
               )}
             </div>
-          )}
+          </>
+        )}
 
-          
-
-          {/* Map Tab - Full width */}
-          {episode.transcript && activeTab === 'map' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <LocationMap
-                locations={locations}
-                isLoading={isLoadingLocations}
-                error={locationError}
-                currentEpisodeId={episode.episode_id}
-              />
-            </div>
-          )}
-
-          {/* References Tab */}
-          {episode.transcript && activeTab === 'references' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {analysis ? (
-                <References references={analysis.references} currentEpisodeId={episode.episode_id} />
-              ) : (
-                <div className="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                  <p className="text-slate-600">No references data available yet</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Transcript Tab */}
-          {activeTab === 'transcript' && episode.transcript && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <TranscriptViewer
-                transcript={episode.transcript}
-                episodeTitle={episode.title}
-                episodeId={episode.episode_id}
-                podcastName={podcast.name}
-                onTextSelected={handleTextSelected}
-              />
-            </div>
-          )}
-
-          {/* Notes Tab */}
-          {activeTab === 'notes' && episode.transcript && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <EpisodeNotes
-                episodeId={episode.episode_id}
-                episodeTitle={episode.title}
-                podcastName={podcast.name}
-                highlightedText={highlightedTextForNote}
-                onHighlightUsed={handleHighlightUsed}
-              />
-            </div>
-          )}
-
-        </div>
-
-        {/* Recent Episodes - Below Main Content */}
+        {/* More Episodes */}
         <div className="bg-slate-950 border-t border-slate-800/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-white">More Episodes</h3>
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
+                className="text-sm text-slate-300 hover:text-white transition-colors"
               >
-                <List className="w-4 h-4" />
-                View All Episodes
+                View All
               </button>
             </div>
 
@@ -982,7 +617,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <button
                   key={ep.id}
                   onClick={() => onEpisodeClick(ep)}
-                  className={`text-left p-2 rounded-lg transition-all group border ${
+                  className={`text-left p-2 rounded-lg transition-all border ${
                     ep.id === episode.id
                       ? 'bg-slate-800 border-cyan-400/60'
                       : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
@@ -1014,6 +649,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
       <PodcastFooter />
 
+      {/* Share Modal */}
       {showShareModal && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"

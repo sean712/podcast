@@ -23,142 +23,113 @@ export default function Timeline({ events, theme = 'light', currentEpisodeId }: 
   const isDark = theme === 'dark';
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="relative">
-        <div className={`absolute left-1/2 top-0 bottom-0 w-0.5 -ml-px hidden md:block ${isDark ? 'bg-teal-500' : 'bg-teal-600'}`}></div>
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {events.map((event, index) => {
+          const isExpanded = expandedEvent === index;
+          const hasDetails = !!(event.significance || event.details || (event.quotes && event.quotes.length > 0));
 
-        <div className="space-y-12">
-          {events.map((event, index) => {
-            const isExpanded = expandedEvent === index;
-            const hasDetails = !!(event.significance || event.details || (event.quotes && event.quotes.length > 0));
-            const isLeft = index % 2 === 0;
+          return (
+            <div
+              key={index}
+              className={`relative rounded-xl p-5 transition-all shadow-md hover:shadow-lg border-2 ${
+                isDark ? 'bg-slate-900/60 border-slate-700 hover:border-teal-500' : 'bg-white border-slate-200 hover:border-teal-500'
+              } ${isExpanded ? 'border-teal-500' : ''} ${hasDetails ? 'cursor-pointer' : 'cursor-default'}`}
+              onClick={() => hasDetails && toggleEvent(index)}
+            >
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 border border-teal-600 rounded-lg ${isDark ? 'bg-teal-900/40' : 'bg-teal-100'}`}>
+                  <Calendar className={`w-3.5 h-3.5 ${isDark ? 'text-teal-300' : 'text-teal-700'}`} />
+                  <span className={`text-sm font-semibold select-text ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>
+                    {event.date}
+                  </span>
+                </div>
 
-            return (
-              <div
-                key={index}
-                className={`relative flex items-center ${
-                  isLeft ? 'md:justify-start' : 'md:justify-end'
-                } justify-start`}
-              >
-                <div
-                  className={`w-full md:w-6/12 ${
-                    isLeft ? 'md:pr-12' : 'md:pl-12 md:ml-auto'
-                  } pl-12 md:pl-0`}
-                >
-                  <button
-                    onClick={() => hasDetails && toggleEvent(index)}
-                    className={`w-full text-left rounded-xl p-5 transition-all shadow-md hover:shadow-lg border-2 ${
-                      isDark ? 'bg-slate-900/60 border-slate-700 hover:border-teal-500' : 'bg-white border-slate-200 hover:border-teal-500'
-                    } ${hasDetails ? 'cursor-pointer' : 'cursor-default'} ${isExpanded ? 'border-teal-500' : ''}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 border border-teal-600 rounded-lg mb-3 ${isDark ? 'bg-teal-900/40' : 'bg-teal-100'}`}>
-                          <Calendar className={`w-3.5 h-3.5 ${isDark ? 'text-teal-300' : 'text-teal-700'}`} />
-                          <span className={`text-sm font-semibold select-text ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>
-                            {event.date}
-                          </span>
-                        </div>
-
-                        <h4 className={`font-bold text-lg mb-2 leading-tight select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                          {event.event}
-                        </h4>
-
-                        {isExpanded && event.significance && (
-                          <p className={`text-sm leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                            {event.significance}
-                          </p>
-                        )}
-                      </div>
-
-                      {hasDetails && (
-                        <div className="flex-shrink-0 mt-1">
-                          {isExpanded ? (
-                            <ChevronUp className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`} />
-                          ) : (
-                            <ChevronDown className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`} />
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {isExpanded && hasDetails && (
-                      <div className={`mt-4 pt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
-                        {event.details && (
-                          <div className="flex gap-2">
-                            <Info className={`w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5`} />
-                            <p className={`text-sm leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                              {event.details}
-                            </p>
-                          </div>
-                        )}
-
-                        {event.quotes && event.quotes.length > 0 && (
-                          <div className="space-y-2">
-                            <div className={`flex items-center gap-1.5 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                              <Quote className="w-3.5 h-3.5" />
-                              <span>Related quotes</span>
-                            </div>
-                            {event.quotes.map((quote, qIndex) => {
-                              const quoteText = typeof quote === 'string' ? quote : quote.text;
-                              const quoteTimestamp = typeof quote === 'object' && quote.timestamp ? quote.timestamp : null;
-                              const timestamp = quoteTimestamp ? parseTimestamp(quoteTimestamp) : null;
-                              const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
-
-                              const handleQuoteClick = (e: React.MouseEvent) => {
-                                e.stopPropagation();
-                                if (isPlayable && timestamp !== null) {
-                                  seekTo(timestamp);
-                                  setIsPlaying(true);
-                                }
-                              };
-
-                              return (
-                                <div
-                                  key={qIndex}
-                                  onClick={handleQuoteClick}
-                                  className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'} ${
-                                    isPlayable ? 'cursor-pointer hover:opacity-80' : ''
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <p className={`text-xs italic leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                                      "{quoteText}"
-                                    </p>
-                                    {isPlayable && (
-                                      <div className="flex-shrink-0">
-                                        <Play className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  {isPlayable && timestamp !== null && (
-                                    <div className="text-xs font-medium mt-1.5 text-emerald-500">
-                                      {formatTimestamp(timestamp)}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
+                {hasDetails && (
+                  <div className="flex-shrink-0">
+                    {isExpanded ? (
+                      <ChevronUp className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`} />
+                    ) : (
+                      <ChevronDown className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`} />
                     )}
-                  </button>
-                </div>
-
-                <div className={`absolute left-4 md:left-1/2 w-10 h-10 bg-teal-600 border-4 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg z-10 md:-ml-5 ${isDark ? 'border-slate-900' : 'border-white'}`}>
-                  {index + 1}
-                </div>
-
-                <div
-                  className={`hidden md:block absolute top-5 w-8 h-0.5 bg-teal-600 ${
-                    isLeft ? 'left-1/2 ml-5' : 'right-1/2 mr-5'
-                  }`}
-                ></div>
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
+
+              <h4 className={`font-bold text-base mb-3 leading-tight select-text ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                {event.event}
+              </h4>
+
+              {isExpanded && event.significance && (
+                <p className={`text-sm leading-relaxed mb-3 select-text ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  {event.significance}
+                </p>
+              )}
+
+              {isExpanded && hasDetails && (
+                <div className={`mt-4 pt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
+                  {event.details && (
+                    <div className="flex gap-2">
+                      <Info className={`w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5`} />
+                      <p className={`text-sm leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {event.details}
+                      </p>
+                    </div>
+                  )}
+
+                  {event.quotes && event.quotes.length > 0 && (
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-1.5 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <Quote className="w-3.5 h-3.5" />
+                        <span>Related quotes</span>
+                      </div>
+                      {event.quotes.map((quote, qIndex) => {
+                        const quoteText = typeof quote === 'string' ? quote : quote.text;
+                        const quoteTimestamp = typeof quote === 'object' && quote.timestamp ? quote.timestamp : null;
+                        const timestamp = quoteTimestamp ? parseTimestamp(quoteTimestamp) : null;
+                        const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                        const handleQuoteClick = (e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (isPlayable && timestamp !== null) {
+                            seekTo(timestamp);
+                            setIsPlaying(true);
+                          }
+                        };
+
+                        return (
+                          <div
+                            key={qIndex}
+                            onClick={handleQuoteClick}
+                            className={`relative pl-3 border-l-2 border-teal-600 rounded-r-lg p-3 ${isDark ? 'bg-teal-900/30' : 'bg-teal-50'} ${
+                              isPlayable ? 'cursor-pointer hover:opacity-80' : ''
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-xs italic leading-relaxed select-text ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                "{quoteText}"
+                              </p>
+                              {isPlayable && (
+                                <div className="flex-shrink-0">
+                                  <Play className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" />
+                                </div>
+                              )}
+                            </div>
+                            {isPlayable && timestamp !== null && (
+                              <div className="text-xs font-medium mt-1.5 text-emerald-500">
+                                {formatTimestamp(timestamp)}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
