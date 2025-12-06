@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, Clock, Share2, Sparkles, ExternalLink, User, Play, Quote, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Clock, Share2, Sparkles, ExternalLink, User, Play, Quote, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import LocationMap from './LocationMap';
 import EpisodeSummary from './EpisodeSummary';
 import KeyMoments from './KeyMoments';
@@ -441,8 +441,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         ) : (
           <>
-            {/* Hero Section: Map + People Panel */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+            {/* Hero Section: Map + Locations Panel */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Map - 65% width on desktop */}
                 <div className="w-full lg:w-[65%]">
@@ -458,38 +458,149 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   </div>
                 </div>
 
-                {/* People Panel - 35% width on desktop, scrollable */}
+                {/* Locations Panel - 35% width on desktop, scrollable */}
                 <div className="w-full lg:w-[35%]">
                   <div className="bg-slate-900/40 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="bg-slate-800/60 border-b border-slate-700 px-4 py-3">
                       <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                        <User className="w-5 h-5 text-cyan-400" />
-                        People {analysis?.keyPersonnel && `(${analysis.keyPersonnel.length})`}
+                        <MapPin className="w-5 h-5 text-orange-400" />
+                        Locations {locations.length > 0 && `(${locations.length})`}
                       </h2>
                     </div>
                     <div className="overflow-y-auto max-h-[400px] lg:max-h-[555px] p-4 space-y-3">
-                      {isLoadingAnalysis ? (
+                      {isLoadingLocations ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-4">
-                          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-                          <p className="text-slate-300 text-sm">Identifying key people...</p>
+                          <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+                          <p className="text-slate-300 text-sm">Finding locations...</p>
                         </div>
-                      ) : analysisError ? (
+                      ) : locationError ? (
                         <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
                           <div className="flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                             <div>
-                              <p className="text-red-300 font-semibold">Analysis Error</p>
-                              <p className="text-red-200 text-sm">{analysisError}</p>
+                              <p className="text-red-300 font-semibold">Location Error</p>
+                              <p className="text-red-200 text-sm">{locationError}</p>
                             </div>
                           </div>
                         </div>
-                      ) : analysis?.keyPersonnel && analysis.keyPersonnel.length > 0 ? (
-                        analysis.keyPersonnel.map((person, index) => renderPersonCard(person, index))
+                      ) : locations.length > 0 ? (
+                        locations.map((location, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              const mapContainer = document.querySelector('[class*="leaflet-container"]') as any;
+                              if (mapContainer && mapContainer._leaflet_map) {
+                                const map = mapContainer._leaflet_map;
+                                const currentZoom = map.getZoom();
+                                const targetZoom = Math.min(8, Math.max(currentZoom, 6));
+                                map.flyTo([location.lat, location.lon], targetZoom, {
+                                  duration: 1.2,
+                                  easeLinearity: 0.25,
+                                  animate: true
+                                });
+                              }
+                            }}
+                            className="w-full text-left p-3 rounded-xl transition-all duration-300 bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800 hover:border-orange-400/60"
+                          >
+                            <div className="flex gap-3">
+                              <div className="flex-shrink-0 pt-1">
+                                <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm hover:scale-110 transition-transform duration-300">
+                                  {index + 1}
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm mb-1 text-slate-100">
+                                  {location.name}
+                                </div>
+                                {location.context && (
+                                  <div className="text-xs text-slate-300/90 line-clamp-3">
+                                    {location.context}
+                                  </div>
+                                )}
+                                {location.quotes && location.quotes.length > 0 && (
+                                  <div className="mt-2 space-y-1.5">
+                                    {location.quotes.map((quote, qIndex) => {
+                                      const timestamp = quote.timestamp ? parseTimestamp(quote.timestamp) : null;
+                                      const isPlayable = timestamp !== null && episode.episode_id === currentEpisode?.episodeId;
+
+                                      const handleQuoteClick = (e: React.MouseEvent) => {
+                                        e.stopPropagation();
+                                        if (isPlayable && timestamp !== null) {
+                                          seekTo(timestamp);
+                                          setIsPlaying(true);
+                                        }
+                                      };
+
+                                      return (
+                                        <div
+                                          key={qIndex}
+                                          onClick={handleQuoteClick}
+                                          className={`text-xs italic text-slate-400 border-l-2 border-orange-500 pl-2 py-1 ${
+                                            isPlayable ? 'cursor-pointer hover:text-emerald-400 hover:border-emerald-500' : ''
+                                          }`}
+                                        >
+                                          <div className="flex items-start gap-1.5">
+                                            <Quote className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                            <div className="flex-1">
+                                              <div>"{quote.text}"</div>
+                                              {isPlayable && timestamp !== null && (
+                                                <div className="flex items-center gap-1 mt-0.5 text-emerald-400">
+                                                  <Play className="w-3 h-3" fill="currentColor" />
+                                                  <span>{formatTimestamp(timestamp)}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))
                       ) : (
-                        <p className="text-slate-400 text-center py-8">No people identified</p>
+                        <p className="text-slate-400 text-center py-8">No locations identified</p>
                       )}
                     </div>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* People Panel - Horizontal below map */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+              <div className="bg-slate-900/40 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="bg-slate-800/60 border-b border-slate-700 px-4 py-3">
+                  <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                    <User className="w-5 h-5 text-cyan-400" />
+                    People {analysis?.keyPersonnel && `(${analysis.keyPersonnel.length})`}
+                  </h2>
+                </div>
+                <div className="p-4">
+                  {isLoadingAnalysis ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-4">
+                      <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                      <p className="text-slate-300 text-sm">Identifying key people...</p>
+                    </div>
+                  ) : analysisError ? (
+                    <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-red-300 font-semibold">Analysis Error</p>
+                          <p className="text-red-200 text-sm">{analysisError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : analysis?.keyPersonnel && analysis.keyPersonnel.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {analysis.keyPersonnel.map((person, index) => renderPersonCard(person, index))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 text-center py-8">No people identified</p>
+                  )}
                 </div>
               </div>
             </section>
