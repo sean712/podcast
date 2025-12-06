@@ -13,9 +13,11 @@ interface LocationMapProps {
   /** Custom non-fullscreen height for the map container (e.g., 'calc(100vh - 158px)') */
   mapHeight?: string;
   currentEpisodeId?: string;
+  /** Location to focus/pan to when provided */
+  focusOnLocation?: GeocodedLocation | null;
 }
 
-export default function LocationMap({ locations, isLoading, error, showSidePanel = true, mapHeight, currentEpisodeId }: LocationMapProps) {
+export default function LocationMap({ locations, isLoading, error, showSidePanel = true, mapHeight, currentEpisodeId, focusOnLocation }: LocationMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
@@ -54,6 +56,24 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
       }
     }, 150);
   }, [isFullscreen, locations]);
+
+  // Pan to location when focusOnLocation changes
+  useEffect(() => {
+    if (focusOnLocation && mapInstanceRef.current) {
+      const L = (window as any).L;
+      if (L) {
+        const map = mapInstanceRef.current;
+        const currentZoom = map.getZoom();
+        const targetZoom = Math.min(8, Math.max(currentZoom, 6));
+        map.flyTo([focusOnLocation.lat, focusOnLocation.lon], targetZoom, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+          animate: true
+        });
+        setSelectedLocation(focusOnLocation);
+      }
+    }
+  }, [focusOnLocation]);
 
   useEffect(() => {
     if (!mapContainerRef.current) {

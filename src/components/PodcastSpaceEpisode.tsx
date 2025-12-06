@@ -29,6 +29,7 @@ interface PodcastSpaceEpisodeProps {
 export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
   const { setCurrentEpisode, currentEpisode, seekTo, setIsPlaying } = useAudio();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<TranscriptAnalysis | null>(null);
@@ -454,6 +455,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       showSidePanel={false}
                       mapHeight="100%"
                       currentEpisodeId={episode.episode_id}
+                      focusOnLocation={selectedLocation}
                     />
                   </div>
                 </div>
@@ -487,20 +489,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                         locations.map((location, index) => (
                           <button
                             key={index}
-                            onClick={() => {
-                              const mapContainer = document.querySelector('[class*="leaflet-container"]') as any;
-                              if (mapContainer && mapContainer._leaflet_map) {
-                                const map = mapContainer._leaflet_map;
-                                const currentZoom = map.getZoom();
-                                const targetZoom = Math.min(8, Math.max(currentZoom, 6));
-                                map.flyTo([location.lat, location.lon], targetZoom, {
-                                  duration: 1.2,
-                                  easeLinearity: 0.25,
-                                  animate: true
-                                });
-                              }
-                            }}
-                            className="w-full text-left p-3 rounded-xl transition-all duration-300 bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800 hover:border-orange-400/60"
+                            onClick={() => setSelectedLocation(location)}
+                            className={`w-full text-left p-3 rounded-xl transition-all duration-300 ${
+                              selectedLocation === location
+                                ? 'bg-slate-800 border-2 border-orange-400/60'
+                                : 'bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800 hover:border-orange-400/60'
+                            }`}
                           >
                             <div className="flex gap-3">
                               <div className="flex-shrink-0 pt-1">
