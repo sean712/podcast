@@ -39,6 +39,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     setCurrentEpisode({
@@ -430,10 +431,31 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 <FileText className="w-5 h-5 text-cyan-400" />
                 Episode Description
               </h2>
-              <div className="text-slate-300 leading-relaxed text-sm space-y-2">
-                {episode.description.split('\n').map((paragraph, index) => (
-                  paragraph.trim() && <p key={index}>{paragraph}</p>
-                ))}
+              <div className="text-slate-300 leading-relaxed text-sm">
+                <p>
+                  {isDescriptionExpanded
+                    ? episode.description
+                    : `${episode.description.slice(0, 200)}${episode.description.length > 200 ? '...' : ''}`
+                  }
+                </p>
+                {episode.description.length > 200 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="mt-3 text-cyan-400 hover:text-cyan-300 text-xs font-medium flex items-center gap-1 transition-colors"
+                  >
+                    {isDescriptionExpanded ? (
+                      <>
+                        <ChevronUp className="w-3.5 h-3.5" />
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-3.5 h-3.5" />
+                        Show more
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </section>
