@@ -23,9 +23,28 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   const containerRef = useRef<HTMLDivElement>(null);
   const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Error toggling fullscreen:', err);
+    }
   };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // When fullscreen or locations change, invalidate map size
   useEffect(() => {
@@ -238,12 +257,11 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   // Removed the early return - always render the map, even with no locations
 
   return (
-    <div className={`relative group ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900' : ''}`} ref={containerRef}>
-      <div className={`relative bg-slate-900 overflow-hidden ${isFullscreen ? 'h-screen w-screen' : ''}`}>
+    <div className={`relative group ${isFullscreen ? 'bg-slate-900' : ''}`} ref={containerRef} style={isFullscreen ? { width: '100vw', height: '100vh' } : undefined}>
+      <div className={`relative bg-slate-900 overflow-hidden ${isFullscreen ? 'h-screen w-screen' : 'h-full w-full'}`}>
         {/* Map Container - full width when side panel hidden */}
         <div
-          className="relative w-full"
-          style={{ height: isFullscreen ? 'calc(100vh - 70px)' : (mapHeight || 'calc(100vh - 250px)'), minHeight: '400px' }}
+          className="relative w-full h-full"
           ref={mapContainerRef}
         />
 
@@ -284,8 +302,8 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Optional built-in side panel/list */}
         {showSidePanel && (
           <div
-            className="hidden lg:block absolute right-6 top-6 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
-            style={{ maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)' }}
+            className="hidden lg:block absolute right-6 top-20 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
+            style={{ maxHeight: isFullscreen ? 'calc(100vh - 160px)' : '85%' }}
           >
             <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg">
