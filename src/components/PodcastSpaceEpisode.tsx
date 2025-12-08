@@ -759,7 +759,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         )}
 
         {/* More Episodes or CTA */}
-        {isFeaturedMode ? (
+        {!podcast.is_client ? (
           <div className="bg-slate-950 border-t border-slate-800/60">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <CreatorCallToAction />
