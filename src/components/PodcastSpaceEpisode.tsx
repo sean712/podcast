@@ -186,11 +186,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
     return (
       <div
         key={index}
-        className="bg-slate-900/60 border border-slate-700 rounded-xl overflow-hidden hover:border-slate-600 transition-all"
+        className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all"
       >
         <button
           onClick={() => setExpandedPerson(isExpanded ? null : index)}
-          className="w-full p-4 flex items-center gap-3 text-left hover:bg-slate-900/80 transition-colors"
+          className="w-full p-4 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors"
         >
           {person.wikipediaPageUrl ? (
             <a
@@ -219,20 +219,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               </div>
             </a>
           ) : (
-            <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600">
-              <User className="w-6 h-6 text-slate-400" />
+            <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center border-2 border-slate-300">
+              <User className="w-6 h-6 text-slate-600" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-sm text-slate-100 truncate">{person.name}</h4>
+            <h4 className="font-semibold text-sm text-slate-900 truncate">{person.name}</h4>
             {!isExpanded && (
-              <p className="text-xs text-slate-400 truncate">{person.role}</p>
+              <p className="text-xs text-slate-600 truncate">{person.role}</p>
             )}
           </div>
           {isExpanded ? (
-            <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
           )}
         </button>
 
@@ -243,13 +243,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 {person.role}
               </span>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-slate-700 leading-relaxed">
               {person.relevance}
             </p>
 
             {person.quotes && person.quotes.length > 0 && (
-              <div className="pt-3 border-t border-slate-700/70 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+              <div className="pt-3 border-t border-slate-200 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
                   <Quote className="w-3.5 h-3.5" />
                   <span>{person.quotes.length} {person.quotes.length === 1 ? 'quote' : 'quotes'}</span>
                 </div>
@@ -263,20 +263,20 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     <div
                       key={qIndex}
                       onClick={() => isPlayable && timestamp && handleQuoteClick(timestamp)}
-                      className={`relative pl-3 border-l-2 ${color.quoteBorder} bg-slate-800/60 rounded-r-lg p-2.5 ${
-                        isPlayable ? 'cursor-pointer hover:opacity-80' : ''
+                      className={`relative pl-3 border-l-2 ${color.quoteBorder} bg-slate-50 rounded-r-lg p-2.5 ${
+                        isPlayable ? 'cursor-pointer hover:bg-slate-100' : ''
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs italic text-slate-300 leading-relaxed">
+                        <p className="text-xs italic text-slate-700 leading-relaxed">
                           "{quoteText}"
                         </p>
                         {isPlayable && (
-                          <Play className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="currentColor" />
+                          <Play className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="currentColor" />
                         )}
                       </div>
                       {isPlayable && timestamp !== null && (
-                        <div className="text-xs font-medium mt-1.5 text-emerald-500">
+                        <div className="text-xs font-medium mt-1.5 text-emerald-600">
                           {formatTimestamp(timestamp)}
                         </div>
                       )}
@@ -292,40 +292,40 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900 shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-slate-200">
         {/* Branding Bar */}
-        <div className="border-b border-slate-800/50">
+        <div className="border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm font-medium">Back</span>
               </button>
-              <span className="text-base font-bold text-white">Augmented Pods</span>
+              <span className="text-base font-bold text-slate-900">Augmented Pods</span>
             </div>
           </div>
         </div>
 
         {/* Episode Info Bar */}
-        <div className="border-b border-slate-800/50">
+        <div className="border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
             {/* Mobile Layout */}
             <div className="flex flex-col gap-2 md:hidden">
               <div className="flex items-center justify-end gap-2">
                 {episode.duration && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-700">
                     <Clock className="w-3 h-3" />
                     {Math.floor(episode.duration / 60)}m
                   </span>
                 )}
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-500 hover:bg-cyan-600 border border-cyan-600 rounded-lg text-xs text-white font-semibold transition-colors"
                 >
                   <Share2 className="w-3 h-3" />
                   Share
@@ -336,19 +336,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   <img
                     src={episode.image_url}
                     alt={episode.title}
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400"
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
+                  <h1 className="text-sm font-bold text-slate-900 line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
                   <div className="flex items-center gap-1">
-                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                    <p className="text-xs text-slate-600 truncate">{podcast.name}</p>
                     {podcast.podcast_url && (
                       <a
                         href={podcast.podcast_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className="flex-shrink-0 text-cyan-600 hover:text-cyan-700 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
                       </a>
@@ -365,19 +365,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   <img
                     src={episode.image_url}
                     alt={episode.title}
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400"
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
+                  <h1 className="text-base font-bold text-slate-900 truncate">{decodeHtmlEntities(episode.title)}</h1>
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                    <p className="text-xs text-slate-600 truncate">{podcast.name}</p>
                     {podcast.podcast_url && (
                       <a
                         href={podcast.podcast_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className="flex-shrink-0 text-cyan-600 hover:text-cyan-700 transition-colors"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
@@ -388,14 +388,14 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {episode.duration && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-700">
                     <Clock className="w-3 h-3" />
                     {Math.floor(episode.duration / 60)}m
                   </span>
                 )}
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 border border-cyan-600 rounded-lg text-xs text-white font-semibold transition-colors"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   Share
@@ -407,7 +407,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {/* Audio Player */}
         {episode.audio_url && isTabVisible('player') && (
-          <div className="border-b border-slate-800/50">
+          <div className="border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <AudioPlayer
                 audioUrl={episode.audio_url}
@@ -426,12 +426,12 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         {/* Episode Description */}
         {episode.description && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-cyan-400" />
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+              <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-cyan-600" />
                 Episode Description
               </h2>
-              <div className="text-slate-300 leading-relaxed text-sm">
+              <div className="text-slate-700 leading-relaxed text-sm">
                 <p>
                   {isDescriptionExpanded
                     ? episode.description
@@ -441,7 +441,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 {episode.description.length > 200 && (
                   <button
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                    className="mt-3 text-cyan-400 hover:text-cyan-300 text-xs font-medium flex items-center gap-1 transition-colors"
+                    className="mt-3 text-cyan-600 hover:text-cyan-700 text-xs font-medium flex items-center gap-1 transition-colors"
                   >
                     {isDescriptionExpanded ? (
                       <>
@@ -463,16 +463,16 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {!episode.transcript ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl">
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-white font-semibold text-lg mb-2">
+                  <h3 className="text-slate-900 font-semibold text-lg mb-2">
                     Episode Not Yet Analyzed
                   </h3>
-                  <p className="text-slate-300">
+                  <p className="text-slate-600">
                     This episode hasn't been transcribed yet. Check back later for timelines, maps, key moments, and more.
                   </p>
                 </div>
@@ -486,7 +486,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Map - 65% width on desktop */}
                 <div className="w-full lg:w-[65%]">
-                  <div className="h-[400px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+                  <div className="h-[400px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-200 shadow-xl">
                     <LocationMap
                       locations={locations}
                       isLoading={isLoadingLocations}
@@ -501,26 +501,26 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
                 {/* Locations Panel - 35% width on desktop, scrollable */}
                 <div className="w-full lg:w-[35%]">
-                  <div className="bg-slate-900/40 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
-                    <div className="bg-slate-800/60 border-b border-slate-700 px-4 py-3">
-                      <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-orange-400" />
+                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg">
+                    <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+                      <h2 className="text-slate-900 font-bold text-lg flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-orange-600" />
                         Locations {locations.length > 0 && `(${locations.length})`}
                       </h2>
                     </div>
-                    <div className="overflow-y-auto max-h-[400px] lg:max-h-[555px] p-4 space-y-3">
+                    <div className="overflow-y-auto max-h-[400px] lg:max-h-[555px] p-4 space-y-3 bg-slate-50/50">
                       {isLoadingLocations ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-4">
-                          <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-                          <p className="text-slate-300 text-sm">Finding locations...</p>
+                          <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+                          <p className="text-slate-600 text-sm">Finding locations...</p>
                         </div>
                       ) : locationError ? (
-                        <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                           <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                             <div>
-                              <p className="text-red-300 font-semibold">Location Error</p>
-                              <p className="text-red-200 text-sm">{locationError}</p>
+                              <p className="text-red-900 font-semibold">Location Error</p>
+                              <p className="text-red-700 text-sm">{locationError}</p>
                             </div>
                           </div>
                         </div>
@@ -531,8 +531,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                             onClick={() => setSelectedLocation(location)}
                             className={`w-full text-left p-3 rounded-xl transition-all duration-300 ${
                               selectedLocation === location
-                                ? 'bg-slate-800 border-2 border-orange-400/60'
-                                : 'bg-slate-900/60 border-2 border-slate-700 hover:bg-slate-800 hover:border-orange-400/60'
+                                ? 'bg-orange-50 border-2 border-orange-400 shadow-md'
+                                : 'bg-white border-2 border-slate-200 hover:bg-orange-50 hover:border-orange-300'
                             }`}
                           >
                             <div className="flex gap-3">
@@ -542,11 +542,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-sm mb-1 text-slate-100">
+                                <div className="font-semibold text-sm mb-1 text-slate-900">
                                   {location.name}
                                 </div>
                                 {location.context && (
-                                  <div className="text-xs text-slate-300/90 line-clamp-3">
+                                  <div className="text-xs text-slate-600 line-clamp-3">
                                     {location.context}
                                   </div>
                                 )}
@@ -568,8 +568,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                                         <div
                                           key={qIndex}
                                           onClick={handleQuoteClick}
-                                          className={`text-xs italic text-slate-400 border-l-2 border-orange-500 pl-2 py-1 ${
-                                            isPlayable ? 'cursor-pointer hover:text-emerald-400 hover:border-emerald-500' : ''
+                                          className={`text-xs italic text-slate-600 border-l-2 border-orange-500 pl-2 py-1 ${
+                                            isPlayable ? 'cursor-pointer hover:text-emerald-600 hover:border-emerald-500' : ''
                                           }`}
                                         >
                                           <div className="flex items-start gap-1.5">
@@ -577,7 +577,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                                             <div className="flex-1">
                                               <div>"{quote.text}"</div>
                                               {isPlayable && timestamp !== null && (
-                                                <div className="flex items-center gap-1 mt-0.5 text-emerald-400">
+                                                <div className="flex items-center gap-1 mt-0.5 text-emerald-600">
                                                   <Play className="w-3 h-3" fill="currentColor" />
                                                   <span>{formatTimestamp(timestamp)}</span>
                                                 </div>
@@ -594,7 +594,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                           </button>
                         ))
                       ) : (
-                        <p className="text-slate-400 text-center py-8">No locations identified</p>
+                        <p className="text-slate-500 text-center py-8">No locations identified</p>
                       )}
                     </div>
                   </div>
@@ -604,26 +604,26 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
             {/* People Panel - Horizontal below map */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-              <div className="bg-slate-900/40 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
-                <div className="bg-slate-800/60 border-b border-slate-700 px-4 py-3">
-                  <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                    <User className="w-5 h-5 text-cyan-400" />
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg">
+                <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+                  <h2 className="text-slate-900 font-bold text-lg flex items-center gap-2">
+                    <User className="w-5 h-5 text-cyan-600" />
                     People {analysis?.keyPersonnel && `(${analysis.keyPersonnel.length})`}
                   </h2>
                 </div>
-                <div className="p-4">
+                <div className="p-4 bg-slate-50/50">
                   {isLoadingAnalysis ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-4">
-                      <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-                      <p className="text-slate-300 text-sm">Identifying key people...</p>
+                      <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                      <p className="text-slate-600 text-sm">Identifying key people...</p>
                     </div>
                   ) : analysisError ? (
-                    <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                       <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                         <div>
-                          <p className="text-red-300 font-semibold">Analysis Error</p>
-                          <p className="text-red-200 text-sm">{analysisError}</p>
+                          <p className="text-red-900 font-semibold">Analysis Error</p>
+                          <p className="text-red-700 text-sm">{analysisError}</p>
                         </div>
                       </div>
                     </div>
@@ -632,31 +632,31 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                       {analysis.keyPersonnel.map((person, index) => renderPersonCard(person, index))}
                     </div>
                   ) : (
-                    <p className="text-slate-400 text-center py-8">No people identified</p>
+                    <p className="text-slate-500 text-center py-8">No people identified</p>
                   )}
                 </div>
               </div>
             </section>
 
             {/* Full-Width Sections Below Hero */}
-            <div className="bg-slate-950/50">
+            <div className="bg-slate-50">
               {/* Timeline Section */}
               {isTabVisible('timeline') && (
-                <section className="border-t border-slate-800/60 py-12">
+                <section className="border-t border-slate-200 py-12">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-                      <Clock className="w-6 h-6 text-teal-400" />
+                    <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                      <Clock className="w-6 h-6 text-teal-600" />
                       Timeline
                     </h2>
                     {isLoadingAnalysis ? (
                       <div className="flex flex-col items-center justify-center py-12 gap-4">
-                        <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
-                        <p className="text-slate-300 text-sm">Building timeline...</p>
+                        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+                        <p className="text-slate-600 text-sm">Building timeline...</p>
                       </div>
                     ) : analysis?.timeline && analysis.timeline.length > 0 ? (
-                      <Timeline events={analysis.timeline} theme="dark" currentEpisodeId={episode.episode_id} />
+                      <Timeline events={analysis.timeline} theme="light" currentEpisodeId={episode.episode_id} />
                     ) : (
-                      <p className="text-slate-400 text-center py-8">No timeline data available</p>
+                      <p className="text-slate-500 text-center py-8">No timeline data available</p>
                     )}
                   </div>
                 </section>
@@ -664,21 +664,21 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
               {/* Key Moments Section */}
               {isTabVisible('moments') && (
-                <section className="border-t border-slate-800/60 py-12">
+                <section className="border-t border-slate-200 py-12">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-                      <Sparkles className="w-6 h-6 text-orange-400" />
+                    <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                      <Sparkles className="w-6 h-6 text-orange-600" />
                       Key Moments
                     </h2>
                     {isLoadingAnalysis ? (
                       <div className="flex flex-col items-center justify-center py-12 gap-4">
-                        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-                        <p className="text-slate-300 text-sm">Finding key moments...</p>
+                        <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+                        <p className="text-slate-600 text-sm">Finding key moments...</p>
                       </div>
                     ) : analysis?.keyMoments && analysis.keyMoments.length > 0 ? (
-                      <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                      <KeyMoments moments={analysis.keyMoments} theme="light" />
                     ) : (
-                      <p className="text-slate-400 text-center py-8">No key moments available</p>
+                      <p className="text-slate-500 text-center py-8">No key moments available</p>
                     )}
                   </div>
                 </section>
@@ -686,21 +686,21 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
               {/* References Section */}
               {isTabVisible('references') && (
-                <section className="border-t border-slate-800/60 py-12">
+                <section className="border-t border-slate-200 py-12">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-                      <ExternalLink className="w-6 h-6 text-cyan-400" />
+                    <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                      <ExternalLink className="w-6 h-6 text-cyan-600" />
                       References {analysis?.references && `(${analysis.references.length})`}
                     </h2>
                     {isLoadingAnalysis ? (
                       <div className="flex flex-col items-center justify-center py-12 gap-4">
-                        <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-                        <p className="text-slate-300 text-sm">Finding references...</p>
+                        <Loader2 className="w-8 h-8 text-cyan-600 animate-spin" />
+                        <p className="text-slate-600 text-sm">Finding references...</p>
                       </div>
                     ) : analysis?.references && analysis.references.length > 0 ? (
-                      <References references={analysis.references} theme="dark" currentEpisodeId={episode.episode_id} />
+                      <References references={analysis.references} theme="light" currentEpisodeId={episode.episode_id} />
                     ) : (
-                      <p className="text-slate-400 text-center py-8">No references available</p>
+                      <p className="text-slate-500 text-center py-8">No references available</p>
                     )}
                   </div>
                 </section>
@@ -708,9 +708,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
               {/* Transcript Section */}
               {isTabVisible('transcript') && (
-                <section className="border-t border-slate-800/60 py-12">
+                <section className="border-t border-slate-200 py-12">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-white mb-8">Transcript</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-8">Transcript</h2>
                     <TranscriptViewer
                       transcript={episode.transcript}
                       episodeTitle={episode.title}
@@ -725,9 +725,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
               {/* Notes Section */}
               {isTabVisible('notes') && (
-                <section id="notes-section" className="border-t border-slate-800/60 py-12">
+                <section id="notes-section" className="border-t border-slate-200 py-12">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-white mb-8">Notes</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-8">Notes</h2>
                     <EpisodeNotes
                       episodeId={episode.episode_id}
                       episodeTitle={episode.title}
@@ -744,13 +744,13 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         )}
 
         {/* More Episodes */}
-        <div className="bg-slate-950 border-t border-slate-800/60">
+        <div className="bg-slate-100 border-t border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">More Episodes</h3>
+              <h3 className="text-lg font-semibold text-slate-900">More Episodes</h3>
               <button
                 onClick={onBack}
-                className="text-sm text-slate-300 hover:text-white transition-colors"
+                className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
               >
                 View All
               </button>
@@ -763,8 +763,8 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   onClick={() => onEpisodeClick(ep)}
                   className={`text-left p-2 rounded-lg transition-all border ${
                     ep.id === episode.id
-                      ? 'bg-slate-800 border-cyan-400/60'
-                      : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
+                      ? 'bg-cyan-50 border-cyan-400 shadow-md'
+                      : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   {ep.image_url && (
@@ -775,11 +775,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                     />
                   )}
                   <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
-                    ep.id === episode.id ? 'text-cyan-300' : 'text-slate-100'
+                    ep.id === episode.id ? 'text-cyan-700' : 'text-slate-900'
                   }`}>
                     {decodeHtmlEntities(ep.title)}
                   </h4>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-[10px] text-slate-500">
                     {ep.duration > 0 && (
                       <span>{Math.floor(ep.duration / 60)}m</span>
                     )}
