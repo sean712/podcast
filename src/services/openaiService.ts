@@ -66,7 +66,8 @@ class OpenAIServiceError extends Error {
 
 export async function analyzeTranscript(
   transcript: string,
-  episodeId?: string
+  episodeId?: string,
+  podcastId?: string
 ): Promise<TranscriptAnalysis> {
   try {
     const { data, error } = await supabase.functions.invoke('analyze-episode', {
@@ -74,6 +75,7 @@ export async function analyzeTranscript(
         action: 'analyze',
         transcript,
         episodeId,
+        podcastId,
       },
     });
 

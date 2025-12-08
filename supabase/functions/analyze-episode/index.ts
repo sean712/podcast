@@ -10,6 +10,7 @@ const corsHeaders = {
 interface AnalyzeRequest {
   action: "analyze" | "chat";
   episodeId?: string;
+  podcastId?: string;
   transcript: string;
   episodeTitle?: string;
   userQuestion?: string;
@@ -155,7 +156,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestData: AnalyzeRequest = await req.json();
-    const { action, episodeId, transcript, episodeTitle, userQuestion, conversationHistory } = requestData;
+    const { action, episodeId, podcastId, transcript, episodeTitle, userQuestion, conversationHistory } = requestData;
 
     if (action === "analyze" && episodeId) {
       const { data: cachedAnalysis } = await supabase
@@ -454,10 +455,24 @@ Deno.serve(async (req: Request) => {
 
       let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
 
-      if (keyPersonnel.length > 0) {
+      let wikipediaEnabled = true;
+      if (podcastId) {
+        const { data: settings } = await supabase
+          .from('podcast_settings')
+          .select('enable_wikipedia_info')
+          .eq('podcast_id', podcastId)
+          .maybeSingle();
+
+        wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
+        console.log(`Wikipedia enrichment setting for podcast ${podcastId}: ${wikipediaEnabled}`);
+      }
+
+      if (keyPersonnel.length > 0 && wikipediaEnabled) {
         console.log(`Enriching ${keyPersonnel.length} people with Wikipedia data...`);
         keyPersonnel = await enrichPeopleWithWikipedia(keyPersonnel);
         console.log("Wikipedia enrichment complete");
+      } else if (keyPersonnel.length > 0 && !wikipediaEnabled) {
+        console.log(`Wikipedia enrichment disabled for this podcast, skipping enrichment`);
       }
 
       const result = {

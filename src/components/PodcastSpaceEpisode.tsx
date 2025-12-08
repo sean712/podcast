@@ -100,7 +100,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         return;
       }
 
-      const transcriptAnalysis = await analyzeTranscript(episode.transcript, episode.episode_id);
+      const transcriptAnalysis = await analyzeTranscript(episode.transcript, episode.episode_id, podcast.id);
       setAnalysis(transcriptAnalysis);
 
       let geocoded: GeocodedLocation[] = [];

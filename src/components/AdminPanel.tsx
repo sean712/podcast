@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye, Calendar, Shield, ShieldOff } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye, Calendar, Shield, ShieldOff, BookOpen } from 'lucide-react';
 import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug, updatePodcastClientStatus } from '../services/podcastSpaceService';
 import { syncPodcastEpisodes, backfillPodcastEpisodes } from '../services/episodeSyncService';
 import { searchPodcasts } from '../services/podscanApi';
@@ -7,18 +7,20 @@ import { supabase } from '../lib/supabase';
 import type { PodcastSpace } from '../types/multiTenant';
 import type { Podcast } from '../types/podcast';
 
-function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdate: (id: string, tabs: string[]) => void }) {
+function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdate: (id: string, tabs: string[], wikiEnabled: boolean) => void }) {
   const [currentSettings, setCurrentSettings] = useState<string[]>([]);
+  const [wikipediaEnabled, setWikipediaEnabled] = useState(true);
 
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from('podcast_settings')
-        .select('visible_tabs')
+        .select('visible_tabs, enable_wikipedia_info')
         .eq('podcast_id', podcastId)
         .maybeSingle();
 
       setCurrentSettings(data?.visible_tabs || ['player', 'overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes']);
+      setWikipediaEnabled(data?.enable_wikipedia_info ?? true);
     };
     fetchSettings();
   }, [podcastId]);
@@ -28,13 +30,19 @@ function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdat
       ? currentSettings.filter(t => t !== tab)
       : [...currentSettings, tab];
     setCurrentSettings(updated);
-    onUpdate(podcastId, updated);
+    onUpdate(podcastId, updated, wikipediaEnabled);
+  };
+
+  const handleToggleWikipedia = () => {
+    const newValue = !wikipediaEnabled;
+    setWikipediaEnabled(newValue);
+    onUpdate(podcastId, currentSettings, newValue);
   };
 
   return (
     <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
       <h4 className="text-sm font-semibold text-gray-900 mb-3">Visible Tabs</h4>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         {['player', 'overview', 'people', 'timeline', 'map', 'references', 'transcript', 'notes'].map((tab) => {
           const isVisible = currentSettings.includes(tab);
           return (
@@ -51,6 +59,28 @@ function TabSettingsEditor({ podcastId, onUpdate }: { podcastId: string; onUpdat
             </button>
           );
         })}
+      </div>
+
+      <div className="pt-3 border-t border-blue-200">
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Features</h4>
+        <button
+          onClick={handleToggleWikipedia}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            wikipediaEnabled
+              ? 'bg-green-100 text-green-800 border-2 border-green-400'
+              : 'bg-gray-100 text-gray-600 border-2 border-gray-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} />
+            <span>Wikipedia Enrichment</span>
+          </div>
+          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+            wikipediaEnabled ? 'bg-green-600 text-white' : 'bg-gray-400 text-white'
+          }`}>
+            {wikipediaEnabled ? 'Enabled' : 'Disabled'}
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -298,7 +328,7 @@ export default function AdminPanel() {
     setNewSlug('');
   };
 
-  const handleUpdateVisibleTabs = async (podcastId: string, visibleTabs: string[]) => {
+  const handleUpdateVisibleTabs = async (podcastId: string, visibleTabs: string[], enableWikipedia: boolean) => {
     setError(null);
     setSuccess(null);
 
@@ -308,17 +338,18 @@ export default function AdminPanel() {
         .upsert({
           podcast_id: podcastId,
           visible_tabs: visibleTabs,
+          enable_wikipedia_info: enableWikipedia,
         }, {
           onConflict: 'podcast_id'
         });
 
       if (updateError) throw updateError;
 
-      setSuccess('Tab visibility updated successfully');
+      setSuccess('Settings updated successfully');
       setEditingTabs(null);
     } catch (err) {
-      console.error('Error updating tab visibility:', err);
-      setError('Failed to update tab visibility');
+      console.error('Error updating settings:', err);
+      setError('Failed to update settings');
     }
   };
 
