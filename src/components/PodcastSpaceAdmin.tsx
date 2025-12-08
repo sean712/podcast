@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity, Star } from 'lucide-react';
+import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity, Star, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
@@ -16,11 +16,12 @@ interface PodcastSpaceAdminProps {
   episodes: StoredEpisode[];
   onBack: () => void;
   onEpisodesRefreshed?: () => void;
+  onEpisodeClick: (episode: StoredEpisode, isFeatured?: boolean) => void;
 }
 
 type AdminTab = 'groups' | 'episodes' | 'sync';
 
-export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisodesRefreshed }: PodcastSpaceAdminProps) {
+export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisodesRefreshed, onEpisodeClick }: PodcastSpaceAdminProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('sync');
   const [groups, setGroups] = useState<EpisodeGroup[]>([]);
@@ -613,6 +614,14 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                             )}
                           </div>
                           <div className="flex gap-2">
+                            <button
+                              onClick={() => onEpisodeClick(episode, false)}
+                              className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                              title="View episode page"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </button>
                             {!episode.transcript && (
                               <button
                                 onClick={() => handleRequestRetranscription(episode.episode_id, episode.title)}

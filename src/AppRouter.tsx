@@ -308,7 +308,7 @@ export default function AppRouter() {
       );
     }
 
-    return <PodcastSpaceAdmin podcast={podcast} episodes={episodes} onBack={handleBackFromAdmin} onEpisodesRefreshed={handleEpisodesRefreshed} />;
+    return <PodcastSpaceAdmin podcast={podcast} episodes={episodes} onBack={handleBackFromAdmin} onEpisodesRefreshed={handleEpisodesRefreshed} onEpisodeClick={handleEpisodeClick} />;
   }
 
   if (routeType === 'podcast-space' && podcast) {
