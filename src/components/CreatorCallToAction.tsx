@@ -6,10 +6,10 @@ export default function CreatorCallToAction() {
   const [showContactModal, setShowContactModal] = useState(false);
 
   const features = [
-    'Full transcripts with AI-powered analysis',
+    'Every episode analysed - the same day you publish',
     'Interactive maps showing locations mentioned',
     'Timeline of events and key moments',
-    'Key people with Wikipedia integration',
+    'Key people',
     'Smart references and citations',
     'Enhanced listener engagement',
   ];
