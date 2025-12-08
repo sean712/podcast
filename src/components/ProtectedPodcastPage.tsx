@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ExternalLink, Sparkles, Clock, Loader2 } from 'lucide-react';
+import { ExternalLink, Clock, Loader2 } from 'lucide-react';
 import { getFeaturedEpisodes } from '../services/podcastSpaceService';
 import CreatorCallToAction from './CreatorCallToAction';
 import PodcastFooter from './PodcastFooter';
@@ -67,20 +67,6 @@ export default function ProtectedPodcastPage({ podcast, onEpisodeClick }: Protec
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-xl mb-12">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-400 to-emerald-500 rounded-full mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
-              This podcast is being featured on Augmented Pods
-            </h2>
-            <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-              Check out these highlighted episodes with full transcripts, AI analysis, interactive maps, and more.
-            </p>
-          </div>
-        </div>
-
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
