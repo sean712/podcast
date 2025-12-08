@@ -440,7 +440,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
       <main className="pt-[140px] md:pt-[160px]">
         {/* Episode Description */}
         {episode.description && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
             <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 shadow-xl">
               <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-cyan-400" />
