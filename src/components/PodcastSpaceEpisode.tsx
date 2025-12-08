@@ -9,6 +9,7 @@ import EpisodeNotes from './EpisodeNotes';
 import References from './References';
 import AudioPlayer from './AudioPlayer';
 import PodcastFooter from './PodcastFooter';
+import CreatorCallToAction from './CreatorCallToAction';
 import { getCachedAnalysis, saveCachedAnalysis } from '../services/episodeAnalysisCache';
 import { analyzeTranscript, OpenAIServiceError, type TranscriptAnalysis, type KeyPerson } from '../services/openaiService';
 import { geocodeLocations, type GeocodedLocation } from '../services/geocodingService';
@@ -24,9 +25,10 @@ interface PodcastSpaceEpisodeProps {
   episodes: StoredEpisode[];
   onBack: () => void;
   onEpisodeClick: (episode: StoredEpisode) => void;
+  isFeaturedMode?: boolean;
 }
 
-export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick }: PodcastSpaceEpisodeProps) {
+export default function PodcastSpaceEpisode({ episode, podcast, settings, episodes, onBack, onEpisodeClick, isFeaturedMode = false }: PodcastSpaceEpisodeProps) {
   const { setCurrentEpisode, currentEpisode, seekTo, setIsPlaying } = useAudio();
   const [locations, setLocations] = useState<GeocodedLocation[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
@@ -299,13 +301,15 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         <div className="border-b border-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
-              >
-                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
-              </button>
+              {!isFeaturedMode && (
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+                >
+                  <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                  <span className="text-sm font-medium">Back</span>
+                </button>
+              )}
               <span className="text-base font-bold text-white">Augmented Pods</span>
             </div>
           </div>
@@ -754,52 +758,60 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </>
         )}
 
-        {/* More Episodes */}
-        <div className="bg-slate-950 border-t border-slate-800/60">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">More Episodes</h3>
-              <button
-                onClick={onBack}
-                className="text-sm text-slate-300 hover:text-white transition-colors"
-              >
-                View All
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {episodes.slice(0, 12).map((ep) => (
-                <button
-                  key={ep.id}
-                  onClick={() => onEpisodeClick(ep)}
-                  className={`text-left p-2 rounded-lg transition-all border ${
-                    ep.id === episode.id
-                      ? 'bg-slate-800 border-cyan-400/60'
-                      : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  {ep.image_url && (
-                    <img
-                      src={ep.image_url}
-                      alt={ep.title}
-                      className="w-full aspect-square rounded object-cover mb-2"
-                    />
-                  )}
-                  <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
-                    ep.id === episode.id ? 'text-cyan-300' : 'text-slate-100'
-                  }`}>
-                    {decodeHtmlEntities(ep.title)}
-                  </h4>
-                  <div className="text-[10px] text-slate-400">
-                    {ep.duration > 0 && (
-                      <span>{Math.floor(ep.duration / 60)}m</span>
-                    )}
-                  </div>
-                </button>
-              ))}
+        {/* More Episodes or CTA */}
+        {isFeaturedMode ? (
+          <div className="bg-slate-950 border-t border-slate-800/60">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <CreatorCallToAction />
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-slate-950 border-t border-slate-800/60">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white">More Episodes</h3>
+                <button
+                  onClick={onBack}
+                  className="text-sm text-slate-300 hover:text-white transition-colors"
+                >
+                  View All
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {episodes.slice(0, 12).map((ep) => (
+                  <button
+                    key={ep.id}
+                    onClick={() => onEpisodeClick(ep)}
+                    className={`text-left p-2 rounded-lg transition-all border ${
+                      ep.id === episode.id
+                        ? 'bg-slate-800 border-cyan-400/60'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    {ep.image_url && (
+                      <img
+                        src={ep.image_url}
+                        alt={ep.title}
+                        className="w-full aspect-square rounded object-cover mb-2"
+                      />
+                    )}
+                    <h4 className={`text-xs font-medium mb-1 line-clamp-2 ${
+                      ep.id === episode.id ? 'text-cyan-300' : 'text-slate-100'
+                    }`}>
+                      {decodeHtmlEntities(ep.title)}
+                    </h4>
+                    <div className="text-[10px] text-slate-400">
+                      {ep.duration > 0 && (
+                        <span>{Math.floor(ep.duration / 60)}m</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <PodcastFooter />

@@ -5,17 +5,21 @@ import { getGroupedEpisodes } from '../services/episodeGroupMembersService';
 import type { PodcastSpace, PodcastSettings, StoredEpisode } from '../types/multiTenant';
 import { stripHtml, decodeHtmlEntities } from '../utils/textUtils';
 import PodcastFooter from './PodcastFooter';
+import ProtectedPodcastPage from './ProtectedPodcastPage';
 
 interface PodcastSpaceHomeProps {
   podcast: PodcastSpace;
   settings: PodcastSettings | null;
   episodes: StoredEpisode[];
-  onEpisodeClick: (episode: StoredEpisode) => void;
+  onEpisodeClick: (episode: StoredEpisode, isFeatured?: boolean) => void;
 }
 
 type ViewMode = 'chronological' | 'grouped';
 
 export default function PodcastSpaceHome({ podcast, settings, episodes, onEpisodeClick }: PodcastSpaceHomeProps) {
+  if (!podcast.is_client) {
+    return <ProtectedPodcastPage podcast={podcast} onEpisodeClick={onEpisodeClick} />;
+  }
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
   const [groups, setGroups] = useState<EpisodeGroup[]>([]);

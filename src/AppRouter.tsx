@@ -22,6 +22,7 @@ export default function AppRouter() {
   const [episodes, setEpisodes] = useState<StoredEpisode[]>([]);
   const [isLoadingRoute, setIsLoadingRoute] = useState(true);
   const [isLoadingEpisode, setIsLoadingEpisode] = useState(false);
+  const [isFeaturedMode, setIsFeaturedMode] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCreatorModal, setShowCreatorModal] = useState(false);
@@ -89,7 +90,50 @@ export default function AppRouter() {
       return;
     }
 
+    if (secondSegment === 'featured' && pathSegments[2]) {
+      const episodeSlug = pathSegments[2];
+      setIsFeaturedMode(true);
+
+      try {
+        const podcastData = await getPodcastBySlug(podcastSlug);
+        if (!podcastData) {
+          setNotFound(true);
+          setIsLoadingRoute(false);
+          return;
+        }
+
+        setPodcast(podcastData);
+        const settingsData = await getPodcastSettings(podcastData.id);
+        setSettings(settingsData);
+        const episodesData = await getPodcastEpisodesFromDB(podcastData.id, 100);
+        setEpisodes(episodesData);
+        setRouteType('podcast-space');
+        setIsLoadingRoute(false);
+        setIsLoadingEpisode(true);
+
+        try {
+          const episodeData = await getEpisodeBySlug(podcastData.id, episodeSlug);
+          if (episodeData) {
+            setSelectedEpisode(episodeData);
+          } else {
+            setNotFound(true);
+          }
+        } catch (err) {
+          console.error('Error loading featured episode:', err);
+          setNotFound(true);
+        } finally {
+          setIsLoadingEpisode(false);
+        }
+      } catch (err) {
+        console.error('Error loading podcast for featured episode:', err);
+        setNotFound(true);
+        setIsLoadingRoute(false);
+      }
+      return;
+    }
+
     const episodeSlug = secondSegment;
+    setIsFeaturedMode(false);
 
     try {
       const podcastData = await getPodcastBySlug(podcastSlug);
@@ -132,21 +176,26 @@ export default function AppRouter() {
     }
   };
 
-  const handleEpisodeClick = async (episode: StoredEpisode) => {
+  const handleEpisodeClick = async (episode: StoredEpisode, isFeatured: boolean = false) => {
     if (!podcast) return;
 
     setIsLoadingEpisode(true);
+    setIsFeaturedMode(isFeatured);
     try {
       const fullEpisode = await getEpisodeBySlug(podcast.id, episode.slug);
       if (fullEpisode) {
         setSelectedEpisode(fullEpisode);
-        const newUrl = `/${podcast.slug}/${episode.slug}`;
+        const newUrl = isFeatured
+          ? `/${podcast.slug}/featured/${episode.slug}`
+          : `/${podcast.slug}/${episode.slug}`;
         window.history.pushState({}, '', newUrl);
       }
     } catch (err) {
       console.error('Error loading full episode:', err);
       setSelectedEpisode(episode);
-      const newUrl = `/${podcast.slug}/${episode.slug}`;
+      const newUrl = isFeatured
+        ? `/${podcast.slug}/featured/${episode.slug}`
+        : `/${podcast.slug}/${episode.slug}`;
       window.history.pushState({}, '', newUrl);
     } finally {
       setIsLoadingEpisode(false);
@@ -280,6 +329,7 @@ export default function AppRouter() {
           episodes={episodes}
           onBack={handleBackToHome}
           onEpisodeClick={handleEpisodeClick}
+          isFeaturedMode={isFeaturedMode}
         />
       );
     }

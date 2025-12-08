@@ -9,6 +9,7 @@ export interface PodcastSpace {
   podcast_url: string | null;
   status: 'active' | 'inactive' | 'pending';
   is_paused: boolean;
+  is_client: boolean;
   last_synced_at: string | null;
   next_check_at: string | null;
   check_frequency_hours: number;

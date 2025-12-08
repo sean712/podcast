@@ -185,3 +185,35 @@ export async function updatePodcastSlug(podcastId: string, newSlug: string): Pro
     throw error;
   }
 }
+
+export async function getFeaturedEpisodes(podcastId: string): Promise<StoredEpisode[]> {
+  const { data, error } = await supabase
+    .from('episodes')
+    .select('id, podcast_id, episode_id, episode_guid, title, slug, description, audio_url, image_url, duration, word_count, published_at, synced_at, created_at, updated_at')
+    .eq('podcast_id', podcastId)
+    .eq('is_featured', true)
+    .order('published_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching featured episodes:', error);
+    throw error;
+  }
+
+  return (data || []).map(episode => ({
+    ...episode,
+    transcript: null,
+    transcript_word_timestamps: null
+  }));
+}
+
+export async function updatePodcastClientStatus(podcastId: string, isClient: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('podcasts')
+    .update({ is_client: isClient, updated_at: new Date().toISOString() })
+    .eq('id', podcastId);
+
+  if (error) {
+    console.error('Error updating podcast client status:', error);
+    throw error;
+  }
+}

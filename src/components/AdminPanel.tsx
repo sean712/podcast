@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye, Calendar } from 'lucide-react';
-import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug } from '../services/podcastSpaceService';
+import { Plus, RefreshCw, Loader2, AlertCircle, CheckCircle, Radio, Settings, Zap, Trash2, Pause, Play, Edit2, X, Check, Eye, Calendar, Shield, ShieldOff } from 'lucide-react';
+import { getAllActivePodcasts, createPodcast, updatePodcastStatus, deletePodcast, togglePodcastPause, updatePodcastSlug, updatePodcastClientStatus } from '../services/podcastSpaceService';
 import { syncPodcastEpisodes, backfillPodcastEpisodes } from '../services/episodeSyncService';
 import { searchPodcasts } from '../services/podscanApi';
 import { supabase } from '../lib/supabase';
@@ -251,6 +251,20 @@ export default function AdminPanel() {
     } catch (err) {
       console.error('Error toggling pause:', err);
       setError(`Failed to ${podcast.is_paused ? 'unpause' : 'pause'} podcast`);
+    }
+  };
+
+  const handleToggleClientStatus = async (podcast: PodcastSpace) => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await updatePodcastClientStatus(podcast.id, !podcast.is_client);
+      setSuccess(`Podcast "${podcast.name}" is now ${!podcast.is_client ? 'a client' : 'a featured podcast'}`);
+      await loadPodcasts();
+    } catch (err) {
+      console.error('Error toggling client status:', err);
+      setError(`Failed to update client status for "${podcast.name}"`);
     }
   };
 
@@ -580,8 +594,14 @@ export default function AdminPanel() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-semibold text-gray-900 truncate">{podcast.name}</h4>
+                        {podcast.is_client && (
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-medium rounded flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Client
+                          </span>
+                        )}
                         {podcast.is_paused && (
                           <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded">
                             Paused
@@ -678,6 +698,21 @@ export default function AdminPanel() {
                         <Play className="w-4 h-4" />
                       ) : (
                         <Pause className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleToggleClientStatus(podcast)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        podcast.is_client
+                          ? 'text-emerald-600 hover:bg-emerald-50'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                      title={podcast.is_client ? 'Set as featured podcast (protect full catalog)' : 'Set as client podcast (show full catalog)'}
+                    >
+                      {podcast.is_client ? (
+                        <Shield className="w-4 h-4" />
+                      ) : (
+                        <ShieldOff className="w-4 h-4" />
                       )}
                     </button>
                     <button
