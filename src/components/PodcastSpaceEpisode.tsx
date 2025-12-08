@@ -493,11 +493,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
         ) : (
           <>
             {/* Hero Section: Map + Locations Panel */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 relative z-0">
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Map - 65% width on desktop */}
                 <div className="w-full lg:w-[65%]">
-                  <div className="h-[400px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+                  <div className="h-[400px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-700 shadow-2xl relative z-0">
                     <LocationMap
                       locations={locations}
                       isLoading={isLoadingLocations}
