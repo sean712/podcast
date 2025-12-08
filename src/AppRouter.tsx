@@ -179,27 +179,12 @@ export default function AppRouter() {
   const handleEpisodeClick = async (episode: StoredEpisode, isFeatured: boolean = false) => {
     if (!podcast) return;
 
-    setIsLoadingEpisode(true);
-    setIsFeaturedMode(isFeatured);
-    try {
-      const fullEpisode = await getEpisodeBySlug(podcast.id, episode.slug);
-      if (fullEpisode) {
-        setSelectedEpisode(fullEpisode);
-        const newUrl = isFeatured
-          ? `/${podcast.slug}/featured/${episode.slug}`
-          : `/${podcast.slug}/${episode.slug}`;
-        window.history.pushState({}, '', newUrl);
-      }
-    } catch (err) {
-      console.error('Error loading full episode:', err);
-      setSelectedEpisode(episode);
-      const newUrl = isFeatured
-        ? `/${podcast.slug}/featured/${episode.slug}`
-        : `/${podcast.slug}/${episode.slug}`;
-      window.history.pushState({}, '', newUrl);
-    } finally {
-      setIsLoadingEpisode(false);
-    }
+    const newUrl = isFeatured
+      ? `/${podcast.slug}/featured/${episode.slug}`
+      : `/${podcast.slug}/${episode.slug}`;
+    window.history.pushState({}, '', newUrl);
+
+    detectRoute();
   };
 
   const handleBackToHome = () => {
