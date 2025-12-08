@@ -250,7 +250,7 @@ Deno.serve(async (req: Request) => {
                   },
                   timeline: {
                     type: "array",
-                    description: "Key chronological HISTORICAL events with specific dates mentioned in the transcript (max 10). Focus on factual historical events like wars, treaties, political changes, battles, etc. These are different from Key Moments - timeline is about historical facts with dates, while Key Moments are about memorable parts of the podcast conversation itself.",
+                    description: "Key chronological events mentioned in the transcript. Focus on factual historical events like wars, treaties, political changes, battles, etc for history podcasts. For True Crime, focus on the timeline of events of the crime and investigation. Where no specific date is given, use other reference points i.e. '6 months after the arrest' These are different from Key Moments - timeline is about historical facts with dates, while Key Moments are about memorable parts of the podcast conversation itself.",
                     items: {
                       type: "object",
                       properties: {
@@ -302,7 +302,7 @@ Deno.serve(async (req: Request) => {
                   },
                   references: {
                     type: "array",
-                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned. Extract as many as possible with their type and context.",
+                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned during the episode but ignore ads. Extract as many as possible with their type and context. Ignore ads.",
                     items: {
                       type: "object",
                       properties: {
