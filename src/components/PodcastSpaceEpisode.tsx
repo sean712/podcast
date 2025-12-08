@@ -311,38 +311,24 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
           </div>
         </div>
 
-        {/* Episode Info Bar */}
+        {/* Episode Info & Player Bar */}
         <div className="border-b border-slate-800/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-            {/* Mobile Layout */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            {/* Mobile Layout - Compact */}
             <div className="flex flex-col gap-2 md:hidden">
-              <div className="flex items-center justify-end gap-2">
-                {episode.duration && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
-                    <Clock className="w-3 h-3" />
-                    {Math.floor(episode.duration / 60)}m
-                  </span>
-                )}
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
-                >
-                  <Share2 className="w-3 h-3" />
-                  Share
-                </button>
-              </div>
-              <div className="flex items-center gap-2.5">
+              {/* Title row with image and buttons */}
+              <div className="flex items-center gap-2">
                 {episode.image_url && (
                   <img
                     src={episode.image_url}
                     alt={episode.title}
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-sm font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
+                  <h1 className="text-xs font-bold text-white line-clamp-1">{decodeHtmlEntities(episode.title)}</h1>
                   <div className="flex items-center gap-1">
-                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                    <p className="text-[10px] text-slate-300 truncate">{podcast.name}</p>
                     {podcast.podcast_url && (
                       <a
                         href={podcast.podcast_url}
@@ -350,79 +336,104 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                         rel="noopener noreferrer"
                         className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-2.5 h-2.5" />
                       </a>
                     )}
                   </div>
                 </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {episode.duration && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-800/70 border border-slate-700 rounded text-[10px] text-slate-300">
+                      <Clock className="w-2.5 h-2.5" />
+                      {Math.floor(episode.duration / 60)}m
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded text-[10px] text-slate-950 font-semibold transition-colors"
+                  >
+                    <Share2 className="w-2.5 h-2.5" />
+                    Share
+                  </button>
+                </div>
               </div>
+
+              {/* Player */}
+              {episode.audio_url && isTabVisible('player') && (
+                <AudioPlayer
+                  audioUrl={episode.audio_url}
+                  episodeTitle={episode.title}
+                  episodeId={episode.episode_id}
+                  podcastName={podcast.name}
+                  episodeImage={episode.image_url}
+                  compact={true}
+                />
+              )}
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                {episode.image_url && (
-                  <img
-                    src={episode.image_url}
-                    alt={episode.title}
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
-                    {podcast.podcast_url && (
-                      <a
-                        href={podcast.podcast_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    )}
+            <div className="hidden md:flex flex-col gap-2">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {episode.image_url && (
+                    <img
+                      src={episode.image_url}
+                      alt={episode.title}
+                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-cyan-400/60"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-base font-bold text-white truncate">{decodeHtmlEntities(episode.title)}</h1>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs text-slate-300 truncate">{podcast.name}</p>
+                      {podcast.podcast_url && (
+                        <a
+                          href={podcast.podcast_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-shrink-0 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {episode.duration && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
+                      <Clock className="w-3 h-3" />
+                      {Math.floor(episode.duration / 60)}m
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {episode.duration && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/70 border border-slate-700 rounded-full text-xs text-slate-300">
-                    <Clock className="w-3 h-3" />
-                    {Math.floor(episode.duration / 60)}m
-                  </span>
-                )}
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/60 rounded-lg text-xs text-slate-950 font-semibold transition-colors"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  Share
-                </button>
-              </div>
+              {/* Player */}
+              {episode.audio_url && isTabVisible('player') && (
+                <AudioPlayer
+                  audioUrl={episode.audio_url}
+                  episodeTitle={episode.title}
+                  episodeId={episode.episode_id}
+                  podcastName={podcast.name}
+                  episodeImage={episode.image_url}
+                  compact={true}
+                />
+              )}
             </div>
           </div>
         </div>
-
-        {/* Audio Player */}
-        {episode.audio_url && isTabVisible('player') && (
-          <div className="border-b border-slate-800/50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <AudioPlayer
-                audioUrl={episode.audio_url}
-                episodeTitle={episode.title}
-                episodeId={episode.episode_id}
-                podcastName={podcast.name}
-                episodeImage={episode.image_url}
-                compact={true}
-              />
-            </div>
-          </div>
-        )}
       </header>
 
-      <main className="pt-[180px]">
+      <main className="pt-[140px] md:pt-[160px]">
         {/* Episode Description */}
         {episode.description && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">

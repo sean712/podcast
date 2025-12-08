@@ -248,7 +248,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
   }, [locations]);
 
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm pointer-events-none">
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm pointer-events-none">
       <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 max-w-md mx-4 shadow-2xl pointer-events-auto">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="relative">
@@ -292,7 +292,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Fullscreen toggle - top-left */}
         <button
           onClick={toggleFullscreen}
-          className="absolute top-6 left-6 p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors z-[1001]"
+          className="absolute top-6 left-6 p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors z-10"
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
           {isFullscreen ? (
@@ -303,7 +303,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         </button>
 
         {/* Zoom controls - bottom-left */}
-        <div className="absolute left-6 bottom-6 flex gap-2 z-[1001]">
+        <div className="absolute left-6 bottom-6 flex gap-2 z-10">
           <button
             onClick={() => mapInstanceRef.current?.zoomIn()}
             className="w-10 h-10 rounded-full bg-slate-900/80 text-slate-200 border border-slate-700 hover:bg-slate-800 transition-colors"
@@ -323,7 +323,7 @@ export default function LocationMap({ locations, isLoading, error, showSidePanel
         {/* Optional built-in side panel/list */}
         {showSidePanel && (
           <div
-            className="hidden lg:block absolute right-6 top-20 z-[1000] w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
+            className="hidden lg:block absolute right-6 top-20 z-10 w-[380px] rounded-2xl bg-slate-900/85 backdrop-blur border border-slate-700/60 shadow-2xl"
             style={{ maxHeight: isFullscreen ? 'calc(100vh - 160px)' : '85%' }}
           >
             <div className="px-4 py-3 border-b border-slate-700/60 flex items-center gap-2">
