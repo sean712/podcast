@@ -81,7 +81,7 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const loadFeaturedEpisodes = async () => {
     try {
       const { data, error } = await supabase
-        .from('episode_analyses')
+        .from('episodes')
         .select('episode_id, is_featured')
         .eq('is_featured', true);
 
