@@ -106,7 +106,7 @@ export default function FeaturedEpisodesPage() {
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 h-full flex flex-col">
                   <div className="relative">
                     {episode.artwork_url ? (
-                      <div className="aspect-video w-full overflow-hidden bg-slate-900">
+                      <div className="aspect-square w-full overflow-hidden bg-slate-900">
                         <img
                           src={episode.artwork_url}
                           alt={episode.podcast_title}
@@ -114,7 +114,7 @@ export default function FeaturedEpisodesPage() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-video w-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                      <div className="aspect-square w-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
                         <Play className="w-16 h-16 text-slate-600" />
                       </div>
                     )}
