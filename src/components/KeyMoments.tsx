@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Quote, ChevronDown, ChevronUp } from 'lucide-react';
+import { Quote, ChevronDown, ChevronUp, Play } from 'lucide-react';
 import type { KeyMoment } from '../services/openaiService';
+import { useAudio } from '../contexts/AudioContext';
+import { parseTimestamp, formatTimestamp } from '../utils/timestampUtils';
 
 interface KeyMomentsProps {
   moments: KeyMoment[];
   theme?: 'light' | 'dark';
+  currentEpisodeId?: string;
 }
 
-export default function KeyMoments({ moments, theme = 'light' }: KeyMomentsProps) {
+export default function KeyMoments({ moments, theme = 'light', currentEpisodeId }: KeyMomentsProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const { currentEpisode, seekTo, setIsPlaying } = useAudio();
 
   if (moments.length === 0) return null;
 
@@ -59,14 +63,31 @@ export default function KeyMoments({ moments, theme = 'light' }: KeyMomentsProps
                       </div>
                     )}
 
-                    {moment.timestamp && (
-                      <div className={`mt-2 inline-flex items-center px-2 py-1 rounded text-xs border select-text ${theme === 'dark'
-                        ? 'bg-orange-500/15 border-orange-400 text-orange-300'
-                        : 'bg-orange-100 border-orange-400 text-orange-700'
-                      }`}>
-                        {moment.timestamp}
-                      </div>
-                    )}
+                    {moment.timestamp && (() => {
+                      const timestamp = parseTimestamp(moment.timestamp);
+                      const isPlayable = timestamp !== null && currentEpisodeId === currentEpisode?.episodeId;
+
+                      const handleTimestampClick = (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (isPlayable && timestamp !== null) {
+                          seekTo(timestamp);
+                          setIsPlaying(true);
+                        }
+                      };
+
+                      return (
+                        <div
+                          onClick={handleTimestampClick}
+                          className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs border ${isPlayable ? 'cursor-pointer hover:opacity-80' : 'select-text'} ${theme === 'dark'
+                            ? 'bg-orange-500/15 border-orange-400 text-orange-300'
+                            : 'bg-orange-100 border-orange-400 text-orange-700'
+                          }`}
+                        >
+                          {isPlayable && <Play className="w-3 h-3" fill="currentColor" />}
+                          {moment.timestamp}
+                        </div>
+                      );
+                    })()}
                   </>
                 )}
               </div>

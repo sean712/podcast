@@ -205,7 +205,7 @@ export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeVi
                   <Timeline events={analysis.timeline} theme="dark" />
                 )}
                 {analysis?.keyMoments && analysis.keyMoments.length > 0 && (
-                  <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                  <KeyMoments moments={analysis.keyMoments} theme="dark" currentEpisodeId={episode.episode_id} />
                 )}
                 {analysis?.references && analysis.references.length > 0 && (
                   <References references={analysis.references} theme="dark" />

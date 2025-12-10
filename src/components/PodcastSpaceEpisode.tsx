@@ -361,18 +361,6 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   </button>
                 </div>
               </div>
-
-              {/* Player */}
-              {episode.audio_url && isTabVisible('player') && (
-                <AudioPlayer
-                  audioUrl={episode.audio_url}
-                  episodeTitle={episode.title}
-                  episodeId={episode.episode_id}
-                  podcastName={podcast.name}
-                  episodeImage={episode.image_url}
-                  compact={true}
-                />
-              )}
             </div>
 
             {/* Desktop Layout */}
@@ -420,19 +408,19 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                   </button>
                 </div>
               </div>
-
-              {/* Player */}
-              {episode.audio_url && isTabVisible('player') && (
-                <AudioPlayer
-                  audioUrl={episode.audio_url}
-                  episodeTitle={episode.title}
-                  episodeId={episode.episode_id}
-                  podcastName={podcast.name}
-                  episodeImage={episode.image_url}
-                  compact={true}
-                />
-              )}
             </div>
+
+            {/* Single Player for all layouts */}
+            {episode.audio_url && isTabVisible('player') && (
+              <AudioPlayer
+                audioUrl={episode.audio_url}
+                episodeTitle={episode.title}
+                episodeId={episode.episode_id}
+                podcastName={podcast.name}
+                episodeImage={episode.image_url}
+                compact={true}
+              />
+            )}
           </div>
         </div>
       </header>
@@ -689,7 +677,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                         <p className="text-slate-300 text-sm">Finding key moments...</p>
                       </div>
                     ) : analysis?.keyMoments && analysis.keyMoments.length > 0 ? (
-                      <KeyMoments moments={analysis.keyMoments} theme="dark" />
+                      <KeyMoments moments={analysis.keyMoments} theme="dark" currentEpisodeId={episode.episode_id} />
                     ) : (
                       <p className="text-slate-400 text-center py-8">No key moments available</p>
                     )}
