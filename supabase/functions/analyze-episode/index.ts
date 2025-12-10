@@ -43,74 +43,165 @@ async function getConfig(key: string): Promise<string | null> {
 
 const WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php";
 
-async function searchWikipediaPerson(name: string): Promise<string | null> {
+function normalizeNameForComparison(name: string): string {
+  return name.toLowerCase()
+    .replace(/[^a-z\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function calculateNameSimilarity(name1: string, name2: string): number {
+  const norm1 = normalizeNameForComparison(name1);
+  const norm2 = normalizeNameForComparison(name2);
+
+  if (norm1 === norm2) return 1.0;
+
+  const words1 = norm1.split(' ');
+  const words2 = norm2.split(' ');
+
+  let matchingWords = 0;
+  for (const word of words1) {
+    if (word.length > 2 && words2.includes(word)) {
+      matchingWords++;
+    }
+  }
+
+  return matchingWords / Math.max(words1.length, words2.length);
+}
+
+function isDisambiguationPage(extract: string, description: string): boolean {
+  const disambiguationPatterns = [
+    /may refer to/i,
+    /can refer to/i,
+    /commonly refers to/i,
+    /disambiguation/i,
+    /list of people/i,
+    /^this article is about/i,
+  ];
+
+  const combined = `${extract} ${description}`;
+  return disambiguationPatterns.some(pattern => pattern.test(combined));
+}
+
+function isPersonPage(description: string, extract: string): boolean {
+  const personIndicators = [
+    /\b(born|died|was|is|were)\b.*\b(politician|president|minister|author|writer|actor|actress|singer|musician|scientist|professor|doctor|general|king|queen|emperor|ceo|founder|director|journalist|historian|philosopher|artist|athlete|player|coach|businessman|businesswoman|lawyer|judge|activist|leader|commander|statesman|stateswoman|diplomat|ambassador|governor|senator|congressman|representative|mayor|chancellor|prime minister|dictator|revolutionary|inventor|entrepreneur|producer|composer|conductor|economist|psychologist|sociologist|physicist|chemist|biologist|mathematician|engineer|architect|designer|photographer|filmmaker|screenwriter|playwright|poet|novelist|critic|editor|publisher|broadcaster|anchor|host|comedian|entertainer|performer|dancer|choreographer|model|chef|explorer|adventurer|pilot|astronaut|soldier|officer|admiral|marshal|spy|assassin|criminal|mobster|gangster|serial killer|victim|survivor|witness|whistleblower|activist|reformer|philanthropist|humanitarian|nobel laureate|olympian|champion|medalist|hall of famer)\b/i,
+    /\b(american|british|french|german|russian|chinese|japanese|indian|canadian|australian|italian|spanish|brazilian|mexican|south african|egyptian|nigerian|kenyan|korean|polish|dutch|swedish|norwegian|danish|finnish|austrian|swiss|belgian|portuguese|greek|turkish|iranian|iraqi|saudi|israeli|palestinian|lebanese|syrian|ukrainian|czech|hungarian|romanian|bulgarian|serbian|croatian|slovenian|estonian|latvian|lithuanian|georgian|armenian|azerbaijani|kazakh|uzbek|pakistani|bangladeshi|sri lankan|thai|vietnamese|indonesian|malaysian|filipino|singaporean|taiwanese|new zealand|irish|scottish|welsh|cuban|venezuelan|colombian|argentine|chilean|peruvian|ecuadorian|bolivian|uruguayan|paraguayan)\b.*\b(politician|president|leader|author|actor|singer|scientist|general|king|emperor)\b/i,
+  ];
+
+  const combined = `${description} ${extract}`.toLowerCase();
+
+  if (personIndicators.some(pattern => pattern.test(combined))) {
+    return true;
+  }
+
+  const birthDeathPattern = /\b(born|b\.|née|died|d\.)\s*[\d\(\[]/i;
+  if (birthDeathPattern.test(combined)) {
+    return true;
+  }
+
+  return false;
+}
+
+async function searchAndValidateWikipediaPerson(
+  name: string,
+  role: string
+): Promise<{ pageTitle: string; imageUrl?: string; pageUrl: string; extract: string } | null> {
   try {
-    const searchUrl = `${WIKIPEDIA_API_BASE}?action=opensearch&search=${encodeURIComponent(name)}&limit=1&format=json&origin=*`;
+    const searchUrl = `${WIKIPEDIA_API_BASE}?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=3&format=json&origin=*`;
 
-    const response = await fetch(searchUrl);
-    if (!response.ok) {
+    const searchResponse = await fetch(searchUrl);
+    if (!searchResponse.ok) {
+      console.log(`Wikipedia search failed for ${name}`);
       return null;
     }
 
-    const data = await response.json();
+    const searchData = await searchResponse.json();
+    const searchResults = searchData?.query?.search || [];
 
-    if (!Array.isArray(data) || data.length < 2 || !Array.isArray(data[1]) || data[1].length === 0) {
+    if (searchResults.length === 0) {
+      console.log(`No Wikipedia search results for ${name}`);
       return null;
     }
 
-    return data[1][0];
+    for (const result of searchResults) {
+      const pageTitle = result.title;
+      const nameSimilarity = calculateNameSimilarity(name, pageTitle);
+
+      if (nameSimilarity < 0.5) {
+        console.log(`Skipping "${pageTitle}" - name similarity too low (${nameSimilarity.toFixed(2)}) for "${name}"`);
+        continue;
+      }
+
+      const detailUrl = `${WIKIPEDIA_API_BASE}?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages|info|extracts|description&format=json&pithumbsize=300&inprop=url&exintro=true&explaintext=true&exsentences=3&origin=*`;
+
+      const detailResponse = await fetch(detailUrl);
+      if (!detailResponse.ok) {
+        continue;
+      }
+
+      const detailData = await detailResponse.json();
+      const pages = detailData?.query?.pages;
+      if (!pages) continue;
+
+      const pageId = Object.keys(pages)[0];
+      const page = pages[pageId];
+
+      if (!page || pageId === "-1") continue;
+
+      const extract = page.extract || "";
+      const description = page.description || "";
+
+      if (isDisambiguationPage(extract, description)) {
+        console.log(`Skipping "${pageTitle}" - disambiguation page`);
+        continue;
+      }
+
+      if (!isPersonPage(description, extract)) {
+        console.log(`Skipping "${pageTitle}" - not a person page`);
+        continue;
+      }
+
+      const roleWords = role.toLowerCase().split(/[\s,;\/]+/).filter(w => w.length > 3);
+      const combinedWikiText = `${description} ${extract}`.toLowerCase();
+
+      let roleMatchScore = 0;
+      for (const roleWord of roleWords) {
+        if (combinedWikiText.includes(roleWord)) {
+          roleMatchScore++;
+        }
+      }
+
+      const roleMatchRatio = roleWords.length > 0 ? roleMatchScore / roleWords.length : 0;
+
+      const isConfidentMatch = nameSimilarity >= 0.8 || (nameSimilarity >= 0.5 && roleMatchRatio >= 0.3);
+
+      if (!isConfidentMatch) {
+        console.log(`Skipping "${pageTitle}" for "${name}" - not confident enough (name: ${nameSimilarity.toFixed(2)}, role: ${roleMatchRatio.toFixed(2)})`);
+        continue;
+      }
+
+      console.log(`Confident match: "${pageTitle}" for "${name}" (name: ${nameSimilarity.toFixed(2)}, role: ${roleMatchRatio.toFixed(2)})`);
+
+      return {
+        pageTitle,
+        imageUrl: page.thumbnail?.source,
+        pageUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
+        extract,
+      };
+    }
+
+    console.log(`No confident Wikipedia match found for "${name}" (${role})`);
+    return null;
   } catch (error) {
     console.error(`Error searching Wikipedia for ${name}:`, error);
     return null;
   }
 }
 
-async function getPersonWikipediaData(pageTitle: string): Promise<{ imageUrl?: string; pageUrl?: string } | null> {
-  try {
-    const imageUrl = `${WIKIPEDIA_API_BASE}?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages|info&format=json&pithumbsize=300&inprop=url&origin=*`;
-
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (!data.query || !data.query.pages) {
-      return null;
-    }
-
-    const pages = data.query.pages;
-    const pageId = Object.keys(pages)[0];
-    const page = pages[pageId];
-
-    if (!page || pageId === "-1") {
-      return null;
-    }
-
-    const result: { imageUrl?: string; pageUrl?: string } = {
-      pageUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
-    };
-
-    if (page.thumbnail && page.thumbnail.source) {
-      result.imageUrl = page.thumbnail.source;
-    }
-
-    return result;
-  } catch (error) {
-    console.error(`Error fetching Wikipedia data for ${pageTitle}:`, error);
-    return null;
-  }
-}
-
 async function enrichPersonWithWikipedia(person: any): Promise<any> {
   try {
-    const pageTitle = await searchWikipediaPerson(person.name);
-    if (!pageTitle) {
-      return person;
-    }
-
-    const wikiData = await getPersonWikipediaData(pageTitle);
+    const wikiData = await searchAndValidateWikipediaPerson(person.name, person.role || "");
     if (!wikiData) {
       return person;
     }
@@ -455,7 +546,7 @@ Deno.serve(async (req: Request) => {
 
       let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
 
-      let wikipediaEnabled = true;
+      let wikipediaEnabled = false;
       if (podcastId) {
         const { data: settings } = await supabase
           .from('podcast_settings')
@@ -463,7 +554,7 @@ Deno.serve(async (req: Request) => {
           .eq('podcast_id', podcastId)
           .maybeSingle();
 
-        wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
+        wikipediaEnabled = settings?.enable_wikipedia_info ?? false;
         console.log(`Wikipedia enrichment setting for podcast ${podcastId}: ${wikipediaEnabled}`);
       }
 
