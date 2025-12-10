@@ -317,9 +317,9 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
 
         {/* Episode Info & Player Bar */}
         <div className="border-b border-slate-800/50 bg-slate-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             {/* Mobile Layout - Compact */}
-            <div className="flex flex-col gap-2 md:hidden">
+            <div className="flex flex-col gap-4 md:hidden">
               {/* Title row with image and buttons */}
               <div className="flex items-center gap-2">
                 {episode.image_url && (
@@ -364,7 +364,7 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden md:flex flex-col gap-2">
+            <div className="hidden md:flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {episode.image_url && (
