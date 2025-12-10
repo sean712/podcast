@@ -447,13 +447,11 @@ export default function PodcastSpaceEpisode({ episode, podcast, settings, episod
                 Episode Description
               </h2>
               <div className="text-slate-300 leading-relaxed text-sm">
-                <p>
-                  {isDescriptionExpanded
-                    ? episode.description
-                    : `${episode.description.slice(0, 200)}${episode.description.length > 200 ? '...' : ''}`
-                  }
-                </p>
-                {episode.description.length > 200 && (
+                <div
+                  className={`prose prose-sm prose-invert prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline max-w-none ${!isDescriptionExpanded && stripHtml(episode.description).length > 200 ? 'line-clamp-3' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: episode.description }}
+                />
+                {stripHtml(episode.description).length > 200 && (
                   <button
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     className="mt-3 text-cyan-400 hover:text-cyan-300 text-xs font-medium flex items-center gap-1 transition-colors"

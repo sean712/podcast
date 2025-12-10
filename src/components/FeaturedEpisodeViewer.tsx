@@ -165,9 +165,10 @@ export default function FeaturedEpisodeViewer({ episodeSlug }: FeaturedEpisodeVi
             {episode.title}
           </h1>
           {episode.description && (
-            <p className="text-slate-300 text-lg leading-relaxed">
-              {episode.description}
-            </p>
+            <div
+              className="text-slate-300 text-lg leading-relaxed prose prose-lg prose-invert prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline max-w-none"
+              dangerouslySetInnerHTML={{ __html: episode.description }}
+            />
           )}
         </div>
 

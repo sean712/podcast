@@ -366,9 +366,10 @@ export default function LandingPageInteractive({ onGetStarted, onSignIn }: Landi
                     <p className="text-lg text-cyan-400 font-medium mb-3">{demoPodcast.name}</p>
                   </div>
                 </div>
-                <p className="text-slate-300 leading-relaxed line-clamp-3">
-                  {demoEpisode.description}
-                </p>
+                <div
+                  className="text-slate-300 leading-relaxed line-clamp-3 prose prose-invert prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline max-w-none"
+                  dangerouslySetInnerHTML={{ __html: demoEpisode.description }}
+                />
               </div>
             </div>
 

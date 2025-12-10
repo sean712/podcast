@@ -142,9 +142,10 @@ export default function FeaturedEpisodesPage() {
                     </div>
 
                     {episode.description && (
-                      <p className="text-sm text-slate-400 line-clamp-3 mb-3 flex-1">
-                        {episode.description}
-                      </p>
+                      <div
+                        className="text-sm text-slate-400 line-clamp-3 mb-3 flex-1 prose prose-sm prose-invert prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline max-w-none"
+                        dangerouslySetInnerHTML={{ __html: episode.description }}
+                      />
                     )}
 
                     <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">

@@ -95,9 +95,10 @@ export default function ProtectedPodcastPage({ podcast, onEpisodeClick }: Protec
                     {decodeHtmlEntities(episode.title)}
                   </h4>
                   {episode.description && (
-                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">
-                      {episode.description}
-                    </p>
+                    <div
+                      className="text-slate-400 text-sm mb-3 line-clamp-2 prose prose-sm prose-invert prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline max-w-none"
+                      dangerouslySetInnerHTML={{ __html: episode.description }}
+                    />
                   )}
                   {episode.duration > 0 && (
                     <div className="flex items-center gap-2 text-slate-400 text-sm">
