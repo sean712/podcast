@@ -75,6 +75,23 @@ export async function saveCachedAnalysis(
   console.log('✓ Successfully cached analysis to database', { episodeId, version: 'v7' });
 }
 
+export async function updateCachedAnalysis(
+  episodeId: string,
+  updates: Partial<Pick<CachedAnalysis, 'summary' | 'key_personnel' | 'timeline_events' | 'locations' | 'key_moments' | 'references'>>
+): Promise<void> {
+  const { error } = await supabase
+    .from('episode_analyses')
+    .update(updates)
+    .eq('episode_id', episodeId);
+
+  if (error) {
+    console.error('✗ Error updating cached analysis:', error);
+    throw new Error(`Failed to update analysis: ${error.message}`);
+  }
+
+  console.log('✓ Successfully updated cached analysis', { episodeId, updatedFields: Object.keys(updates) });
+}
+
 export async function deleteAnalysis(episodeId: string): Promise<void> {
   const { error } = await supabase
     .from('episode_analyses')

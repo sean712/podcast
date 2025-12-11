@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity, Star, Eye } from 'lucide-react';
+import { ArrowLeft, Settings, FolderTree, List, Loader2, AlertCircle, Plus, Edit2, Trash2, Save, X, RefreshCw, Clock, CheckCircle2, XCircle, Activity, Star, Eye, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { isOwner } from '../services/adminAuthService';
 import { getGroupsByPodcast, createGroup, updateGroup, deleteGroup, type EpisodeGroup } from '../services/episodeGroupsService';
 import { getEpisodesByGroup, addEpisodeToGroup, removeEpisodeFromGroup, getGroupsForEpisode } from '../services/episodeGroupMembersService';
-import { deleteAnalysis, getCachedAnalysis } from '../services/episodeAnalysisCache';
+import { deleteAnalysis, getCachedAnalysis, updateCachedAnalysis, saveCachedAnalysis, type CachedAnalysis } from '../services/episodeAnalysisCache';
 import { refreshPodcastEpisodes } from '../services/episodeSyncService';
 import { featuredEpisodesService } from '../services/featuredEpisodesService';
 import { requestRetranscription, PodscanApiError } from '../services/podscanApi';
+import { analyzeTranscript } from '../services/openaiService';
+import { geocodeLocations } from '../services/geocodingService';
 import type { PodcastSpace, StoredEpisode, EpisodeSyncLog } from '../types/multiTenant';
 import { supabase } from '../lib/supabase';
+import EditAnalysisModal from './EditAnalysisModal';
 
 interface PodcastSpaceAdminProps {
   podcast: PodcastSpace;
@@ -47,6 +50,8 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
   const [featuredEpisodes, setFeaturedEpisodes] = useState<Set<string>>(new Set());
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
   const [requestingRetranscription, setRequestingRetranscription] = useState<string | null>(null);
+  const [triggeringAnalysis, setTriggeringAnalysis] = useState<string | null>(null);
+  const [editingAnalysis, setEditingAnalysis] = useState<CachedAnalysis | null>(null);
 
   useEffect(() => {
     if (!user || !isOwner(user)) {
@@ -353,6 +358,67 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
       }
     } finally {
       setRequestingRetranscription(null);
+    }
+  };
+
+  const handleTriggerAnalysis = async (episode: StoredEpisode) => {
+    if (!episode.transcript) {
+      alert('This episode does not have a transcript yet. Cannot analyze.');
+      return;
+    }
+
+    if (!confirm(`Trigger analysis for "${episode.title}"?\n\nThis will analyze the episode transcript and cache the results.`)) {
+      return;
+    }
+
+    setTriggeringAnalysis(episode.episode_id);
+    try {
+      const analysis = await analyzeTranscript(episode.transcript, episode.episode_id, podcast.id);
+
+      const geocodedLocations = await geocodeLocations(analysis.locations);
+
+      await saveCachedAnalysis(
+        episode.episode_id,
+        episode.title,
+        podcast.name,
+        analysis,
+        geocodedLocations
+      );
+
+      setEpisodesWithAnalysis(prev => {
+        const newSet = new Set(prev);
+        newSet.add(episode.episode_id);
+        return newSet;
+      });
+
+      alert('Analysis completed successfully!');
+    } catch (err) {
+      console.error('Error triggering analysis:', err);
+      alert(`Failed to analyze episode: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setTriggeringAnalysis(null);
+    }
+  };
+
+  const handleEditAnalysis = async (episodeId: string) => {
+    const cached = await getCachedAnalysis(episodeId);
+    if (!cached) {
+      alert('No cached analysis found for this episode.');
+      return;
+    }
+    setEditingAnalysis(cached);
+  };
+
+  const handleSaveAnalysisEdits = async (updates: Partial<CachedAnalysis>) => {
+    if (!editingAnalysis) return;
+
+    try {
+      await updateCachedAnalysis(editingAnalysis.episode_id, updates);
+      alert('Analysis updated successfully!');
+      setEditingAnalysis(null);
+    } catch (err) {
+      console.error('Error saving analysis edits:', err);
+      throw err;
     }
   };
 
@@ -664,6 +730,56 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                                 </>
                               )}
                             </button>
+                            {episode.transcript && !episodesWithAnalysis.has(episode.episode_id) && (
+                              <button
+                                onClick={() => handleTriggerAnalysis(episode)}
+                                disabled={triggeringAnalysis === episode.episode_id}
+                                className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Trigger episode analysis"
+                              >
+                                {triggeringAnalysis === episode.episode_id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Analyzing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-4 h-4" />
+                                    Analyze
+                                  </>
+                                )}
+                              </button>
+                            )}
+                            {episode.transcript && episodesWithAnalysis.has(episode.episode_id) && (
+                              <>
+                                <button
+                                  onClick={() => handleEditAnalysis(episode.episode_id)}
+                                  className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                                  title="Edit cached analysis"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteAnalysis(episode.episode_id, episode.title)}
+                                  disabled={isDeletingAnalysis === episode.episode_id}
+                                  className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Delete cached analysis"
+                                >
+                                  {isDeletingAnalysis === episode.episode_id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash2 className="w-4 h-4" />
+                                      Delete
+                                    </>
+                                  )}
+                                </button>
+                              </>
+                            )}
                             {groups.length > 0 && (
                               <select
                                 onChange={(e) => {
@@ -682,26 +798,6 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
                                     <option key={group.id} value={group.id}>{group.name}</option>
                                   ))}
                               </select>
-                            )}
-                            {episode.transcript && episodesWithAnalysis.has(episode.episode_id) && (
-                              <button
-                                onClick={() => handleDeleteAnalysis(episode.episode_id, episode.title)}
-                                disabled={isDeletingAnalysis === episode.episode_id}
-                                className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Delete cached analysis"
-                              >
-                                {isDeletingAnalysis === episode.episode_id ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Deleting...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Trash2 className="w-4 h-4" />
-                                    Delete Analysis
-                                  </>
-                                )}
-                              </button>
                             )}
                           </div>
                         </div>
@@ -955,6 +1051,14 @@ export default function PodcastSpaceAdmin({ podcast, episodes, onBack, onEpisode
             </div>
           </div>
         </div>
+      )}
+
+      {editingAnalysis && (
+        <EditAnalysisModal
+          analysis={editingAnalysis}
+          onSave={handleSaveAnalysisEdits}
+          onClose={() => setEditingAnalysis(null)}
+        />
       )}
     </div>
   );
