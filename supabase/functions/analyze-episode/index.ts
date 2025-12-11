@@ -546,7 +546,7 @@ Deno.serve(async (req: Request) => {
 
       let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
 
-      let wikipediaEnabled = false;
+      let wikipediaEnabled = true;
       if (podcastId) {
         const { data: settings } = await supabase
           .from('podcast_settings')
@@ -554,7 +554,7 @@ Deno.serve(async (req: Request) => {
           .eq('podcast_id', podcastId)
           .maybeSingle();
 
-        wikipediaEnabled = settings?.enable_wikipedia_info ?? false;
+        wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
         console.log(`Wikipedia enrichment setting for podcast ${podcastId}: ${wikipediaEnabled}`);
       }
 
