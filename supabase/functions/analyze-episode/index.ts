@@ -95,7 +95,7 @@ function isPersonPage(description: string, extract: string): boolean {
     return true;
   }
 
-  const birthDeathPattern = /\b(born|b\.|née|died|d\.)\s*[\d\(\[]/i;
+  const birthDeathPattern = /\b(born|b\.|nee|died|d\.)\s*[\d\(\[]/i;
   if (birthDeathPattern.test(combined)) {
     return true;
   }
@@ -109,10 +109,11 @@ async function searchAndValidateWikipediaPerson(
 ): Promise<{ pageTitle: string; imageUrl?: string; pageUrl: string; extract: string } | null> {
   try {
     const searchUrl = `${WIKIPEDIA_API_BASE}?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=3&format=json&origin=*`;
+    console.log(`Wikipedia search for: ${name}`);
 
     const searchResponse = await fetch(searchUrl);
     if (!searchResponse.ok) {
-      console.log(`Wikipedia search failed for ${name}`);
+      console.log(`Wikipedia search failed for ${name}: ${searchResponse.status}`);
       return null;
     }
 
@@ -123,6 +124,8 @@ async function searchAndValidateWikipediaPerson(
       console.log(`No Wikipedia search results for ${name}`);
       return null;
     }
+
+    console.log(`Found ${searchResults.length} Wikipedia results for ${name}`);
 
     for (const result of searchResults) {
       const pageTitle = result.title;
@@ -137,6 +140,7 @@ async function searchAndValidateWikipediaPerson(
 
       const detailResponse = await fetch(detailUrl);
       if (!detailResponse.ok) {
+        console.log(`Wikipedia detail fetch failed for ${pageTitle}`);
         continue;
       }
 
@@ -201,11 +205,14 @@ async function searchAndValidateWikipediaPerson(
 
 async function enrichPersonWithWikipedia(person: any): Promise<any> {
   try {
+    console.log(`Enriching person: ${person.name}`);
     const wikiData = await searchAndValidateWikipediaPerson(person.name, person.role || "");
     if (!wikiData) {
+      console.log(`No Wikipedia data found for ${person.name}`);
       return person;
     }
 
+    console.log(`Found Wikipedia data for ${person.name}: ${wikiData.pageUrl}`);
     return {
       ...person,
       wikipediaImageUrl: wikiData.imageUrl,
@@ -221,11 +228,16 @@ async function enrichPeopleWithWikipedia(people: any[]): Promise<any[]> {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const enrichedPeople: any[] = [];
 
+  console.log(`Starting Wikipedia enrichment for ${people.length} people`);
+
   for (const person of people) {
     const enriched = await enrichPersonWithWikipedia(person);
     enrichedPeople.push(enriched);
     await delay(100);
   }
+
+  const withWikipedia = enrichedPeople.filter(p => p.wikipediaPageUrl).length;
+  console.log(`Wikipedia enrichment complete: ${withWikipedia}/${people.length} people have Wikipedia data`);
 
   return enrichedPeople;
 }
@@ -257,11 +269,47 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (cachedAnalysis) {
+        let keyPersonnel = cachedAnalysis.key_personnel || [];
+
+        let wikipediaEnabled = true;
+        if (podcastId) {
+          const { data: settings } = await supabase
+            .from('podcast_settings')
+            .select('enable_wikipedia_info')
+            .eq('podcast_id', podcastId)
+            .maybeSingle();
+          wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
+          console.log(`Wikipedia setting for podcast ${podcastId}: ${wikipediaEnabled}`);
+        }
+
+        const needsWikipediaEnrichment = wikipediaEnabled &&
+          keyPersonnel.length > 0 &&
+          !keyPersonnel.some((p: any) => p.wikipediaPageUrl);
+
+        if (needsWikipediaEnrichment) {
+          console.log(`Cached analysis missing Wikipedia data, enriching ${keyPersonnel.length} people...`);
+          keyPersonnel = await enrichPeopleWithWikipedia(keyPersonnel);
+          console.log("Wikipedia enrichment complete for cached analysis");
+
+          const { error: updateError } = await supabase
+            .from("episode_analyses")
+            .update({ key_personnel: keyPersonnel })
+            .eq("episode_id", episodeId);
+          
+          if (updateError) {
+            console.error("Failed to update cached analysis with Wikipedia data:", updateError);
+          } else {
+            console.log("Updated cached analysis with Wikipedia data");
+          }
+        } else {
+          console.log(`Cache hit for ${episodeId}, Wikipedia enrichment not needed`);
+        }
+
         return new Response(
           JSON.stringify({
             cached: true,
             summary: cachedAnalysis.summary,
-            keyPersonnel: cachedAnalysis.key_personnel,
+            keyPersonnel: keyPersonnel,
             timeline: cachedAnalysis.timeline_events,
             locations: cachedAnalysis.locations,
             keyMoments: cachedAnalysis.key_moments || [],
@@ -426,7 +474,6 @@ Deno.serve(async (req: Request) => {
 
       const data = await response.json();
       console.log("API Response status:", data.status);
-      console.log("API Response full structure:", JSON.stringify(data, null, 2));
 
       if (data.status === "incomplete") {
         console.error("Incomplete response:", data.incomplete_details);
@@ -479,9 +526,8 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      console.log("Content item text:", contentItem.text);
       const analysis = JSON.parse(contentItem.text);
-      console.log("Parsed analysis:", JSON.stringify(analysis, null, 2));
+      console.log("Analysis parsed successfully");
 
       const annotations = contentItem.annotations || [];
       console.log(`Found ${annotations.length} annotations (URL citations)`);
@@ -495,13 +541,11 @@ Deno.serve(async (req: Request) => {
             start_index: annotation.start_index || 0,
             end_index: annotation.end_index || 0
           });
-          console.log(`Citation: ${annotation.title} - ${annotation.url}`);
         }
       }
 
       let references = Array.isArray(analysis.references) ? analysis.references : [];
       if (urlCitations.length > 0 && references.length > 0) {
-        console.log("Matching URLs to references...");
         references = references.map((ref: any) => {
           const refUrls: Array<{ url: string; title: string; domain: string }> = [];
           const refName = ref.name.toLowerCase();
@@ -526,8 +570,6 @@ Deno.serve(async (req: Request) => {
                   title: citation.title,
                   domain: domain
                 });
-                console.log(`  Matched \"${ref.name}\" with \"${citation.title}\"`);
-
                 if (refUrls.length >= 3) break;
               } catch (e) {
                 console.error(`Invalid URL: ${citation.url}`, e);
@@ -540,8 +582,6 @@ Deno.serve(async (req: Request) => {
           }
           return ref;
         });
-
-        console.log(`Attached URLs to ${references.filter((r: any) => r.urls).length} references`);
       }
 
       let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
@@ -574,7 +614,6 @@ Deno.serve(async (req: Request) => {
         keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
         references: references,
       };
-      console.log("Final result:", JSON.stringify(result, null, 2));
 
       return new Response(
         JSON.stringify({ cached: false, ...result }),
