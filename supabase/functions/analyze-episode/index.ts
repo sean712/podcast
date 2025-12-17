@@ -91,7 +91,6 @@ function isPersonPage(description: string, extract: string): boolean {
   const combined = `${description} ${extract}`.toLowerCase();
 
   if (/\d{3,4}/.test(combined)) {
-    console.log("Person page detected: contains year-like numbers");
     return true;
   }
 
@@ -112,25 +111,25 @@ function isPersonPage(description: string, extract: string): boolean {
   ];
 
   if (personKeywords.some(keyword => combined.includes(keyword))) {
-    console.log("Person page detected: contains person keyword");
     return true;
   }
 
-  console.log("Not detected as person page");
   return false;
 }
 
 async function searchAndValidateWikipediaPerson(
   name: string,
-  role: string
+  _role: string
 ): Promise<{ pageTitle: string; imageUrl?: string; pageUrl: string; extract: string } | null> {
   try {
     const searchUrl = `${WIKIPEDIA_API_BASE}?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=5&format=json&origin=*`;
-    console.log(`Wikipedia search for: ${name}`);
+    console.log(`[WIKI] Searching for: "${name}"`);
 
     const searchResponse = await fetch(searchUrl, { headers: WIKIPEDIA_HEADERS });
+    console.log(`[WIKI] Search response status: ${searchResponse.status}`);
+    
     if (!searchResponse.ok) {
-      console.log(`Wikipedia search failed for ${name}: ${searchResponse.status}`);
+      console.error(`[WIKI] Search failed for ${name}: HTTP ${searchResponse.status}`);
       return null;
     }
 
@@ -138,19 +137,17 @@ async function searchAndValidateWikipediaPerson(
     const searchResults = searchData?.query?.search || [];
 
     if (searchResults.length === 0) {
-      console.log(`No Wikipedia search results for ${name}`);
+      console.log(`[WIKI] No results for "${name}"`);
       return null;
     }
 
-    console.log(`Found ${searchResults.length} Wikipedia results for ${name}: ${searchResults.map((r: any) => r.title).join(", ")}`);
+    console.log(`[WIKI] Found ${searchResults.length} results: ${searchResults.map((r: any) => r.title).join(", ")}`);
 
     for (const result of searchResults) {
       const pageTitle = result.title;
       const nameSimilarity = calculateNameSimilarity(name, pageTitle);
-      console.log(`Checking "${pageTitle}" - name similarity: ${nameSimilarity.toFixed(2)}`);
 
       if (nameSimilarity < 0.3) {
-        console.log(`Skipping "${pageTitle}" - name similarity too low`);
         continue;
       }
 
@@ -158,7 +155,7 @@ async function searchAndValidateWikipediaPerson(
 
       const detailResponse = await fetch(detailUrl, { headers: WIKIPEDIA_HEADERS });
       if (!detailResponse.ok) {
-        console.log(`Wikipedia detail fetch failed for ${pageTitle}: ${detailResponse.status}`);
+        console.error(`[WIKI] Detail fetch failed for ${pageTitle}: HTTP ${detailResponse.status}`);
         continue;
       }
 
@@ -174,19 +171,15 @@ async function searchAndValidateWikipediaPerson(
       const extract = page.extract || "";
       const description = page.description || "";
 
-      console.log(`Wikipedia page "${pageTitle}" - description: "${description}"`);
-
       if (isDisambiguationPage(extract, description)) {
-        console.log(`Skipping "${pageTitle}" - disambiguation page`);
         continue;
       }
 
       if (!isPersonPage(description, extract)) {
-        console.log(`Skipping "${pageTitle}" - not a person page`);
         continue;
       }
 
-      console.log(`Match found: "${pageTitle}" for "${name}"`);
+      console.log(`[WIKI] MATCH: "${pageTitle}" for "${name}" - has image: ${!!page.thumbnail?.source}`);
 
       return {
         pageTitle,
@@ -196,31 +189,28 @@ async function searchAndValidateWikipediaPerson(
       };
     }
 
-    console.log(`No Wikipedia match found for "${name}"`);
+    console.log(`[WIKI] No match found for "${name}"`);
     return null;
   } catch (error) {
-    console.error(`Error searching Wikipedia for ${name}:`, error);
+    console.error(`[WIKI] Error for ${name}:`, error);
     return null;
   }
 }
 
 async function enrichPersonWithWikipedia(person: any): Promise<any> {
   try {
-    console.log(`Enriching person: ${person.name}`);
     const wikiData = await searchAndValidateWikipediaPerson(person.name, person.role || "");
     if (!wikiData) {
-      console.log(`No Wikipedia data found for ${person.name}`);
       return person;
     }
 
-    console.log(`Found Wikipedia data for ${person.name}: ${wikiData.pageUrl}`);
     return {
       ...person,
       wikipediaImageUrl: wikiData.imageUrl,
       wikipediaPageUrl: wikiData.pageUrl,
     };
   } catch (error) {
-    console.error(`Failed to enrich ${person.name} with Wikipedia data:`, error);
+    console.error(`[WIKI] Failed to enrich ${person.name}:`, error);
     return person;
   }
 }
@@ -229,16 +219,16 @@ async function enrichPeopleWithWikipedia(people: any[]): Promise<any[]> {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const enrichedPeople: any[] = [];
 
-  console.log(`Starting Wikipedia enrichment for ${people.length} people`);
+  console.log(`[WIKI] Starting enrichment for ${people.length} people`);
 
   for (const person of people) {
     const enriched = await enrichPersonWithWikipedia(person);
     enrichedPeople.push(enriched);
-    await delay(200);
+    await delay(250);
   }
 
   const withWikipedia = enrichedPeople.filter(p => p.wikipediaPageUrl).length;
-  console.log(`Wikipedia enrichment complete: ${withWikipedia}/${people.length} people have Wikipedia data`);
+  console.log(`[WIKI] Complete: ${withWikipedia}/${people.length} enriched`);
 
   return enrichedPeople;
 }
@@ -280,17 +270,16 @@ Deno.serve(async (req: Request) => {
             .eq('podcast_id', podcastId)
             .maybeSingle();
           wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
-          console.log(`Wikipedia setting for podcast ${podcastId}: ${wikipediaEnabled}`);
         }
 
-        const needsWikipediaEnrichment = wikipediaEnabled &&
-          keyPersonnel.length > 0 &&
-          !keyPersonnel.some((p: any) => p.wikipediaPageUrl);
+        const hasAnyWikipedia = keyPersonnel.some((p: any) => p.wikipediaPageUrl);
+        const needsWikipediaEnrichment = wikipediaEnabled && keyPersonnel.length > 0 && !hasAnyWikipedia;
+
+        console.log(`[CACHE] Episode ${episodeId}: ${keyPersonnel.length} people, hasWiki=${hasAnyWikipedia}, needsEnrich=${needsWikipediaEnrichment}`);
 
         if (needsWikipediaEnrichment) {
-          console.log(`Cached analysis missing Wikipedia data, enriching ${keyPersonnel.length} people...`);
+          console.log(`[CACHE] Enriching ${keyPersonnel.length} people...`);
           keyPersonnel = await enrichPeopleWithWikipedia(keyPersonnel);
-          console.log("Wikipedia enrichment complete for cached analysis");
 
           const { error: updateError } = await supabase
             .from("episode_analyses")
@@ -298,12 +287,10 @@ Deno.serve(async (req: Request) => {
             .eq("episode_id", episodeId);
           
           if (updateError) {
-            console.error("Failed to update cached analysis with Wikipedia data:", updateError);
+            console.error("[CACHE] Failed to save:", updateError);
           } else {
-            console.log("Updated cached analysis with Wikipedia data");
+            console.log("[CACHE] Saved enriched data");
           }
-        } else {
-          console.log(`Cache hit for ${episodeId}, Wikipedia enrichment not needed`);
         }
 
         return new Response(
@@ -349,14 +336,14 @@ Deno.serve(async (req: Request) => {
                   },
                   keyMoments: {
                     type: "array",
-                    description: "5-8 MEMORABLE moments from THIS podcast conversation that are surprising, funny, shocking, insightful, or inspiring - the moments listeners will want to share and remember. These should be standout conversational moments, revelations, unexpected insights, powerful statements, or fascinating stories told during the episode. DO NOT include generic historical facts or timeline events. Focus on what makes THIS specific episode engaging and memorable. Examples: unexpected revelations, counterintuitive insights, humorous exchanges, shocking statements, inspiring stories, surprising connections, or 'aha' moments.",
+                    description: "5-8 MEMORABLE moments from THIS podcast conversation that are surprising, funny, shocking, insightful, or inspiring - the moments listeners will want to share and remember.",
                     items: {
                       type: "object",
                       properties: {
-                        title: { type: "string", description: "Attention-grabbing title that captures the surprise/interest (e.g., 'The Unexpected Truth About...', 'Why Everything We Thought Was Wrong', 'The Moment That Changed Everything')" },
-                        description: { type: "string", description: "Explain WHY this moment is memorable, surprising, or significant. What makes it stand out? What's the key insight or takeaway?" },
-                        quote: { type: "string", description: "The most compelling quote that captures this memorable moment" },
-                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format (e.g., '01:23:45.678')" }
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        quote: { type: "string" },
+                        timestamp: { type: "string" }
                       },
                       required: ["title", "description", "quote", "timestamp"],
                       additionalProperties: false
@@ -377,7 +364,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
+                              timestamp: { type: "string" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -390,7 +377,6 @@ Deno.serve(async (req: Request) => {
                   },
                   timeline: {
                     type: "array",
-                    description: "Key chronological events mentioned in the transcript. Focus on factual historical events like wars, treaties, political changes, battles, etc for history podcasts. For True Crime, focus on the timeline of events of the crime and investigation. Where no specific date is given, use other reference points i.e. '6 months after the arrest' These are different from Key Moments - timeline is about historical facts with dates, while Key Moments are about memorable parts of the podcast conversation itself.",
                     items: {
                       type: "object",
                       properties: {
@@ -404,7 +390,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
+                              timestamp: { type: "string" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -417,7 +403,6 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "ALL geographic locations mentioned in the transcript - extract SPECIFIC, GRANULAR locations with CLEAN geographic names for accurate geocoding. CRITICAL NAMING RULES: 1) Use standard geographic names WITHOUT qualifiers like '(region)', '(area)', '(city)', '(implied)'. 2) For cities/towns: use 'City, Country' format (e.g., 'Damascus, Syria' NOT 'Damascus (city)' or 'Damascus area'). 3) For rivers/mountains/landmarks: use the proper name only (e.g., 'Euphrates River' NOT 'Euphrates River (region)' or 'Euphrates crossing area'). 4) For regions: include country context (e.g., 'Chechnya, Russia' NOT just 'Chechnya'). 5) For suburbs/neighborhoods: use 'Neighborhood, City, Country' format. 6) If multiple places within a country are mentioned, extract EACH ONE separately with full context. 7) Avoid vague descriptors - use the actual place name. GOOD EXAMPLES: 'Euphrates River', 'Moscow, Russia', 'St. Petersburg, Russia'. BAD EXAMPLES: 'Euphrates River (region)', 'Moscow suburbs', 'Syrian territory (implied)'.",
                     items: {
                       type: "object",
                       properties: {
@@ -429,7 +414,7 @@ Deno.serve(async (req: Request) => {
                             type: "object",
                             properties: {
                               text: { type: "string" },
-                              timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
+                              timestamp: { type: "string" }
                             },
                             required: ["text", "timestamp"],
                             additionalProperties: false
@@ -442,7 +427,6 @@ Deno.serve(async (req: Request) => {
                   },
                   references: {
                     type: "array",
-                    description: "Books, films, TV shows, companies, products, articles, websites, and other notable references mentioned during the episode but ignore ads. Extract as many as possible with their type and context. Ignore ads.",
                     items: {
                       type: "object",
                       properties: {
@@ -453,7 +437,7 @@ Deno.serve(async (req: Request) => {
                         name: { type: "string" },
                         context: { type: "string" },
                         quote: { type: "string" },
-                        timestamp: { type: "string", description: "Start timestamp only in HH:MM:SS.mmm or MM:SS.mmm format" }
+                        timestamp: { type: "string" }
                       },
                       required: ["type", "name", "context", "quote", "timestamp"],
                       additionalProperties: false
@@ -474,10 +458,8 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("API Response status:", data.status);
 
       if (data.status === "incomplete") {
-        console.error("Incomplete response:", data.incomplete_details);
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -485,7 +467,6 @@ Deno.serve(async (req: Request) => {
       }
 
       if (!data.output || !Array.isArray(data.output) || data.output.length === 0) {
-        console.error("No output in response");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -494,7 +475,6 @@ Deno.serve(async (req: Request) => {
 
       const messageItem = data.output.find((item: any) => item.type === "message");
       if (!messageItem || !messageItem.content || !Array.isArray(messageItem.content) || messageItem.content.length === 0) {
-        console.error("No message content in output");
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -503,24 +483,7 @@ Deno.serve(async (req: Request) => {
 
       const contentItem = messageItem.content.find((item: any) => item.type === "output_text");
 
-      if (!contentItem) {
-        console.error("No output_text in message content");
-        return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (contentItem.type === "refusal") {
-        console.error("Model refused:", contentItem.refusal);
-        return new Response(
-          JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (!contentItem.text) {
-        console.error("No text in content item");
+      if (!contentItem || contentItem.type === "refusal" || !contentItem.text) {
         return new Response(
           JSON.stringify({ summary: "", keyPersonnel: [], timeline: [], locations: [], keyMoments: [] }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -528,63 +491,8 @@ Deno.serve(async (req: Request) => {
       }
 
       const analysis = JSON.parse(contentItem.text);
-      console.log("Analysis parsed successfully");
-
-      const annotations = contentItem.annotations || [];
-      console.log(`Found ${annotations.length} annotations (URL citations)`);
-
-      const urlCitations: Array<{ url: string; title: string; start_index: number; end_index: number }> = [];
-      for (const annotation of annotations) {
-        if (annotation.type === "url_citation") {
-          urlCitations.push({
-            url: annotation.url,
-            title: annotation.title || "",
-            start_index: annotation.start_index || 0,
-            end_index: annotation.end_index || 0
-          });
-        }
-      }
 
       let references = Array.isArray(analysis.references) ? analysis.references : [];
-      if (urlCitations.length > 0 && references.length > 0) {
-        references = references.map((ref: any) => {
-          const refUrls: Array<{ url: string; title: string; domain: string }> = [];
-          const refName = ref.name.toLowerCase();
-
-          for (const citation of urlCitations) {
-            const citationTitle = citation.title.toLowerCase();
-            const refWords = refName.split(' ').filter((w: string) => w.length > 3);
-
-            let isMatch = false;
-            for (const word of refWords) {
-              if (citationTitle.includes(word)) {
-                isMatch = true;
-                break;
-              }
-            }
-
-            if (isMatch) {
-              try {
-                const domain = new URL(citation.url).hostname.replace('www.', '');
-                refUrls.push({
-                  url: citation.url,
-                  title: citation.title,
-                  domain: domain
-                });
-                if (refUrls.length >= 3) break;
-              } catch (e) {
-                console.error(`Invalid URL: ${citation.url}`, e);
-              }
-            }
-          }
-
-          if (refUrls.length > 0) {
-            return { ...ref, urls: refUrls };
-          }
-          return ref;
-        });
-      }
-
       let keyPersonnel = Array.isArray(analysis.keyPersonnel) ? analysis.keyPersonnel : [];
 
       let wikipediaEnabled = true;
@@ -596,15 +504,11 @@ Deno.serve(async (req: Request) => {
           .maybeSingle();
 
         wikipediaEnabled = settings?.enable_wikipedia_info ?? true;
-        console.log(`Wikipedia enrichment setting for podcast ${podcastId}: ${wikipediaEnabled}`);
       }
 
       if (keyPersonnel.length > 0 && wikipediaEnabled) {
-        console.log(`Enriching ${keyPersonnel.length} people with Wikipedia data...`);
+        console.log(`[NEW] Enriching ${keyPersonnel.length} people...`);
         keyPersonnel = await enrichPeopleWithWikipedia(keyPersonnel);
-        console.log("Wikipedia enrichment complete");
-      } else if (keyPersonnel.length > 0 && !wikipediaEnabled) {
-        console.log(`Wikipedia enrichment disabled for this podcast, skipping enrichment`);
       }
 
       const result = {
@@ -626,7 +530,7 @@ Deno.serve(async (req: Request) => {
       const messages = [
         {
           role: "system" as const,
-          content: `You are a helpful assistant that answers questions about a podcast episode titled \"${episodeTitle}\".\\n\\nYou have access to the full transcript of the episode. Use the transcript to provide accurate, detailed answers to user questions.\\n\\nWhen answering:\\n- Be conversational and helpful\\n- Quote relevant parts of the transcript when appropriate\\n- If the answer isn't in the transcript, say so honestly\\n- Provide context and explain connections between topics\\n- Keep responses concise but informative\\n\\nHere is the full transcript:\\n\\n${transcript}`,
+          content: `You are a helpful assistant that answers questions about a podcast episode titled \"${episodeTitle}\".\\n\\nHere is the full transcript:\\n\\n${transcript}`,
         },
         ...(conversationHistory || []),
         {
