@@ -41,11 +41,12 @@ async function getConfig(key: string): Promise<string | null> {
   }
 }
 
-const WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php";
+const WIKIPEDIA_REST_API = "https://en.wikipedia.org/api/rest_v1";
 
 const WIKIPEDIA_HEADERS = {
-  "User-Agent": "PodcastAnalyzer/1.0 (https://example.com; contact@example.com)",
+  "User-Agent": "Mozilla/5.0 (compatible; PodcastBot/1.0; +https://example.com)",
   "Accept": "application/json",
+  "Api-User-Agent": "PodcastAnalyzer/1.0 (contact@example.com)",
 };
 
 function normalizeNameForComparison(name: string): string {
@@ -122,22 +123,22 @@ async function searchAndValidateWikipediaPerson(
   _role: string
 ): Promise<{ pageTitle: string; imageUrl?: string; pageUrl: string; extract: string } | null> {
   try {
-    const searchUrl = `${WIKIPEDIA_API_BASE}?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=5&format=json&origin=*`;
-    console.log(`[WIKI] Searching for: "${name}"`);
+    const searchUrl = `${WIKIPEDIA_REST_API}/page/search/${encodeURIComponent(name)}?limit=5`;
+    console.log(`[WIKI] REST API search for: \"${name}\"`);
 
     const searchResponse = await fetch(searchUrl, { headers: WIKIPEDIA_HEADERS });
-    console.log(`[WIKI] Search response status: ${searchResponse.status}`);
-    
+    console.log(`[WIKI] Search status: ${searchResponse.status}`);
+
     if (!searchResponse.ok) {
-      console.error(`[WIKI] Search failed for ${name}: HTTP ${searchResponse.status}`);
+      console.error(`[WIKI] Search failed: HTTP ${searchResponse.status}`);
       return null;
     }
 
     const searchData = await searchResponse.json();
-    const searchResults = searchData?.query?.search || [];
+    const searchResults = searchData?.pages || [];
 
     if (searchResults.length === 0) {
-      console.log(`[WIKI] No results for "${name}"`);
+      console.log(`[WIKI] No results for \"${name}\"`);
       return null;
     }
 
@@ -151,45 +152,38 @@ async function searchAndValidateWikipediaPerson(
         continue;
       }
 
-      const detailUrl = `${WIKIPEDIA_API_BASE}?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages|info|extracts|description&format=json&pithumbsize=300&inprop=url&exintro=true&explaintext=true&exsentences=3&origin=*`;
+      const summaryUrl = `${WIKIPEDIA_REST_API}/page/summary/${encodeURIComponent(pageTitle)}`;
+      const summaryResponse = await fetch(summaryUrl, { headers: WIKIPEDIA_HEADERS });
 
-      const detailResponse = await fetch(detailUrl, { headers: WIKIPEDIA_HEADERS });
-      if (!detailResponse.ok) {
-        console.error(`[WIKI] Detail fetch failed for ${pageTitle}: HTTP ${detailResponse.status}`);
+      if (!summaryResponse.ok) {
+        console.error(`[WIKI] Summary fetch failed for ${pageTitle}: HTTP ${summaryResponse.status}`);
         continue;
       }
 
-      const detailData = await detailResponse.json();
-      const pages = detailData?.query?.pages;
-      if (!pages) continue;
+      const summary = await summaryResponse.json();
 
-      const pageId = Object.keys(pages)[0];
-      const page = pages[pageId];
-
-      if (!page || pageId === "-1") continue;
-
-      const extract = page.extract || "";
-      const description = page.description || "";
-
-      if (isDisambiguationPage(extract, description)) {
+      if (summary.type === "disambiguation") {
         continue;
       }
+
+      const extract = summary.extract || "";
+      const description = summary.description || "";
 
       if (!isPersonPage(description, extract)) {
         continue;
       }
 
-      console.log(`[WIKI] MATCH: "${pageTitle}" for "${name}" - has image: ${!!page.thumbnail?.source}`);
+      console.log(`[WIKI] MATCH: \"${pageTitle}\" for \"${name}\" - has image: ${!!summary.thumbnail?.source}`);
 
       return {
         pageTitle,
-        imageUrl: page.thumbnail?.source,
-        pageUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
+        imageUrl: summary.thumbnail?.source,
+        pageUrl: summary.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
         extract,
       };
     }
 
-    console.log(`[WIKI] No match found for "${name}"`);
+    console.log(`[WIKI] No match found for \"${name}\"`);
     return null;
   } catch (error) {
     console.error(`[WIKI] Error for ${name}:`, error);
@@ -224,7 +218,7 @@ async function enrichPeopleWithWikipedia(people: any[]): Promise<any[]> {
   for (const person of people) {
     const enriched = await enrichPersonWithWikipedia(person);
     enrichedPeople.push(enriched);
-    await delay(250);
+    await delay(300);
   }
 
   const withWikipedia = enrichedPeople.filter(p => p.wikipediaPageUrl).length;
