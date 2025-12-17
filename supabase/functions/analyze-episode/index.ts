@@ -43,6 +43,11 @@ async function getConfig(key: string): Promise<string | null> {
 
 const WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php";
 
+const WIKIPEDIA_HEADERS = {
+  "User-Agent": "PodcastAnalyzer/1.0 (https://example.com; contact@example.com)",
+  "Accept": "application/json",
+};
+
 function normalizeNameForComparison(name: string): string {
   return name.toLowerCase()
     .replace(/[^a-z\s]/g, '')
@@ -76,7 +81,6 @@ function isDisambiguationPage(extract: string, description: string): boolean {
     /commonly refers to/i,
     /disambiguation/i,
     /list of people/i,
-    /^this article is about/i,
   ];
 
   const combined = `${extract} ${description}`;
@@ -86,93 +90,29 @@ function isDisambiguationPage(extract: string, description: string): boolean {
 function isPersonPage(description: string, extract: string): boolean {
   const combined = `${description} ${extract}`.toLowerCase();
 
-  const directRoleTitles = [
-    /\bking of\b/i,
-    /\bqueen of\b/i,
-    /\bemperor of\b/i,
-    /\bempress of\b/i,
-    /\bduke of\b/i,
-    /\bduchess of\b/i,
-    /\bprince of\b/i,
-    /\bprincess of\b/i,
-    /\bpope\b/i,
-    /\bcardinal\b/i,
-    /\bbishop of\b/i,
-    /\barchbishop of\b/i,
-    /\bcount of\b/i,
-    /\bcountess of\b/i,
-    /\bearl of\b/i,
-    /\bbaron\b/i,
-    /\bpharaoh\b/i,
-    /\bsultan\b/i,
-    /\bcaliph\b/i,
-    /\btsar\b/i,
-    /\bczar\b/i,
-    /\bregent\b/i,
-    /\bheir to\b/i,
-    /\bdauphin\b/i,
-  ];
-
-  if (directRoleTitles.some(pattern => pattern.test(combined))) {
-    console.log("Person page detected via direct role title");
+  if (/\d{3,4}/.test(combined)) {
+    console.log("Person page detected: contains year-like numbers");
     return true;
   }
 
-  const datePatterns = [
-    /\(\s*\d{3,4}\s*[-\u2013\u2014]\s*\d{3,4}\s*\)/,
-    /\(\s*c\.?\s*\d{3,4}\s*[-\u2013\u2014]\s*\d{3,4}\s*\)/,
-    /\(\s*\d{1,2}\s+\w+\s+\d{3,4}\s*[-\u2013\u2014]/,
-    /\(\s*\w+\s+\d{1,2},?\s+\d{3,4}\s*[-\u2013\u2014]/,
-    /\b\d{3,4}\s*[-\u2013\u2014]\s*\d{3,4}\b/,
-    /\breigned\s+\d{3,4}/i,
-    /\bruled\s+\d{3,4}/i,
-    /\bfrom\s+\d{3,4}\s+(to|until)/i,
+  const personKeywords = [
+    "born", "died", "was", "were", "is", "politician", "president", "minister",
+    "king", "queen", "emperor", "duke", "prince", "princess", "pope", "cardinal",
+    "bishop", "earl", "baron", "count", "general", "admiral", "commander",
+    "author", "writer", "actor", "actress", "singer", "musician", "scientist",
+    "professor", "doctor", "journalist", "historian", "philosopher", "artist",
+    "athlete", "player", "coach", "businessman", "lawyer", "judge", "activist",
+    "leader", "diplomat", "ambassador", "governor", "senator", "mayor",
+    "chancellor", "dictator", "revolutionary", "inventor", "entrepreneur",
+    "producer", "composer", "economist", "physicist", "mathematician", "engineer",
+    "architect", "filmmaker", "poet", "novelist", "explorer", "pilot", "astronaut",
+    "soldier", "officer", "spy", "assassin", "criminal", "philanthropist",
+    "monarch", "ruler", "sovereign", "conqueror", "warrior", "knight", "nobleman",
+    "aristocrat", "saint", "martyr", "chancellor", "regent", "heir"
   ];
 
-  if (datePatterns.some(pattern => pattern.test(combined))) {
-    console.log("Person page detected via date pattern");
-    return true;
-  }
-
-  const personIndicators = [
-    /\b(born|died|was|is|were)\b.*\b(politician|president|minister|author|writer|actor|actress|singer|musician|scientist|professor|doctor|general|king|queen|emperor|ceo|founder|director|journalist|historian|philosopher|artist|athlete|player|coach|businessman|businesswoman|lawyer|judge|activist|leader|commander|statesman|stateswoman|diplomat|ambassador|governor|senator|congressman|representative|mayor|chancellor|prime minister|dictator|revolutionary|inventor|entrepreneur|producer|composer|conductor|economist|psychologist|sociologist|physicist|chemist|biologist|mathematician|engineer|architect|designer|photographer|filmmaker|screenwriter|playwright|poet|novelist|critic|editor|publisher|broadcaster|anchor|host|comedian|entertainer|performer|dancer|choreographer|model|chef|explorer|adventurer|pilot|astronaut|soldier|officer|admiral|marshal|spy|assassin|criminal|mobster|gangster|serial killer|victim|survivor|witness|whistleblower|activist|reformer|philanthropist|humanitarian|nobel laureate|olympian|champion|medalist|hall of famer)\b/i,
-    /\b(american|british|french|german|russian|chinese|japanese|indian|canadian|australian|italian|spanish|brazilian|mexican|south african|egyptian|nigerian|kenyan|korean|polish|dutch|swedish|norwegian|danish|finnish|austrian|swiss|belgian|portuguese|greek|turkish|iranian|iraqi|saudi|israeli|palestinian|lebanese|syrian|ukrainian|czech|hungarian|romanian|bulgarian|serbian|croatian|slovenian|estonian|latvian|lithuanian|georgian|armenian|azerbaijani|kazakh|uzbek|pakistani|bangladeshi|sri lankan|thai|vietnamese|indonesian|malaysian|filipino|singaporean|taiwanese|new zealand|irish|scottish|welsh|cuban|venezuelan|colombian|argentine|chilean|peruvian|ecuadorian|bolivian|uruguayan|paraguayan)\b.*\b(politician|president|leader|author|actor|singer|scientist|general|king|emperor)\b/i,
-    /\b(english|scottish|welsh|irish|french|german|spanish|italian|portuguese|dutch|belgian|swiss|austrian|polish|russian|ukrainian|swedish|norwegian|danish|finnish|greek|turkish|egyptian|persian|chinese|japanese|korean|indian|arabian|roman|byzantine|ottoman|mongol|viking|norman|saxon|celtic|aztec|mayan|incan)\s+(king|queen|monarch|ruler|emperor|empress|prince|princess|duke|duchess|count|countess|lord|lady|knight|nobleman|noblewoman|warrior|general|admiral|commander)\b/i,
-  ];
-
-  if (personIndicators.some(pattern => pattern.test(combined))) {
-    console.log("Person page detected via person indicator pattern");
-    return true;
-  }
-
-  const birthDeathPattern = /\b(born|b\.|nee|died|d\.)\s*[\d\(\[]/i;
-  if (birthDeathPattern.test(combined)) {
-    console.log("Person page detected via birth/death pattern");
-    return true;
-  }
-
-  const historicalRoles = [
-    /\bmonarch\b/i,
-    /\bruler\b/i,
-    /\bsovereign\b/i,
-    /\bconqueror\b/i,
-    /\bcrusader\b/i,
-    /\bwarrior\b/i,
-    /\bknight\b/i,
-    /\bnobleman\b/i,
-    /\bnoblewoman\b/i,
-    /\baristocrat\b/i,
-    /\broyalty\b/i,
-    /\bassassinated\b/i,
-    /\bexecuted\b/i,
-    /\bbeheaded\b/i,
-    /\bmartyred\b/i,
-    /\bcanonized\b/i,
-    /\bsaint\b/i,
-  ];
-
-  if (historicalRoles.some(pattern => pattern.test(combined))) {
-    console.log("Person page detected via historical role");
+  if (personKeywords.some(keyword => combined.includes(keyword))) {
+    console.log("Person page detected: contains person keyword");
     return true;
   }
 
@@ -188,7 +128,7 @@ async function searchAndValidateWikipediaPerson(
     const searchUrl = `${WIKIPEDIA_API_BASE}?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=5&format=json&origin=*`;
     console.log(`Wikipedia search for: ${name}`);
 
-    const searchResponse = await fetch(searchUrl);
+    const searchResponse = await fetch(searchUrl, { headers: WIKIPEDIA_HEADERS });
     if (!searchResponse.ok) {
       console.log(`Wikipedia search failed for ${name}: ${searchResponse.status}`);
       return null;
@@ -202,23 +142,23 @@ async function searchAndValidateWikipediaPerson(
       return null;
     }
 
-    console.log(`Found ${searchResults.length} Wikipedia results for ${name}`);
+    console.log(`Found ${searchResults.length} Wikipedia results for ${name}: ${searchResults.map((r: any) => r.title).join(", ")}`);
 
     for (const result of searchResults) {
       const pageTitle = result.title;
       const nameSimilarity = calculateNameSimilarity(name, pageTitle);
       console.log(`Checking "${pageTitle}" - name similarity: ${nameSimilarity.toFixed(2)}`);
 
-      if (nameSimilarity < 0.4) {
+      if (nameSimilarity < 0.3) {
         console.log(`Skipping "${pageTitle}" - name similarity too low`);
         continue;
       }
 
       const detailUrl = `${WIKIPEDIA_API_BASE}?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages|info|extracts|description&format=json&pithumbsize=300&inprop=url&exintro=true&explaintext=true&exsentences=3&origin=*`;
 
-      const detailResponse = await fetch(detailUrl);
+      const detailResponse = await fetch(detailUrl, { headers: WIKIPEDIA_HEADERS });
       if (!detailResponse.ok) {
-        console.log(`Wikipedia detail fetch failed for ${pageTitle}`);
+        console.log(`Wikipedia detail fetch failed for ${pageTitle}: ${detailResponse.status}`);
         continue;
       }
 
@@ -233,9 +173,8 @@ async function searchAndValidateWikipediaPerson(
 
       const extract = page.extract || "";
       const description = page.description || "";
-      
-      console.log(`Wikipedia description: "${description}"`);
-      console.log(`Wikipedia extract preview: "${extract.substring(0, 100)}..."`);
+
+      console.log(`Wikipedia page "${pageTitle}" - description: "${description}"`);
 
       if (isDisambiguationPage(extract, description)) {
         console.log(`Skipping "${pageTitle}" - disambiguation page`);
@@ -247,7 +186,7 @@ async function searchAndValidateWikipediaPerson(
         continue;
       }
 
-      console.log(`Confident match: "${pageTitle}" for "${name}"`);
+      console.log(`Match found: "${pageTitle}" for "${name}"`);
 
       return {
         pageTitle,
@@ -257,7 +196,7 @@ async function searchAndValidateWikipediaPerson(
       };
     }
 
-    console.log(`No confident Wikipedia match found for "${name}" (${role})`);
+    console.log(`No Wikipedia match found for "${name}"`);
     return null;
   } catch (error) {
     console.error(`Error searching Wikipedia for ${name}:`, error);
@@ -295,7 +234,7 @@ async function enrichPeopleWithWikipedia(people: any[]): Promise<any[]> {
   for (const person of people) {
     const enriched = await enrichPersonWithWikipedia(person);
     enrichedPeople.push(enriched);
-    await delay(100);
+    await delay(200);
   }
 
   const withWikipedia = enrichedPeople.filter(p => p.wikipediaPageUrl).length;
