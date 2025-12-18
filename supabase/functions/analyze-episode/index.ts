@@ -311,7 +311,7 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           model: "gpt-5",
-          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and parallel world events.\n\nIMPORTANT DISTINCTION:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nAnalyze this podcast transcript and return the analysis in the following JSON format:\n\n${transcript}`,
+          input: `You are an expert at analyzing podcast transcripts. Extract comprehensive information including summary, key moments, key personnel, timeline events, locations with supporting quotes, and references.\n\nIMPORTANT DISTINCTIONS:\n- TIMELINE: Chronological historical events with dates (wars, treaties, political changes, etc.)\n- KEY MOMENTS: The most memorable, surprising, funny, shocking, or insightful parts of THIS podcast episode that listeners will want to tell others about. These should be the standout moments that make you go 'wow', laugh, or think differently. Focus on revelations, unexpected turns, powerful statements, or fascinating insights shared in the conversation.\n- LOCATIONS: Extract EVERY geographic location mentioned - countries, cities, states, regions, landmarks, buildings, battlefields, etc. Be thorough and comprehensive. Each location should include the context of why it's mentioned and all quotes where it appears.\n\nFor all timestamps, provide ONLY the start time in the format HH:MM:SS.mmm or MM:SS.mmm (e.g., '01:23:45.678' or '23:45.678'). If you see a range like '00:07:21.390 --> 00:07:38.150', extract only the first part '00:07:21.390'.\n\nAnalyze this podcast transcript and return the analysis in the following JSON format:\n\n${transcript}`,
           max_output_tokens: 16000,
           reasoning: {
             effort: "low"
@@ -397,13 +397,21 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
+                    description: "ALL geographic locations mentioned in the transcript including: countries, cities, states, regions, specific buildings/landmarks, battlefields, and any other places discussed. Extract every location reference comprehensively.",
                     items: {
                       type: "object",
                       properties: {
-                        name: { type: "string" },
-                        context: { type: "string" },
+                        name: {
+                          type: "string",
+                          description: "The name of the location (e.g., 'Berlin', 'France', 'The White House')"
+                        },
+                        context: {
+                          type: "string",
+                          description: "Why this location is mentioned and its significance in the discussion"
+                        },
                         quotes: {
                           type: "array",
+                          description: "All quotes where this location is mentioned with timestamps",
                           items: {
                             type: "object",
                             properties: {
