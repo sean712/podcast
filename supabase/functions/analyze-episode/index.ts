@@ -178,7 +178,7 @@ Deno.serve(async (req: Request) => {
                   },
                   locations: {
                     type: "array",
-                    description: "ALL geographic locations mentioned in the transcript including: countries, cities, states, regions, specific buildings/landmarks, battlefields, and any other places discussed. Extract every location reference comprehensively.",
+                    description: "ALL geographic locations mentioned in the transcript including: countries, cities, states, regions, specific buildings/landmarks, battlefields, and any other places discussed. Extract every location reference comprehensively. Be careful to find the location that makes sense in the context of the episode. For example, if the episode is largely about the middle east and mentions Palestine, it will be talking about Palestine in the middle east and not a town called palestine in the USA",
                     items: {
                       type: "object",
                       properties: {
